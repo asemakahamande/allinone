@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+
+    <div class="bg-white shadow-lg rounded-lg w-full max-w-md p-8">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Login</h2>
+
+        {% for message in messages %}
+            <p class="text-red-600 text-sm mb-2">{{ message }}</p>
+        {% endfor %}
+
+        <form method="post" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <input 
+                type="email" 
+                name="email" 
+                placeholder="Email" 
+                required 
+                class="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+            <input 
+                type="password" 
+                name="password" 
+                placeholder="Password" 
+                required 
+                class="p-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+            <button 
+                type="submit" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg py-3 shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                Login
+            </button>
+        </form>
+
+        <p class="text-center mt-4 text-sm">
+            <a href="{% url 'password_reset' %}" class="text-blue-600 hover:text-blue-800 underline">
+                Forgot password?
+            </a>
+        </p>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,245 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .questions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .question-block {
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .options li {
+            margin: 10px 0;
+        }
+
+        .image-container {
+            margin-bottom: 10px;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: flex-start;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .question-button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .question-button:hover {
+            background-color: #0056b3;
+        }
+
+        .question-button.active {
+            background-color: yellow;
+            color: black;
+        }
+
+        .nav-button {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background-color: #0056b3;
+        }
+
+        .nav-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .submit-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .submit-button:hover {
+            background-color: #218838;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .timer {
+            font-size: 20px;
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        let currentQuestionIndex = 0;
+        let timer;
+        let countdownTime = {{ duration_seconds|default:"120" }};  // Use dynamic duration or fallback to 120s (2 min)
+
+        function showQuestion(index) {
+            const questions = document.querySelectorAll('.question-block');
+            const buttons = document.querySelectorAll('.question-button');
+
+            if (index >= 0 && index < questions.length) {
+                // Toggle visibility for question blocks
+                questions.forEach((question, i) => {
+                    question.classList.toggle('active', i === index);
+                });
+
+                // Update button styles
+                buttons.forEach((button, i) => {
+                    button.classList.toggle('active', i === index);
+                });
+
+                currentQuestionIndex = index;
+
+                // Update navigation button states
+                document.getElementById('prevButton').disabled = currentQuestionIndex === 0;
+                document.getElementById('nextButton').disabled = currentQuestionIndex === questions.length - 1;
+            }
+        }
+
+        function validateAllQuestions() {
+            const questions = document.querySelectorAll('.question-block');
+            for (let i = 0; i < questions.length; i++) {
+                const questionBlock = questions[i];
+                const selectedOption = questionBlock.querySelector('input[type="radio"]:checked');
+                if (!selectedOption) {
+                    alert(`Question ${i + 1} is not answered. Please select an option.`);
+                    showQuestion(i); // Navigate to the unanswered question
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function startTimer() {
+            // Set initial display
+            const minutes = Math.floor(countdownTime / 60);
+            const seconds = countdownTime % 60;
+            document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+            timer = setInterval(function () {
+                const minutes = Math.floor(countdownTime / 60);
+                const seconds = countdownTime % 60;
+                document.getElementById('timer').textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+                if (countdownTime === 0) {
+                    clearInterval(timer);
+                    alert('Time is up! Submitting your answers...');  // Optional: Add user notification
+                    document.querySelector('form').submit(); // Automatically submit the form
+                } else {
+                    countdownTime--;
+                }
+            }, 1000);
+        }
+
+        window.onload = function () {
+            showQuestion(0); // Show the first question by default
+            startTimer(); // Start the timer when the page loads
+        };
+    </script>
+</head>
+
+<body>
+    <form method="POST" onsubmit="return validateAllQuestions();">
+        {% csrf_token %}
+        <script type="text/javascript" id="MathJax-script" async src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
+        <!-- <img src="{% static 'images/bgp.jpg' %}" alt="Question Image"> -->
+        <div class="timer" id="timer"></div> <!-- Initial Timer Display (set by JS) -->
+        <div class="questions-container">
+            {% for question in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <h1>{{ question.question|safe }}</h1>
+                {% if question.image %}
+                <div class="image-container">
+                    <img src="{{ question.image.url }}" height="100" width="100" alt="Question Image">  <!-- Fixed: Use .url for ImageField -->
+                </div>
+                {% endif %}
+                <ul class="options">
+                    {% for letter, option in question.options %}
+                    <li>
+                        <label>
+                            <input type="radio" name="{{ question.id }}" value="{{ option }}">  <!-- Plain text value for POST -->
+                            {{ letter }}. {{ option }}  <!-- Display with letter: A. id card -->
+                        </label>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="nav-container">
+            <button id="prevButton" type="button" class="nav-button" onclick="showQuestion(currentQuestionIndex - 1)"
+                disabled>&lt; Previous</button>
+            <button id="nextButton" type="button" class="nav-button" onclick="showQuestion(currentQuestionIndex + 1)">
+                Next &gt;</button>
+        </div>
+
+        <!-- Question Buttons -->
+        <div class="buttons-container">
+            {% for question in question_data %}
+            <button type="button" class="question-button {% if forloop.first %}active{% endif %}"
+                onclick="showQuestion({{ forloop.counter0 }})">
+                {{ forloop.counter }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="footer">
+            <button type="submit" class="submit-button">Submit</button>
+        </div>
+    </form>
+</body>
+
+</html>

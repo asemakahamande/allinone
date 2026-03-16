@@ -1,0 +1,163 @@
+{% extends "score/dashboard.html" %}
+{% load static %}
+
+{% block title %}
+    {% if is_update %}Update Timetable Entry{% else %}Add Timetable Entry{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+                <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">
+                    {% if is_update %}Update Timetable Entry{% else %}Add Timetable Entry{% endif %}
+                </h1>
+                <p class="text-gray-600 mt-1">{% if is_update %}Modify timetable entry{% else %}Create a new timetable entry{% endif %}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="content-card p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Class Selection -->
+            {% if is_admin %}
+                <div>
+                    <label for="id_class" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+                        Class <span class="text-red-500">*</span>
+                    </label>
+                    <select name="class" id="id_class"
+                            class="w-full px-4 py-2.5 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white appearance-none"
+                            required>
+                        <option value="">-- Select Class --</option>
+                        {% for cls in classes %}
+                            <option value="{{ cls.id }}"
+                                {% if form.instance.class and form.instance.class.id == cls.id %}selected{% endif %}>
+                                {{ cls.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400"></i>
+                    </div>
+                    {% if form.class.errors %}
+                        <p class="text-red-600 text-sm mt-1 flex items-center gap-1">
+                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                            {{ form.class.errors|join:", " }}
+                        </p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+                        Class
+                    </label>
+                    <div class="px-4 py-2.5 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="school" class="w-5 h-5 text-blue-600"></i>
+                            <span class="font-semibold text-blue-800">{{ form.instance.class.name }}</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="class" value="{{ form.instance.class.id }}">
+                </div>
+            {% endif %}
+
+            <!-- Render other form fields -->
+            {% for field in form %}
+                {% if field.name != 'class' %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            {% if field.name == 'subject' %}
+                                <i data-lucide="book" class="w-4 h-4 text-blue-600"></i>
+                            {% elif field.name == 'teacher' %}
+                                <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                            {% elif field.name == 'day' %}
+                                <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                            {% elif field.name == 'start_time' or field.name == 'end_time' %}
+                                <i data-lucide="clock" class="w-4 h-4 text-blue-600"></i>
+                            {% else %}
+                                <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                            {% endif %}
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        <div class="relative">
+                            {{ field }}
+                            {% if field.field.widget.input_type == 'select' %}
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <i data-lucide="chevron-down" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {% if field.errors %}
+                            <p class="text-red-600 text-sm mt-1 flex items-center gap-1">
+                                <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                                {{ field.errors|join:", " }}
+                            </p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                <button type="submit" 
+                        class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    {% if is_update %}Update Entry{% else %}Save Entry{% endif %}
+                </button>
+                <a href="{% url 'timetable_list' %}" 
+                   class="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-all duration-200">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    Back to Timetable
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    /* Style form inputs */
+    #id_class_name, #id_subject, #id_teacher, #id_day, 
+    #id_start_time, #id_end_time {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        padding-right: 2.5rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    
+    #id_class_name:focus, #id_subject:focus, #id_teacher:focus, 
+    #id_day:focus, #id_start_time:focus, #id_end_time:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

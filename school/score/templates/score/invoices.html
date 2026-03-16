@@ -1,0 +1,53 @@
+{% extends "score/dashboard.html" %}
+
+{% block title %}Payment History - Due Deligence{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
+    <h1 class="text-2xl font-bold mb-6">Payment History</h1>
+
+    {% if payments %}
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-100 text-left">
+                    <th class="p-2 border">Reference</th>
+                    <th class="p-2 border">Pins</th>
+                    <th class="p-2 border">Amount</th>
+                    <th class="p-2 border">Status</th>
+                    <th class="p-2 border">Date</th>
+                    <th class="p-2 border">Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                    <tr>
+                        <td class="p-2 border">{{ payment.reference }}</td>
+                        <td class="p-2 border">{{ payment.num_students }}</td>
+                        <td class="p-2 border">{{ payment.amount_display }}</td>
+                        <td class="p-2 border">
+                            {% if payment.status == "paid" %}
+                                <span class="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">Paid</span>
+                            {% elif payment.status == "pending" %}
+                                <span class="px-2 py-1 text-xs bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                            {% else %}
+                                <span class="px-2 py-1 text-xs bg-red-100 text-red-700 rounded">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-2 border">{{ payment.created_at|date:"Y-m-d H:i" }}</td>
+                        <td class="p-2 border">
+                            {% if payment.is_successful %}
+                                <a href="{% url 'download_receipt' payment.reference %}"
+                                   class="text-blue-600 hover:underline">Download</a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No payment history yet.</p>
+    {% endif %}
+</div>
+{% endblock %} 

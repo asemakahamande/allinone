@@ -1,0 +1,350 @@
+{% extends "score/dashboard.html" %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}Enter Scores - {{ selected_subject.name }} ({{ selected_class.name }}){% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                <i data-lucide="edit" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Input Score</h1>
+                <p class="text-gray-600 mt-1">Enter and manage student scores</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Selection Form -->
+    <div class="content-card p-6 mb-6">
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+                    Class
+                </label>
+                {% if is_admin %}
+                    <select name="class"
+                            onchange="this.form.submit()"
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white">
+                        {% for cls in classes %}
+                            <option value="{{ cls.id }}"
+                                {% if selected_class and cls.id == selected_class.id %}selected{% endif %}>
+                                {{ cls.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <div class="px-4 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="school" class="w-5 h-5 text-blue-600"></i>
+                            <span class="font-semibold text-blue-800">{{ selected_class.name }}</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="class" value="{{ selected_class.id }}">
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="book" class="w-4 h-4 text-blue-600"></i>
+                    Subject
+                </label>
+                <select name="subject" 
+                        onchange="this.form.submit()" 
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white">
+                    {% for sub in subjects %}
+                        <option value="{{ sub.id }}" {% if sub.id == selected_subject.id %}selected{% endif %}>
+                            {{ sub.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                    Term
+                </label>
+                <select name="term" 
+                        onchange="this.form.submit()" 
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white">
+                    {% for t in terms %}
+                        <option value="{{ t }}" {% if t == term %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="calendar-days" class="w-4 h-4 text-blue-600"></i>
+                    Session
+                </label>
+                <select name="session" 
+                        onchange="this.form.submit()" 
+                        class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white">
+                    {% for s in sessions %}
+                        <option value="{{ s }}" {% if s == session %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        {% if selected_class %}
+            <div class="mt-4 p-4 rounded-lg border-l-4 {% if use_custom %}bg-purple-50 border-purple-500{% else %}bg-blue-50 border-blue-500{% endif %}">
+                <div class="flex items-center gap-2 mb-1">
+                    <i data-lucide="{% if use_custom %}settings{% else %}info{% endif %}" class="w-5 h-5 {% if use_custom %}text-purple-600{% else %}text-blue-600{% endif %}"></i>
+                    <strong class="{% if use_custom %}text-purple-800{% else %}text-blue-800{% endif %}">Grading System:</strong>
+                </div>
+                {% if use_custom %}
+                    <span class="{% if use_custom %}text-purple-800{% else %}text-blue-800{% endif %} font-bold">Custom Grading System</span>
+                    {% if custom_components %}
+                        <div class="text-sm mt-2 flex flex-wrap gap-2">
+                            <span class="font-semibold">Components:</span>
+                            {% for name, weight in custom_components.items %}
+                                <span class="px-2 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-medium">
+                                    {{ name }} ({{ weight }}%)
+                                </span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-red-600 mt-2 flex items-center gap-2">
+                            <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                            <span>⚠ Not configured yet! Please set up your custom grading system.</span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <span class="text-blue-800">{{ selected_class.get_scoring_system_display }}</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Score Entry Table -->
+    {% if scores %}
+    <form method="POST" id="scoreForm">
+        {% csrf_token %}
+        <input type="hidden" name="class" value="{{ selected_class.id }}">
+        <input type="hidden" name="subject" value="{{ selected_subject.id }}">
+        <input type="hidden" name="term" value="{{ term }}">
+        <input type="hidden" name="session" value="{{ session }}">
+
+        <div class="content-card overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+                <h2 class="text-xl font-semibold flex items-center gap-2">
+                    <i data-lucide="table" class="w-5 h-5"></i>
+                    Score Entry Table ({{ scores|length }} students)
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th rowspan="2" class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Student</th>
+                            <th colspan="{% if use_custom %}{{ custom_components|length }}{% else %}4{% endif %}" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">
+                                {% if use_custom %}
+                                    Custom Scores
+                                {% else %}
+                                    Continuous Assessment & Exam
+                                {% endif %}
+                            </th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Total<br><small class="text-gray-500">(100%)</small></th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Sub Avg</th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Sub High</th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Sub Low</th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Position</th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Grade</th>
+                            <th rowspan="2" class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider align-middle">Remark</th>
+                        </tr>
+                        <tr>
+                            {% if use_custom and custom_components %}
+                                {% for name, weight in custom_components.items %}
+                                    {% if not name|is_exam_component %}
+                                        <th class="px-3 py-2 text-xs font-semibold text-gray-600 uppercase">{{ name }}<br><small class="text-gray-500">({{ weight }}%)</small></th>
+                                    {% endif %}
+                                {% endfor %}
+                                {% for name, weight in custom_components.items %}
+                                    {% if name|is_exam_component %}
+                                        <th class="px-3 py-2 text-xs font-semibold text-gray-600 uppercase">{{ name }}<br><small class="text-gray-500">({{ weight }}%)</small></th>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% for field, limits in scoring_ranges.items %}
+                                    {% if field != 'max_total' %}
+                                        <th class="px-3 py-2 text-xs font-semibold text-gray-600 uppercase">{{ field|capfirst }}<br><small class="text-gray-500">({{ scoring_percentages|get_item:field }}%)</small></th>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for s in scores %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-blue-100">
+                                        <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">
+                                        {{ s.student.surname|title }} {{ s.student.first_name|title }}
+                                        {% if s.student.middle_name %}{{ s.student.middle_name|title }}{% endif %}
+                                    </span>
+                                </div>
+                            </td>
+
+                            {% if use_custom and custom_components %}
+                                {% for name, weight in custom_components.items %}
+                                    {% if not name|is_exam_component %}
+                                        {% with slug=name|lower|replace:" ,_" %}
+                                        <td class="px-3 py-2">
+                                            <input type="number"
+                                                   step="0.01"
+                                                   min="0"
+                                                   max="{{ weight }}"
+                                                   name="custom_{{ s.student.id }}_{{ slug }}"
+                                                   value="{% if s.custom_scores|get_item:name %}{{ s.custom_scores|get_item:name }}{% endif %}"
+                                                   class="w-20 px-2 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                   placeholder="">
+                                        </td>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                {% for name, weight in custom_components.items %}
+                                    {% if name|is_exam_component %}
+                                        {% with slug=name|lower|replace:" ,_" %}
+                                        <td class="px-3 py-2">
+                                            <input type="number"
+                                                   step="0.01"
+                                                   min="0"
+                                                   max="{{ weight }}"
+                                                   name="custom_{{ s.student.id }}_{{ slug }}"
+                                                   value="{% if s.custom_scores|get_item:name %}{{ s.custom_scores|get_item:name }}{% endif %}"
+                                                   class="w-20 px-2 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                   placeholder="">
+                                        </td>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                {% for field, limits in scoring_ranges.items %}
+                                    {% if field != 'max_total' %}
+                                        <td class="px-3 py-2">
+                                            <input type="number"
+                                                   step="1"
+                                                   min="{{ limits.0 }}"
+                                                   max="{{ limits.1 }}"
+                                                   name="score_{{ field }}_{{ s.id }}"
+                                                   value="{% if s|attr:field %}{{ s|attr:field }}{% endif %}"
+                                                   class="w-20 px-2 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                                   placeholder="">
+                                        </td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+
+                            <td class="px-4 py-3 text-center">
+                                <span class="text-lg font-bold text-blue-700">{{ s.total|floatformat:2|default:"0.00" }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600">{{ s.avg_score|floatformat:2 }}</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600">{{ s.max_score }}</td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600">{{ s.min_score }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="px-2 py-1 text-xs font-bold rounded-full bg-indigo-100 text-indigo-800">{{ s.ordinal_position }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="text-lg font-bold text-green-700">{{ s.grade }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center text-sm text-gray-600">{{ s.remark }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <a href="{% url 'dashboard' %}">
+                    <button type="button" class="flex items-center gap-2 px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        Back to Dashboard
+                    </button>
+                </a>
+                <button type="submit" class="flex items-center gap-2 px-8 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Save All Scores
+                </button>
+            </div>
+        </div>
+    </form>
+    {% else %}
+        <div class="content-card p-12 text-center">
+            <div class="flex flex-col items-center gap-4">
+                <div class="p-4 rounded-full bg-blue-100">
+                    <i data-lucide="table" class="w-12 h-12 text-blue-600"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">No Scores Available</h3>
+                    <p class="text-gray-600">Please select a class, subject, term, and session to view scores.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    lucide.createIcons();
+    
+    // Client-side validation
+    document.getElementById("scoreForm")?.addEventListener("submit", function(event) {
+        let valid = true;
+        let message = "";
+
+        document.querySelectorAll("input[type='number']").forEach(function(input) {
+            if (input.value === "") return;
+            let val = parseFloat(input.value);
+            let max = parseFloat(input.max);
+
+            if (isNaN(val)) {
+                valid = false;
+                message = "Please enter a valid number or leave blank.";
+                input.focus();
+                return;
+            }
+
+            if (val < 0) {
+                valid = false;
+                message = "Scores cannot be negative.";
+                input.focus();
+                return;
+            }
+
+            if (val > max) {
+                valid = false;
+                message = `Score cannot exceed ${max}.`;
+                input.focus();
+                return;
+            }
+        });
+
+        if (!valid) {
+            event.preventDefault();
+            alert(message);
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teacher Dashboard</title>
+</head>
+<body>
+    <h1>Teacher Dashboard</h1>
+    <ul>
+        {% for exam in exams %}
+            <li>{{ exam.subject.name }} - {{ exam.term }} - {{ exam.session }} - {{ exam.exam_code }}</li>
+        {% empty %}
+            <li>No exams found.</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

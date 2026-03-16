@@ -1,0 +1,264 @@
+{% extends 'score/dashboard.html' %}
+{% load static %}
+
+{% block title %}School Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
+                <i data-lucide="settings" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">School Settings</h1>
+                <p class="text-gray-600 mt-1">Manage your school information and preferences</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'settings_view' %}" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- School Information Card -->
+        <div class="content-card p-6">
+            <div class="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+                <i data-lucide="school" class="w-5 h-5 text-purple-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">School Information</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="name" required
+                           value="{% if setting %}{{ setting.name }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Email <span class="text-red-500">*</span>
+                    </label>
+                    <input type="email" name="email" id="email" required
+                           value="{% if setting %}{{ setting.email }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Phone <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="phone" id="phone" required
+                           value="{% if setting %}{{ setting.phone }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="motto" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Motto <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="motto" id="motto" required
+                           value="{% if setting %}{{ setting.motto }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Address <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="address" id="address" required
+                           value="{% if setting %}{{ setting.address }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Information Card -->
+        <div class="content-card p-6">
+            <div class="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+                <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">Academic Information</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="session" class="block text-sm font-medium text-gray-700 mb-2">
+                        Academic Session <span class="text-red-500">*</span>
+                    </label>
+                    <select name="session" id="session" required
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white">
+                        {% for year in year_range %}
+                            {% with year_next=year|add:1 %}
+                                <option value="{{ year }}/{{ year_next }}"
+                                    {% if setting and setting.session == year|stringformat:"s"|add:"/"|add:year_next|stringformat:"s" %}selected{% endif %}>
+                                    {{ year }}/{{ year_next }}
+                                </option>
+                            {% endwith %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="term" class="block text-sm font-medium text-gray-700 mb-2">
+                        Term <span class="text-red-500">*</span>
+                    </label>
+                    <select name="term" id="term" required
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white">
+                        {% for t in terms %}
+                            <option value="{{ t }}" {% if setting and setting.term == t %}selected{% endif %}>
+                                {{ t }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="exam_year" class="block text-sm font-medium text-gray-700 mb-2">
+                        Examination Year <span class="text-red-500">*</span>
+                    </label>
+                    <select name="exam_year" id="exam_year" required
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white">
+                        {% for year in year_range %}
+                            <option value="{{ year }}" {% if setting and setting.exam_year == year %}selected{% endif %}>
+                                {{ year }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="exam_month" class="block text-sm font-medium text-gray-700 mb-2">
+                        Examination Month <span class="text-red-500">*</span>
+                    </label>
+                    <select name="exam_month" id="exam_month" required
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white">
+                        {% for month in months %}
+                            <option value="{{ month }}" {% if setting and setting.exam_month == month %}selected{% endif %}>
+                                {{ month }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label for="school_open" class="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Times School Opened <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="school_open" id="school_open" min="1" required
+                           value="{% if setting %}{{ setting.school_open }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="term_closes_on" class="block text-sm font-medium text-gray-700 mb-2">
+                        Term Closes On
+                    </label>
+                    <input type="date" name="term_closes_on" id="term_closes_on"
+                           value="{% if setting and setting.term_closes_on %}{{ setting.term_closes_on|date:'Y-m-d' }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+
+                <div>
+                    <label for="next_term_begins" class="block text-sm font-medium text-gray-700 mb-2">
+                        Next Term Begins
+                    </label>
+                    <input type="date" name="next_term_begins" id="next_term_begins"
+                           value="{% if setting and setting.next_term_begins %}{{ setting.next_term_begins|date:'Y-m-d' }}{% endif %}"
+                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all">
+                </div>
+            </div>
+        </div>
+
+        <!-- Logo & Stamp Card -->
+        <div class="content-card p-6">
+            <div class="flex items-center gap-2 mb-6 pb-4 border-b border-gray-200">
+                <i data-lucide="image" class="w-5 h-5 text-pink-600"></i>
+                <h2 class="text-xl font-semibold text-gray-800">School Logo & Stamp</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="logo" class="block text-sm font-medium text-gray-700 mb-2">
+                        School Logo
+                    </label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-purple-400 transition-colors">
+                        <div class="space-y-1 text-center">
+                            <i data-lucide="upload" class="mx-auto h-8 w-8 text-gray-400"></i>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="logo" class="relative cursor-pointer rounded-md font-medium text-purple-600 hover:text-purple-500">
+                                    <span>Upload a file</span>
+                                    <input type="file" name="logo" id="logo" accept="image/*" class="sr-only">
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                    </div>
+                    {% if setting and setting.logo %}
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600 mb-2">Current Logo:</p>
+                            <img src="{{ setting.logo.url }}" alt="School Logo" class="h-24 w-auto rounded-lg border border-gray-200">
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="stamp_sign" class="block text-sm font-medium text-gray-700 mb-2">
+                        Stamp / Signature
+                    </label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-purple-400 transition-colors">
+                        <div class="space-y-1 text-center">
+                            <i data-lucide="upload" class="mx-auto h-8 w-8 text-gray-400"></i>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="stamp_sign" class="relative cursor-pointer rounded-md font-medium text-purple-600 hover:text-purple-500">
+                                    <span>Upload a file</span>
+                                    <input type="file" name="stamp_sign" id="stamp_sign" accept="image/*" class="sr-only">
+                                </label>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                        </div>
+                    </div>
+                    {% if setting and setting.stamp_sign %}
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600 mb-2">Current Stamp / Signature:</p>
+                            <img src="{{ setting.stamp_sign.url }}" alt="Stamp / Signature" class="h-24 w-auto rounded-lg border border-gray-200">
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <a href="{% url 'dashboard' %}" 
+               class="flex items-center justify-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-all duration-200">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Dashboard
+            </a>
+            <button type="submit" 
+                    class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                <i data-lucide="save" class="w-4 h-4"></i>
+                Save Settings
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

@@ -1,0 +1,328 @@
+{% extends base_template|default:"score/dashboard.html" %}
+
+{% block title %}Edit Question{% endblock %}
+
+{% block extra_head %}
+<!-- Keep Tailwind and Font Awesome -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  .option-card {
+    transition: all 0.3s ease;
+  }
+  .option-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+  }
+  .letter-badge {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.25rem;
+  }
+  .image-preview {
+    max-height: 300px;
+    object-fit: contain;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-6">
+
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-edit text-yellow-600 mr-2"></i>
+            Edit Question
+          </h1>
+          <p class="text-gray-600">{{ exam.title }}</p>
+        </div>
+        <a href="{% url 'cbt_question_list' exam.id %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+          <i class="fas fa-arrow-left"></i> Back to Questions
+        </a>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+      <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded relative mb-3" role="alert">
+        <span class="block sm:inline">{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Form Card -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-6">
+        <h2 class="text-2xl font-bold flex items-center gap-2">
+          <i class="fas fa-pen"></i>
+          Update Question Details
+        </h2>
+      </div>
+
+      <form method="post" enctype="multipart/form-data" class="p-6">
+        {% csrf_token %}
+
+        <!-- Question Text Section -->
+        <div class="bg-blue-50 rounded-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-pen text-blue-600"></i>
+            Question Content
+          </h3>
+
+          <div class="space-y-4">
+            <!-- Question Text -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-align-left text-blue-500 mr-1"></i>
+                Question Text <span class="text-red-500">*</span>
+              </label>
+              <textarea name="question_text" 
+                        rows="4" 
+                        class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all" 
+                        required>{{ question.question_text }}</textarea>
+            </div>
+
+            <!-- Current Image Display -->
+            {% if question.image %}
+            <div class="bg-white border-2 border-blue-200 rounded-lg p-4">
+              <label class="block text-sm font-medium text-gray-700 mb-3">
+                <i class="fas fa-image text-blue-500 mr-1"></i>
+                Current Image
+              </label>
+              <div class="flex justify-center bg-gray-50 rounded-lg p-4">
+                <img src="{{ question.image.url }}" 
+                     alt="Question Image" 
+                     class="image-preview rounded-lg shadow-md">
+              </div>
+              <p class="text-xs text-gray-500 mt-2 text-center">
+                <i class="fas fa-info-circle mr-1"></i>
+                Upload a new image below to replace this one
+              </p>
+            </div>
+            {% endif %}
+
+            <!-- Replace Image -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-cloud-upload-alt text-purple-500 mr-1"></i>
+                {% if question.image %}Replace Image{% else %}Add Image{% endif %}
+                <span class="text-gray-400">(Optional)</span>
+              </label>
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-all">
+                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                <p class="text-sm text-gray-600 mb-2">Click to upload or drag and drop</p>
+                <input type="file" 
+                       name="image" 
+                       accept="image/*" 
+                       class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <p class="text-xs text-gray-400 mt-2">PNG, JPG, GIF up to 10MB</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Options Section -->
+        <div class="bg-purple-50 rounded-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-list-ul text-purple-600"></i>
+            Answer Options
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Option A -->
+            <div class="option-card bg-white rounded-lg p-4 border-2 border-gray-300">
+              <div class="flex items-start gap-3">
+                <div class="letter-badge bg-gradient-to-br from-red-400 to-red-500 text-white rounded-lg flex-shrink-0">
+                  A
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Option A <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" 
+                         name="option_a" 
+                         value="{{ question.option_a }}"
+                         class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-red-400 focus:ring-2 focus:ring-red-200 transition-all" 
+                         required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option B -->
+            <div class="option-card bg-white rounded-lg p-4 border-2 border-gray-300">
+              <div class="flex items-start gap-3">
+                <div class="letter-badge bg-gradient-to-br from-blue-400 to-blue-500 text-white rounded-lg flex-shrink-0">
+                  B
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Option B <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" 
+                         name="option_b" 
+                         value="{{ question.option_b }}"
+                         class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-400 focus:ring-2 focus:ring-blue-200 transition-all" 
+                         required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option C -->
+            <div class="option-card bg-white rounded-lg p-4 border-2 border-gray-300">
+              <div class="flex items-start gap-3">
+                <div class="letter-badge bg-gradient-to-br from-green-400 to-green-500 text-white rounded-lg flex-shrink-0">
+                  C
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Option C <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" 
+                         name="option_c" 
+                         value="{{ question.option_c }}"
+                         class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-green-400 focus:ring-2 focus:ring-green-200 transition-all" 
+                         required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Option D -->
+            <div class="option-card bg-white rounded-lg p-4 border-2 border-gray-300">
+              <div class="flex items-start gap-3">
+                <div class="letter-badge bg-gradient-to-br from-yellow-400 to-yellow-500 text-white rounded-lg flex-shrink-0">
+                  D
+                </div>
+                <div class="flex-1">
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Option D <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" 
+                         name="option_d" 
+                         value="{{ question.option_d }}"
+                         class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 transition-all" 
+                         required>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Settings Section -->
+        <div class="bg-green-50 rounded-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-cog text-green-600"></i>
+            Question Settings
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Correct Answer -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-check-circle text-green-500 mr-1"></i>
+                Correct Answer <span class="text-red-500">*</span>
+              </label>
+              <select name="correct_answer" 
+                      class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all" 
+                      required>
+                <option value="A" {% if question.correct_answer == "A" %}selected{% endif %}>A</option>
+                <option value="B" {% if question.correct_answer == "B" %}selected{% endif %}>B</option>
+                <option value="C" {% if question.correct_answer == "C" %}selected{% endif %}>C</option>
+                <option value="D" {% if question.correct_answer == "D" %}selected{% endif %}>D</option>
+              </select>
+            </div>
+
+            <!-- Marks -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-star text-yellow-500 mr-1"></i>
+                Marks
+              </label>
+              <input type="number" 
+                     name="marks" 
+                     value="{{ question.marks }}"
+                     min="1" 
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
+              <p class="text-xs text-gray-500 mt-1">Points awarded for correct answer</p>
+            </div>
+
+            <!-- Order -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                <i class="fas fa-sort-numeric-down text-blue-500 mr-1"></i>
+                Display Order
+              </label>
+              <input type="number" 
+                     name="order" 
+                     value="{{ question.order }}"
+                     class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all">
+              <p class="text-xs text-gray-500 mt-1">Question position in exam</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explanation Section -->
+        <div class="bg-yellow-50 rounded-lg p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <i class="fas fa-lightbulb text-yellow-600"></i>
+            Explanation
+          </h3>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-info-circle text-yellow-500 mr-1"></i>
+              Answer Explanation <span class="text-gray-400">(Optional)</span>
+            </label>
+            <textarea name="explanation" 
+                      rows="3" 
+                      class="w-full border-2 border-gray-300 rounded-lg p-3 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 transition-all"
+                      placeholder="Provide an explanation for the correct answer to help students learn...">{{ question.explanation }}</textarea>
+            <p class="text-xs text-gray-500 mt-1">This will be shown to students after they complete the exam</p>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <a href="{% url 'cbt_question_list' exam.id %}" 
+             class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-all flex items-center gap-2">
+            <i class="fas fa-times"></i> Cancel
+          </a>
+          <button type="submit" 
+                  class="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2 shadow-lg">
+            <i class="fas fa-save"></i> Update Question
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Warning Card -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-500 rounded-lg p-4 mt-6">
+      <div class="flex gap-3">
+        <div class="flex-shrink-0">
+          <i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>
+        </div>
+        <div>
+          <h4 class="font-semibold text-yellow-800 mb-1">Important Notice</h4>
+          <p class="text-sm text-yellow-700">Changes to this question will affect all students who take or have taken this exam. Make sure your edits are accurate.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+{% endblock %}

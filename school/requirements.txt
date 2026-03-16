@@ -1,0 +1,29 @@
+# Minimal requirements for local development
+
+# Core Django
+Django==5.2.5
+python-dotenv==1.2.1
+
+# HTTP requests (for Paystack payments)
+requests==2.32.4
+
+# Image processing
+Pillow==11.3.0
+
+# PDF generation (for report cards)
+xhtml2pdf==0.2.11
+reportlab==3.6.13
+pypdf==6.0.0
+
+# Database (using SQLite for local dev)
+# psycopg2-binary==2.9.11  # Not needed for SQLite
+
+# Optional for local development:
+# django-tailwind-cli==4.5.1  # For styling
+# cloudinary==1.44.1  # For cloud storage
+# dj-database-url  # For database URLs
+# gunicorn  # For production server
+# whitenoise  # For static files in production
+# django-cloudinary-storage  # For cloud storage
+# django-sendgrid-v5  # For email
+# django-anymail[brevo]  # For email

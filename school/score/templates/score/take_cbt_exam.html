@@ -1,0 +1,2055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exam.title }} - CBT Exam</title>
+
+    <style>
+        body { margin: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; }
+        .container { width: 700px; max-width: 95%; margin: 40px 0; text-align: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px; font-size: 16px; }
+        .timer { font-size: 18px; font-weight: bold; color: #d9534f; }
+        .info { background: #e9f2ff; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; }
+        .question-block { display: none; }
+        .question-block.active { display: block; }
+        .question-card { background: white; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 15px; text-align: left; }
+        .question-header { background: #6c757d; color: white; padding: 8px 12px; border-radius: 6px 6px 0 0; font-weight: bold; font-size: 14px; }
+        .question-body { padding: 10px 12px; font-size: 14px; }
+        .question-body img { max-height: 150px; display: block; margin: 10px auto; max-width: 100%; }
+        .question-text { font-size: 15px; margin-bottom: 10px; }
+        .option { margin-bottom: 8px; font-size: 14px; }
+        .nav-buttons { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+        .nav-buttons button { padding: 6px 12px; font-size: 13px; border: none; border-radius: 4px; cursor: pointer; background-color: #007bff; color: white; }
+        .nav-buttons button:disabled { background-color: #aaa; cursor: not-allowed; }
+        .question-nav { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; margin-bottom: 15px; }
+        .question-nav button { background: #ffffff; border: 1px solid #007bff; color: #007bff; min-width: 35px; padding: 4px 8px; font-size: 12px; border-radius: 4px; }
+        .question-nav button.active { background: #ffc107; color: black; border-color: #ffc107; }
+        .submit-container { text-align: center; margin-top: 15px; }
+        .btn-submit { background: #28a745; color: white; padding: 10px 25px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-submit:hover { background: #218838; }
+        .start-screen { background: white; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,0.12); padding: 20px; margin-bottom: 15px; text-align: center; }
+        .start-screen h3 { margin: 0 0 10px 0; }
+        .start-screen p { margin: 6px 0; color: #374151; font-size: 14px; }
+        .btn-start { background: #2563eb; color: #fff; padding: 10px 20px; border: none; border-radius: 6px; font-size: 15px; cursor: pointer; margin-top: 8px; }
+        .btn-start:hover { background: #1d4ed8; }
+        .exam-panel-hidden { display: none; }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div>{{ exam.title }} - {{ exam.subject.name }}</div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div class="info">
+        <strong>Student:</strong> {{ student.full_name }} ({{ student.exam_no }}) |
+        <strong>Class:</strong> {{ student.class_group.name }} |
+        <strong>Questions:</strong> {{ total_questions }}
+    </div>
+
+    <div id="start-screen" class="start-screen">
+        <h3>Ready to Start?</h3>
+        <p>Click <strong>Start Exam</strong> to enter fullscreen and begin.</p>
+        <p>During exam, refresh/back navigation are restricted.</p>
+        <button type="button" id="start-exam-btn" class="btn-start">Start Exam</button>
+    </div>
+
+    <div id="exam-panel" class="exam-panel-hidden">
+        <form id="exam-form" method="post" onsubmit="return validateAllQuestions();">
+            {% csrf_token %}
+
+            {% for q in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <div class="question-card">
+                    <div class="question-header">
+                        Question {{ forloop.counter }} ({{ q.marks }} mark{{ q.marks|pluralize }})
+                    </div>
+                    <div class="question-body">
+                        {% if q.image %}
+                        <img src="{{ q.image.url }}" alt="Question Image">
+                        {% endif %}
+                        <div class="question-text">{{ q.question|safe }}</div>
+
+                        {% for letter, option in q.options %}
+                        <div class="option">
+                            <label>
+                                <input type="radio" name="{{ q.id }}" value="{{ option }}">
+                                <strong>{{ letter }}.</strong> {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn">← Previous</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+
+            <div class="question-nav">
+                {% for q in question_data %}
+                <button type="button" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="submit-container">
+                <button type="submit" class="btn-submit">Submit Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let forceSubmit = false;
+    let isSubmitting = false;
+    let examStarted = false;
+    let timeLeft = {{ duration_seconds }};
+
+    const questions = document.querySelectorAll('.question-block');
+    const navButtons = document.querySelectorAll('.question-nav button');
+    const timerDisplay = document.getElementById('timer');
+    const form = document.getElementById('exam-form');
+    const startScreen = document.getElementById('start-screen');
+    const examPanel = document.getElementById('exam-panel');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function showQuestion(index) {
+        if (index < 0 || index >= questions.length) return;
+        questions.forEach((q, i) => q.classList.toggle('active', i === index));
+        navButtons.forEach((b, i) => b.classList.toggle('active', i === index));
+        currentIndex = index;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === questions.length - 1;
+    }
+
+    prevBtn.onclick = () => showQuestion(currentIndex - 1);
+    nextBtn.onclick = () => showQuestion(currentIndex + 1);
+    navButtons.forEach(btn => {
+        btn.onclick = () => showQuestion(parseInt(btn.dataset.index, 10));
+    });
+
+    function validateAllQuestions() {
+        if (!examStarted) return false;
+        if (forceSubmit) return true;
+
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].querySelector('input[type="radio"]:checked')) {
+                alert(`Question ${i + 1} is not answered.`);
+                showQuestion(i);
+                return false;
+            }
+        }
+
+        const confirmed = confirm('Are you sure you want to submit?');
+        if (confirmed) {
+            isSubmitting = true;
+            window.removeEventListener('beforeunload', preventRefreshHandler);
+        }
+        return confirmed;
+    }
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (!examStarted) return;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const secs = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                forceSubmit = true;
+                isSubmitting = true;
+                window.removeEventListener('beforeunload', preventRefreshHandler);
+                form.submit();
+                return;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function startExam() {
+        if (examStarted) return;
+        startExamBtn.disabled = true;
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+        } catch (error) {
+            startExamBtn.disabled = false;
+            alert('Unable to enter fullscreen. Please allow fullscreen to start the exam.');
+            return;
+        }
+
+        examStarted = true;
+        startScreen.style.display = 'none';
+        examPanel.classList.remove('exam-panel-hidden');
+        showQuestion(0);
+    }
+
+    function preventRefreshHandler(event) {
+        if (!examStarted || isSubmitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    startExamBtn.addEventListener('click', startExam);
+    window.addEventListener('beforeunload', preventRefreshHandler);
+
+    document.addEventListener('keydown', function (event) {
+        const key = event.key.toLowerCase();
+        const isRefreshKey = key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+        if (examStarted && !isSubmitting && isRefreshKey) {
+            event.preventDefault();
+            alert('Refreshing is disabled during the exam.');
+        }
+    });
+
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (examStarted && !isSubmitting) {
+            history.pushState(null, '', location.href);
+            alert('Back navigation is disabled during the exam.');
+        }
+    });
+
+    timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+    startTimer();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exam.title }} - CBT Exam</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 700px;
+            max-width: 95%;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d9534f;
+        }
+
+        .info {
+            background: #e9f2ff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .question-header {
+            background: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .question-body {
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .question-body img {
+            max-height: 150px;
+            display: block;
+            margin: 10px auto;
+            max-width: 100%;
+        }
+
+        .question-text {
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .option {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-buttons button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .question-nav button {
+            background: #ffffff;
+            border: 1px solid #007bff;
+            color: #007bff;
+            min-width: 35px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .question-nav button.active {
+            background: #ffc107;
+            color: black;
+            border-color: #ffc107;
+        }
+
+        .submit-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .btn-submit {
+            background: #28a745;
+            color: white;
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
+        }
+
+        .start-screen {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .start-screen h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .start-screen p {
+            margin: 6px 0;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .btn-start {
+            background: #2563eb;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-start:hover {
+            background: #1d4ed8;
+        }
+
+        .exam-panel-hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="header">
+        <div>{{ exam.title }} - {{ exam.subject.name }}</div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div class="info">
+        <strong>Student:</strong> {{ student.full_name }} ({{ student.exam_no }}) |
+        <strong>Class:</strong> {{ student.class_group.name }} |
+        <strong>Questions:</strong> {{ total_questions }}
+    </div>
+
+    <div id="start-screen" class="start-screen">
+        <h3>Ready to Start?</h3>
+        <p>Click <strong>Start Exam</strong> to enter fullscreen and begin.</p>
+        <p>During exam, refresh/back navigation are restricted.</p>
+        <button type="button" id="start-exam-btn" class="btn-start">Start Exam</button>
+    </div>
+
+    <div id="exam-panel" class="exam-panel-hidden">
+        <form id="exam-form" method="post" onsubmit="return validateAllQuestions();">
+            {% csrf_token %}
+
+            {% for q in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <div class="question-card">
+                    <div class="question-header">
+                        Question {{ forloop.counter }} ({{ q.marks }} mark{{ q.marks|pluralize }})
+                    </div>
+                    <div class="question-body">
+                        {% if q.image %}
+                        <img src="{{ q.image.url }}" alt="Question Image">
+                        {% endif %}
+                        <div class="question-text">{{ q.question|safe }}</div>
+
+                        {% for letter, option in q.options %}
+                        <div class="option">
+                            <label>
+                                <input type="radio" name="{{ q.id }}" value="{{ option }}">
+                                <strong>{{ letter }}.</strong> {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn">← Previous</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+
+            <div class="question-nav">
+                {% for q in question_data %}
+                <button type="button" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <div class="submit-container">
+                <button type="submit" class="btn-submit">Submit Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let forceSubmit = false;
+    let isSubmitting = false;
+    let examStarted = false;
+    let timeLeft = {{ duration_seconds }};
+
+    const questions = document.querySelectorAll('.question-block');
+    const navButtons = document.querySelectorAll('.question-nav button');
+    const timerDisplay = document.getElementById('timer');
+    const form = document.getElementById('exam-form');
+    const startScreen = document.getElementById('start-screen');
+    const examPanel = document.getElementById('exam-panel');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function showQuestion(index) {
+        if (index < 0 || index >= questions.length) return;
+        questions.forEach((q, i) => q.classList.toggle('active', i === index));
+        navButtons.forEach((b, i) => b.classList.toggle('active', i === index));
+        currentIndex = index;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === questions.length - 1;
+    }
+
+    prevBtn.onclick = () => showQuestion(currentIndex - 1);
+    nextBtn.onclick = () => showQuestion(currentIndex + 1);
+    navButtons.forEach(btn => {
+        btn.onclick = () => showQuestion(parseInt(btn.dataset.index, 10));
+    });
+
+    function validateAllQuestions() {
+        if (!examStarted) return false;
+        if (forceSubmit) return true;
+
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].querySelector('input[type="radio"]:checked')) {
+                alert(`Question ${i + 1} is not answered.`);
+                showQuestion(i);
+                return false;
+            }
+        }
+
+        const confirmed = confirm('Are you sure you want to submit?');
+        if (confirmed) {
+            isSubmitting = true;
+            window.removeEventListener('beforeunload', preventRefreshHandler);
+        }
+        return confirmed;
+    }
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (!examStarted) return;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const secs = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                forceSubmit = true;
+                isSubmitting = true;
+                window.removeEventListener('beforeunload', preventRefreshHandler);
+                form.submit();
+                return;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function startExam() {
+        if (examStarted) return;
+        startExamBtn.disabled = true;
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+        } catch (error) {
+            startExamBtn.disabled = false;
+            alert('Unable to enter fullscreen. Please allow fullscreen to start the exam.');
+            return;
+        }
+
+        examStarted = true;
+        startScreen.style.display = 'none';
+        examPanel.classList.remove('exam-panel-hidden');
+        showQuestion(0);
+    }
+
+    function preventRefreshHandler(event) {
+        if (!examStarted || isSubmitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    startExamBtn.addEventListener('click', startExam);
+    window.addEventListener('beforeunload', preventRefreshHandler);
+
+    document.addEventListener('keydown', function (event) {
+        const key = event.key.toLowerCase();
+        const isRefreshKey = key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+        if (examStarted && !isSubmitting && isRefreshKey) {
+            event.preventDefault();
+            alert('Refreshing is disabled during the exam.');
+        }
+    });
+
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (examStarted && !isSubmitting) {
+            history.pushState(null, '', location.href);
+            alert('Back navigation is disabled during the exam.');
+        }
+    });
+
+    timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+    startTimer();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exam.title }} - CBT Exam</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 700px;
+            max-width: 95%;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d9534f;
+        }
+
+        /* Student Info */
+        .info {
+            background: #e9f2ff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Questions */
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .question-header {
+            background: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .question-body {
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .question-body img {
+            max-height: 150px;
+            display: block;
+            margin: 10px auto;
+            max-width: 100%;
+        }
+
+        .question-text {
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .option {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-buttons button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Question numbers */
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .question-nav button {
+            background: #ffffff;
+            border: 1px solid #007bff;
+            color: #007bff;
+            min-width: 35px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .question-nav button.active {
+            background: #ffc107;
+            color: black;
+            border-color: #ffc107;
+        }
+
+        /* Submit */
+        .submit-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .btn-submit {
+            background: #28a745;
+            color: white;
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
+        }
+
+        .start-screen {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .start-screen h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .start-screen p {
+            margin: 6px 0;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .btn-start {
+            background: #2563eb;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-start:hover {
+            background: #1d4ed8;
+        }
+
+        .exam-panel-hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div>{{ exam.title }} - {{ exam.subject.name }}</div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="info">
+        <strong>Student:</strong> {{ student.full_name }} ({{ student.exam_no }}) |
+        <strong>Class:</strong> {{ student.class_group.name }} |
+        <strong>Questions:</strong> {{ total_questions }}
+    </div>
+
+    <div id="start-screen" class="start-screen">
+        <h3>Ready to Start?</h3>
+        <p>Click <strong>Start Exam</strong> to enter fullscreen and begin.</p>
+        <p>During exam, refresh/back navigation are restricted.</p>
+        <button type="button" id="start-exam-btn" class="btn-start">Start Exam</button>
+    </div>
+
+    <div id="exam-panel" class="exam-panel-hidden">
+        <form id="exam-form" method="post" onsubmit="return validateAllQuestions();">
+            {% csrf_token %}
+
+            <!-- Questions -->
+            {% for q in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <div class="question-card">
+                    <div class="question-header">
+                        Question {{ forloop.counter }} ({{ q.marks }} mark{{ q.marks|pluralize }})
+                    </div>
+                    <div class="question-body">
+                        {% if q.image %}
+                        <img src="{{ q.image.url }}" alt="Question Image">
+                        {% endif %}
+                        <div class="question-text">{{ q.question|safe }}</div>
+
+                        {% for letter, option in q.options %}
+                        <div class="option">
+                            <label>
+                                <input type="radio" name="{{ q.id }}" value="{{ option }}">
+                                <strong>{{ letter }}.</strong> {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn">← Previous</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+
+            <!-- Question Numbers -->
+            <div class="question-nav">
+                {% for q in question_data %}
+                <button type="button" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Submit -->
+            <div class="submit-container">
+                <button type="submit" class="btn-submit">Submit Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let forceSubmit = false;
+    let isSubmitting = false;
+    let examStarted = false;
+    let timeLeft = {{ duration_seconds }};
+
+    const questions = document.querySelectorAll('.question-block');
+    const navButtons = document.querySelectorAll('.question-nav button');
+    const timerDisplay = document.getElementById('timer');
+    const form = document.getElementById('exam-form');
+    const startScreen = document.getElementById('start-screen');
+    const examPanel = document.getElementById('exam-panel');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function showQuestion(index) {
+        if (index < 0 || index >= questions.length) return;
+        questions.forEach((q, i) => q.classList.toggle('active', i === index));
+        navButtons.forEach((b, i) => b.classList.toggle('active', i === index));
+        currentIndex = index;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === questions.length - 1;
+    }
+
+    prevBtn.onclick = () => showQuestion(currentIndex - 1);
+    nextBtn.onclick = () => showQuestion(currentIndex + 1);
+    navButtons.forEach(btn => {
+        btn.onclick = () => showQuestion(parseInt(btn.dataset.index, 10));
+    });
+
+    function validateAllQuestions() {
+        if (!examStarted) return false;
+        if (forceSubmit) return true;
+
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].querySelector('input[type="radio"]:checked')) {
+                alert(`Question ${i + 1} is not answered.`);
+                showQuestion(i);
+                return false;
+            }
+        }
+
+        const confirmed = confirm('Are you sure you want to submit?');
+        if (confirmed) {
+            isSubmitting = true;
+            window.removeEventListener('beforeunload', preventRefreshHandler);
+        }
+        return confirmed;
+    }
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (!examStarted) return;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const secs = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                forceSubmit = true;
+                isSubmitting = true;
+                window.removeEventListener('beforeunload', preventRefreshHandler);
+                form.submit();
+                return;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function startExam() {
+        if (examStarted) return;
+        startExamBtn.disabled = true;
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+        } catch (error) {
+            startExamBtn.disabled = false;
+            alert('Unable to enter fullscreen. Please allow fullscreen to start the exam.');
+            return;
+        }
+
+        examStarted = true;
+        startScreen.style.display = 'none';
+        examPanel.classList.remove('exam-panel-hidden');
+        showQuestion(0);
+    }
+
+    function preventRefreshHandler(event) {
+        if (!examStarted || isSubmitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    startExamBtn.addEventListener('click', startExam);
+    window.addEventListener('beforeunload', preventRefreshHandler);
+
+    // Block keyboard refresh shortcuts
+    document.addEventListener('keydown', function (event) {
+        const key = event.key.toLowerCase();
+        const isRefreshKey = key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+        if (examStarted && !isSubmitting && isRefreshKey) {
+            event.preventDefault();
+            alert('Refreshing is disabled during the exam.');
+        }
+    });
+
+    // Disable browser back navigation during exam
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (examStarted && !isSubmitting) {
+            history.pushState(null, '', location.href);
+            alert('Back navigation is disabled during the exam.');
+        }
+    });
+
+    timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+    startTimer();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exam.title }} - CBT Exam</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 700px;
+            max-width: 95%;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #d9534f;
+        }
+
+        /* Student Info */
+        .info {
+            background: #e9f2ff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Questions */
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .question-header {
+            background: #6c757d;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .question-body {
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+        .question-body img {
+            max-height: 150px;
+            display: block;
+            margin: 10px auto;
+            max-width: 100%;
+        }
+
+        .question-text {
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .option {
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .nav-buttons button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+
+        /* Question numbers */
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .question-nav button {
+            background: #ffffff;
+            border: 1px solid #007bff;
+            color: #007bff;
+            min-width: 35px;
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 4px;
+        }
+
+        .question-nav button.active {
+            background: #ffc107;
+            color: black;
+            border-color: #ffc107;
+        }
+
+        /* Submit */
+        .submit-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .btn-submit {
+            background: #28a745;
+            color: white;
+            padding: 10px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-submit:hover {
+            background: #218838;
+        }
+
+        .start-screen {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .start-screen h3 {
+            margin: 0 0 10px 0;
+        }
+
+        .start-screen p {
+            margin: 6px 0;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .btn-start {
+            background: #2563eb;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn-start:hover {
+            background: #1d4ed8;
+        }
+
+        .exam-panel-hidden {
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+    <div class="header">
+        <div>{{ exam.title }} - {{ exam.subject.name }}</div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <!-- Student Info -->
+    <div class="info">
+        <strong>Student:</strong> {{ student.full_name }} ({{ student.exam_no }}) |
+        <strong>Class:</strong> {{ student.class_group.name }} |
+        <strong>Questions:</strong> {{ total_questions }}
+    </div>
+
+    <div id="start-screen" class="start-screen">
+        <h3>Ready to Start?</h3>
+        <p>Click <strong>Start Exam</strong> to enter fullscreen and begin.</p>
+        <p>During exam, refresh/back navigation are restricted.</p>
+        <button type="button" id="start-exam-btn" class="btn-start">Start Exam</button>
+    </div>
+
+    <div id="exam-panel" class="exam-panel-hidden">
+        <form id="exam-form" method="post" onsubmit="return validateAllQuestions();">
+            {% csrf_token %}
+
+            <!-- Questions -->
+            {% for q in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <div class="question-card">
+                    <div class="question-header">
+                        Question {{ forloop.counter }} ({{ q.marks }} mark{{ q.marks|pluralize }})
+                    </div>
+                    <div class="question-body">
+                        {% if q.image %}
+                        <img src="{{ q.image.url }}" alt="Question Image">
+                        {% endif %}
+                        <div class="question-text">{{ q.question|safe }}</div>
+
+                        {% for letter, option in q.options %}
+                        <div class="option">
+                            <label>
+                                <input type="radio" name="{{ q.id }}" value="{{ option }}">
+                                <strong>{{ letter }}.</strong> {{ option }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn">← Previous</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+
+            <!-- Question Numbers -->
+            <div class="question-nav">
+                {% for q in question_data %}
+                <button type="button" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Submit -->
+            <div class="submit-container">
+                <button type="submit" class="btn-submit">Submit Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let forceSubmit = false;
+    let isSubmitting = false;
+    let examStarted = false;
+    let timeLeft = {{ duration_seconds }};
+
+    const questions = document.querySelectorAll('.question-block');
+    const navButtons = document.querySelectorAll('.question-nav button');
+    const timerDisplay = document.getElementById('timer');
+    const form = document.getElementById('exam-form');
+    const startScreen = document.getElementById('start-screen');
+    const examPanel = document.getElementById('exam-panel');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    function showQuestion(index) {
+        if (index < 0 || index >= questions.length) return;
+        questions.forEach((q, i) => q.classList.toggle('active', i === index));
+        navButtons.forEach((b, i) => b.classList.toggle('active', i === index));
+        currentIndex = index;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === questions.length - 1;
+    }
+
+    prevBtn.onclick = () => showQuestion(currentIndex - 1);
+    nextBtn.onclick = () => showQuestion(currentIndex + 1);
+    navButtons.forEach(btn => {
+        btn.onclick = () => showQuestion(parseInt(btn.dataset.index, 10));
+    });
+
+    function validateAllQuestions() {
+        if (!examStarted) return false;
+        if (forceSubmit) return true;
+
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].querySelector('input[type="radio"]:checked')) {
+                alert(`Question ${i + 1} is not answered.`);
+                showQuestion(i);
+                return false;
+            }
+        }
+
+        const confirmed = confirm('Are you sure you want to submit?');
+        if (confirmed) {
+            isSubmitting = true;
+            window.removeEventListener('beforeunload', preventRefreshHandler);
+        }
+        return confirmed;
+    }
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (!examStarted) return;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const secs = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                forceSubmit = true;
+                isSubmitting = true;
+                window.removeEventListener('beforeunload', preventRefreshHandler);
+                form.submit();
+                return;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function startExam() {
+        if (examStarted) return;
+        startExamBtn.disabled = true;
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+        } catch (error) {
+            startExamBtn.disabled = false;
+            alert('Unable to enter fullscreen. Please allow fullscreen to start the exam.');
+            return;
+        }
+
+        examStarted = true;
+        startScreen.style.display = 'none';
+        examPanel.classList.remove('exam-panel-hidden');
+        showQuestion(0);
+    }
+
+    function preventRefreshHandler(event) {
+        if (!examStarted || isSubmitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    startExamBtn.addEventListener('click', startExam);
+    window.addEventListener('beforeunload', preventRefreshHandler);
+
+    // Block keyboard refresh shortcuts
+    document.addEventListener('keydown', function (event) {
+        const key = event.key.toLowerCase();
+        const isRefreshKey = key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+        if (examStarted && !isSubmitting && isRefreshKey) {
+            event.preventDefault();
+            alert('Refreshing is disabled during the exam.');
+        }
+    });
+
+    // Disable browser back navigation during exam
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (examStarted && !isSubmitting) {
+            history.pushState(null, '', location.href);
+            alert('Back navigation is disabled during the exam.');
+        }
+    });
+
+    timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+    startTimer();
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ exam.title }} - CBT Exam</title>
+
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 20%, var(--bg) 100%);
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 980px;
+            margin: 24px auto 32px;
+            padding: 0 14px;
+        }
+
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+            margin-bottom: 12px;
+        }
+
+        .title-wrap h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .title-wrap p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .timer {
+            font-size: 22px;
+            font-weight: bold;
+            color: #b91c1c;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            min-width: 106px;
+            text-align: center;
+        }
+
+        .stats {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+            margin-bottom: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .stats strong {
+            color: var(--text);
+        }
+
+        .progress-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, #2563eb, #7c3aed);
+            transition: width 0.25s ease;
+        }
+
+        .question-block {
+            display: none;
+        }
+
+        .question-block.active {
+            display: block;
+        }
+
+        .question-card {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .question-header {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 14px 14px 0 0;
+            font-weight: 700;
+            font-size: 13px;
+            display: inline-block;
+            margin: 12px 0 0 12px;
+        }
+
+        .question-body {
+            padding: 12px 16px 16px;
+            font-size: 15px;
+        }
+
+        .question-body img {
+            max-height: 220px;
+            display: block;
+            margin: 8px auto 14px;
+            max-width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin: 8px 0 14px;
+            line-height: 1.5;
+        }
+
+        .option {
+            margin-bottom: 10px;
+        }
+
+        .option label {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 11px 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #fff;
+        }
+
+        .option label:hover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .option.selected label {
+            border-color: var(--primary);
+            background: #dbeafe;
+            box-shadow: inset 0 0 0 1px #93c5fd;
+        }
+
+        .option input[type="radio"] {
+            margin-top: 3px;
+            accent-color: var(--primary);
+        }
+
+        .option-badge {
+            color: var(--primary-dark);
+            font-weight: 700;
+            min-width: 20px;
+        }
+
+        .option-text {
+            color: #0f172a;
+            line-height: 1.45;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .nav-buttons button {
+            padding: 11px 14px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: var(--primary);
+            color: #fff;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .nav-buttons button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .question-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .question-nav button {
+            background: #fff;
+            border: 1px solid #94a3b8;
+            color: #0f172a;
+            min-width: 35px;
+            padding: 7px 10px;
+            font-size: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .question-nav button.answered {
+            border-color: #16a34a;
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .question-nav button.active {
+            background: #dbeafe;
+            color: #1d4ed8;
+            border-color: #60a5fa;
+            font-weight: 700;
+        }
+
+        .submit-container {
+            margin-top: 8px;
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(90deg, var(--success), #22c55e);
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-submit:hover {
+            filter: brightness(0.95);
+        }
+
+        .start-screen {
+            background: var(--card);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+            padding: 24px 18px;
+            margin-bottom: 14px;
+            text-align: center;
+        }
+
+        .start-screen h3 {
+            margin: 0 0 10px;
+            font-size: 24px;
+            letter-spacing: -0.02em;
+        }
+
+        .start-screen p {
+            margin: 7px 0;
+            color: #374151;
+            font-size: 15px;
+        }
+
+        .btn-start {
+            background: linear-gradient(90deg, var(--primary), #7c3aed);
+            color: #fff;
+            padding: 12px 26px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        .btn-start:hover {
+            filter: brightness(0.95);
+        }
+
+        .exam-panel-hidden {
+            display: none;
+        }
+
+        @media (max-width: 700px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .question-text {
+                font-size: 16px;
+            }
+            .topbar {
+                padding: 12px;
+            }
+            .timer {
+                font-size: 20px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="topbar">
+        <div class="title-wrap">
+            <h1>{{ exam.title }}</h1>
+            <p>{{ exam.subject.name }} • {{ student.class_group.name }}</p>
+        </div>
+        <div class="timer" id="timer">00:00</div>
+    </div>
+
+    <div class="stats">
+        <div class="stats-grid">
+            <div><strong>Student:</strong> {{ student.full_name }} ({{ student.exam_no }})</div>
+            <div><strong>Subject:</strong> {{ exam.subject.name }}</div>
+            <div><strong>Total Questions:</strong> {{ total_questions }}</div>
+            <div><strong>Answered:</strong> <span id="answered-count">0</span> / {{ total_questions }}</div>
+        </div>
+        <div class="progress-row">
+            <span id="progress-text">Question 1 of {{ total_questions }}</span>
+            <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div id="start-screen" class="start-screen">
+        <h3>Ready to Start?</h3>
+        <p>Click <strong>Start Exam</strong> to enter fullscreen and begin your test.</p>
+        <p>Refresh and back navigation are restricted while the exam is in progress.</p>
+        <button type="button" id="start-exam-btn" class="btn-start">Start Exam</button>
+    </div>
+
+    <div id="exam-panel" class="exam-panel-hidden">
+        <form id="exam-form" method="post" onsubmit="return validateAllQuestions();">
+            {% csrf_token %}
+
+            <!-- Questions -->
+            {% for q in question_data %}
+            <div class="question-block {% if forloop.first %}active{% endif %}">
+                <div class="question-card">
+                    <div class="question-header">
+                        Question {{ forloop.counter }} ({{ q.marks }} mark{{ q.marks|pluralize }})
+                    </div>
+                    <div class="question-body">
+                        {% if q.image %}
+                        <img src="{{ q.image.url }}" alt="Question Image">
+                        {% endif %}
+                        <div class="question-text">{{ q.question|safe }}</div>
+
+                        {% for letter, option in q.options %}
+                        <div class="option">
+                            <label>
+                                <input type="radio" name="{{ q.id }}" value="{{ option }}">
+                                <span class="option-badge">{{ letter }}.</span>
+                                <span class="option-text">{{ option }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button type="button" id="prevBtn">← Previous</button>
+                <button type="button" id="nextBtn">Next →</button>
+            </div>
+
+            <!-- Question Numbers -->
+            <div class="question-nav">
+                {% for q in question_data %}
+                <button type="button" class="{% if forloop.first %}active{% endif %}" data-index="{{ forloop.counter0 }}">
+                    {{ forloop.counter }}
+                </button>
+                {% endfor %}
+            </div>
+
+            <!-- Submit -->
+            <div class="submit-container">
+                <button type="submit" class="btn-submit">Submit Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    let forceSubmit = false;
+    let isSubmitting = false;
+    let examStarted = false;
+    let timeLeft = {{ duration_seconds }};
+
+    const questions = document.querySelectorAll('.question-block');
+    const navButtons = document.querySelectorAll('.question-nav button');
+    const timerDisplay = document.getElementById('timer');
+    const form = document.getElementById('exam-form');
+    const startScreen = document.getElementById('start-screen');
+    const examPanel = document.getElementById('exam-panel');
+    const startExamBtn = document.getElementById('start-exam-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const answeredCountEl = document.getElementById('answered-count');
+    const progressTextEl = document.getElementById('progress-text');
+    const progressPercentEl = document.getElementById('progress-percent');
+    const progressFillEl = document.getElementById('progress-fill');
+
+    function countAnsweredQuestions() {
+        return Array.from(questions).filter((q) => q.querySelector('input[type="radio"]:checked')).length;
+    }
+
+    function updateProgress() {
+        const answered = countAnsweredQuestions();
+        const total = questions.length;
+        const percent = total > 0 ? Math.round((answered / total) * 100) : 0;
+        answeredCountEl.textContent = answered;
+        progressTextEl.textContent = `Question ${currentIndex + 1} of ${total}`;
+        progressPercentEl.textContent = `${percent}%`;
+        progressFillEl.style.width = `${percent}%`;
+    }
+
+    function updateOptionSelectionState() {
+        questions.forEach((qBlock) => {
+            qBlock.querySelectorAll('.option').forEach((optionEl) => {
+                const radio = optionEl.querySelector('input[type="radio"]');
+                optionEl.classList.toggle('selected', Boolean(radio && radio.checked));
+            });
+        });
+    }
+
+    function updateNavAnsweredState() {
+        questions.forEach((qBlock, idx) => {
+            const answered = qBlock.querySelector('input[type="radio"]:checked');
+            navButtons[idx].classList.toggle('answered', Boolean(answered));
+        });
+    }
+
+    function showQuestion(index) {
+        if (index < 0 || index >= questions.length) return;
+        questions.forEach((q, i) => q.classList.toggle('active', i === index));
+        navButtons.forEach((b, i) => b.classList.toggle('active', i === index));
+        currentIndex = index;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === questions.length - 1;
+        updateProgress();
+    }
+
+    prevBtn.onclick = () => showQuestion(currentIndex - 1);
+    nextBtn.onclick = () => showQuestion(currentIndex + 1);
+    navButtons.forEach(btn => {
+        btn.onclick = () => showQuestion(parseInt(btn.dataset.index, 10));
+    });
+    questions.forEach((qBlock) => {
+        qBlock.querySelectorAll('input[type="radio"]').forEach((radio) => {
+            radio.addEventListener('change', () => {
+                updateOptionSelectionState();
+                updateNavAnsweredState();
+                updateProgress();
+            });
+        });
+    });
+
+    function validateAllQuestions() {
+        if (!examStarted) return false;
+        if (forceSubmit) return true;
+
+        for (let i = 0; i < questions.length; i++) {
+            if (!questions[i].querySelector('input[type="radio"]:checked')) {
+                alert(`Question ${i + 1} is not answered.`);
+                showQuestion(i);
+                return false;
+            }
+        }
+
+        const confirmed = confirm('Are you sure you want to submit?');
+        if (confirmed) {
+            isSubmitting = true;
+            window.removeEventListener('beforeunload', preventRefreshHandler);
+        }
+        return confirmed;
+    }
+
+    function startTimer() {
+        const interval = setInterval(() => {
+            if (!examStarted) return;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, '0');
+            const secs = String(timeLeft % 60).padStart(2, '0');
+            timerDisplay.textContent = `${mins}:${secs}`;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                forceSubmit = true;
+                isSubmitting = true;
+                window.removeEventListener('beforeunload', preventRefreshHandler);
+                form.submit();
+                return;
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    async function startExam() {
+        if (examStarted) return;
+        startExamBtn.disabled = true;
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+        } catch (error) {
+            startExamBtn.disabled = false;
+            alert('Unable to enter fullscreen. Please allow fullscreen to start the exam.');
+            return;
+        }
+
+        examStarted = true;
+        startScreen.style.display = 'none';
+        examPanel.classList.remove('exam-panel-hidden');
+        updateOptionSelectionState();
+        updateNavAnsweredState();
+        showQuestion(0);
+    }
+
+    function preventRefreshHandler(event) {
+        if (!examStarted || isSubmitting) return;
+        event.preventDefault();
+        event.returnValue = '';
+    }
+
+    startExamBtn.addEventListener('click', startExam);
+    window.addEventListener('beforeunload', preventRefreshHandler);
+
+    // Block keyboard refresh shortcuts
+    document.addEventListener('keydown', function (event) {
+        const key = event.key.toLowerCase();
+        const isRefreshKey = key === 'f5' || ((event.ctrlKey || event.metaKey) && key === 'r');
+        if (examStarted && !isSubmitting && isRefreshKey) {
+            event.preventDefault();
+            alert('Refreshing is disabled during the exam.');
+        }
+    });
+
+    // Disable browser back navigation during exam
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        if (examStarted && !isSubmitting) {
+            history.pushState(null, '', location.href);
+            alert('Back navigation is disabled during the exam.');
+        }
+    });
+
+    timerDisplay.textContent = `${String(Math.floor(timeLeft / 60)).padStart(2, '0')}:${String(timeLeft % 60).padStart(2, '0')}`;
+    updateProgress();
+    startTimer();
+</script>
+
+</body>
+</html>

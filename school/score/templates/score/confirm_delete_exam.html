@@ -1,0 +1,37 @@
+{% extends base_template|default:"score/dashboard.html" %}
+{% load static %}
+
+{% block title %}Delete Exam?{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4>Confirm Deletion</h4>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to <strong>permanently delete</strong> the exam:</p>
+                    <h5 class="text-danger">
+                        {{ exam.title }} ({{ exam.exam_code }})
+                    </h5>
+                    <p>This will also delete all questions and results associated with it.</p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="text-end">
+                            <a href="{% url 'cbt_exam_list' %}" class="btn btn-secondary me-2">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                Yes, Delete Exam
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

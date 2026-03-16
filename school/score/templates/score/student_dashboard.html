@@ -1,0 +1,373 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Student Dashboard - {{ student.full_name }}{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; overflow-x: hidden; }
+        html { overflow-x: hidden; }
+        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 280px; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08); display: flex; flex-direction: column; height: 100vh; border-radius: 0 0.75rem 0.75rem 0; }
+        .sidebar.collapsed { width: 80px; }
+        .sidebar.collapsed .menu-text, .sidebar.collapsed .sidebar-title, .sidebar.collapsed .user-info, .sidebar.collapsed .logout-btn { opacity: 0; width: 0; height: 0; overflow: hidden; margin: 0; padding: 0; }
+        .sidebar.collapsed .menu-item { justify-content: center; padding: 0.75rem; }
+        .sidebar.collapsed .dropdown-icon { display: none; }
+        .sidebar.collapsed .submenu { display: none !important; }
+        .menu-item { transition: all 0.2s ease; border-radius: 0 0.5rem 0.5rem 0; min-height: 44px; }
+        .menu-item:hover:not(.active) { background-color: rgba(255, 255, 255, 0.08); }
+        @media (max-width: 768px) { .menu-item:hover { transform: none; } }
+        .menu-item.active { background: #f1f5f9; color: #334155; box-shadow: none; }
+        .menu-item.active [data-lucide], .menu-item.active .menu-text { color: #334155; }
+        .sidebar-nav-bg { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .submenu { transition: all 0.3s ease; max-height: 0; overflow: hidden; }
+        .submenu.open { max-height: 1000px; }
+        .submenu-item { transition: all 0.2s ease; border-radius: 0 0.375rem 0.375rem 0; }
+        .submenu-item:hover { background-color: rgba(255, 255, 255, 0.08); }
+        .main-content { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+        .header { backdrop-filter: blur(10px); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+        .header.header-gradient { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .header .header-brand-text { color: #ffffff; }
+        .header .header-brand-sub { color: rgba(255, 255, 255, 0.9); }
+        .content-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; }
+        .content-card:hover { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); transform: translateY(-2px); }
+        .footer { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .toggle-btn { transition: all 0.3s ease; }
+        .toggle-btn:hover { transform: scale(1.1); }
+        .collapse-arrow { transition: transform 0.3s ease; }
+        .sidebar.collapsed .collapse-arrow { transform: rotate(180deg); }
+        .icon-btn { transition: all 0.2s ease; }
+        .icon-btn:hover { transform: scale(1.1); background-color: rgba(0, 0, 0, 0.05); }
+        @media (max-width: 1024px) { .sidebar { position: fixed; left: -280px; z-index: 1000; height: 100vh; top: 0; } .sidebar.mobile-open { left: 0; } .main-content { margin-left: 0; width: 100%; height: 100vh; } .header { padding: 1rem; } .content-card { padding: 1.5rem; } .footer { padding: 1.5rem 1rem; } }
+        @media (max-width: 640px) { .header { padding: 0.75rem; } main { padding: 1rem; } .content-card { padding: 1rem; } .footer { padding: 1rem 0.75rem; } .sidebar { width: 100%; max-width: 280px; } }
+        .gradient-bg { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .text-gradient { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    </style>
+</head>
+<body class="bg-gray-50 overflow-x-hidden h-screen">
+<div class="flex h-screen w-full overflow-x-hidden">
+    <aside class="sidebar sidebar-nav-bg text-white flex flex-col flex-shrink-0 fixed lg:static h-screen z-50" id="sidebar">
+        <div class="p-5 pt-6">
+            <div class="flex items-center gap-2 min-w-0">
+                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <svg viewBox="0 0 64 64" class="w-9 h-9 text-white" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M8 23L32 12L56 23L32 34L8 23Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M16 28V38C16 43.5 23.2 48 32 48C40.8 48 48 43.5 48 38V28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                        <circle cx="32" cy="38" r="8" stroke="currentColor" stroke-width="4"/>
+                        <path d="M20 54C22.5 49.5 27 46.5 32 46.5C37 46.5 41.5 49.5 44 54" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="user-info flex-1 min-w-0 truncate">
+                    <p class="sidebar-title text-sm sm:text-base font-semibold text-white truncate">{{ student.full_name }}</p>
+                    <p class="text-xs text-white/80 truncate">{{ student.class_group.name }}</p>
+                </div>
+                <button id="sidebar-toggle-btn" type="button" onclick="toggleSidebar(); if(window.innerWidth < 1024) toggleMobileSidebar();" class="toggle-btn icon-btn p-2 rounded-lg hover:bg-white/10 flex-shrink-0 text-white" title="Minimize" aria-label="Minimize sidebar">
+                    <i data-lucide="panel-left-close" class="w-5 h-5 sidebar-toggle-icon"></i>
+                </button>
+                <button class="toggle-btn icon-btn p-2 rounded-lg hover:bg-white/10 lg:hidden flex-shrink-0" onclick="toggleMobileSidebar()" aria-label="Close menu">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4 px-4">
+            <ul class="space-y-2">
+                <li>
+                    <a href="{% url 'student_dashboard' %}" class="show-dashboard menu-item active flex items-center gap-3 p-3 rounded-lg rounded-l-none" id="dashboard-menu-link">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="menu-text font-medium">Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'select_student_analytics' %}" class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+                        <i data-lucide="trending-up" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="menu-text font-medium">Performance Analytics</span>
+                    </a>
+                </li>
+                {% if available_features.cbt_exams %}
+                <li>
+                    <a href="{% url 'cbt_login' %}" class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+                        <i data-lucide="log-in" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="menu-text font-medium">CBT Exam Login</span>
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <a href="{% url 'reportcard_home' %}" class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+                        <i data-lucide="printer" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="menu-text font-medium">Print Report Card</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#scores" class="show-dashboard scroll-to-scores menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+                        <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0"></i>
+                        <span class="menu-text font-medium">My Scores</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="mt-auto p-4 pt-6">
+            <a href="{% url 'unified_logout' %}" class="logout-btn flex items-center gap-3 w-full p-3 rounded-lg rounded-l-none text-white hover:bg-white/10 transition-all duration-200 font-medium">
+                <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-content flex-1 flex flex-col w-full lg:ml-0 h-screen overflow-hidden">
+        <header class="header header-gradient p-4 sm:p-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                <button class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white lg:hidden flex-shrink-0" onclick="toggleMobileSidebar()">
+                    <i data-lucide="menu" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </button>
+                {% if setting and setting.logo %}
+                    <img src="{{ setting.logo.url }}" alt="{{ student.school.name }}" class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+                {% elif student.school.logo %}
+                    <img src="{{ student.school.logo.url }}" alt="{{ student.school.name }}" class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+                {% else %}
+                    <img src="{% static 'images/school-icon.png' %}" alt="{{ student.school.name }}" class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+                {% endif %}
+                <div class="min-w-0">
+                    <p class="header-brand-sub text-lg sm:text-xl md:text-2xl truncate" title="Due Deligence">Due Deligence</p>
+                    <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ student.school.name }}">Welcome, {{ student.school.name }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]" title="{{ student.full_name }}">{{ student.full_name }}</p>
+                <button id="fullscreen-btn" class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white transition-all flex-shrink-0">
+                    <i data-lucide="maximize" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative min-h-0">
+                <div id="content-frame-wrapper" class="hidden absolute inset-0 bg-white z-10 flex flex-col">
+                    <iframe id="content-frame" class="w-full flex-1 border-0 bg-white min-h-0" title="Content"></iframe>
+                </div>
+                <div id="dashboard-content" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 min-h-0">
+                {% block content %}
+                <section id="dashboard" class="content-card p-5 sm:p-6 mb-6 gradient-bg text-white">
+                    <h2 class="text-2xl sm:text-3xl font-bold">My Dashboard</h2>
+                    <p class="text-white/90 mt-2">Term: <span class="font-semibold">{{ current_term.name }}</span></p>
+                    <div class="flex flex-wrap gap-2 mt-5">
+                        <a href="{% url 'select_student_analytics' %}" class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                            <i data-lucide="trending-up" class="w-4 h-4"></i>
+                            <span>Analytics</span>
+                        </a>
+                        <a href="{% url 'cbt_login' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                            <i data-lucide="log-in" class="w-4 h-4"></i>
+                            <span>CBT Login</span>
+                        </a>
+                        <a href="{% url 'reportcard_home' %}" class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            <span>Report Card</span>
+                        </a>
+                    </div>
+                </section>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
+                    <div class="content-card p-5">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Average Score</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">{{ average_score }}%</p>
+                                <p class="text-sm text-slate-500 mt-2">Across recorded subjects</p>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700">
+                                <i data-lucide="percent" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card p-5">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Attendance</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">{{ attendance_percentage }}%</p>
+                                <p class="text-sm text-slate-500 mt-2">This session</p>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
+                                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-card p-5">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Subjects</p>
+                                <p class="text-3xl font-bold text-slate-900 mt-2">{{ num_subjects }}</p>
+                                <p class="text-sm text-slate-500 mt-2">Registered for this class</p>
+                            </div>
+                            <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700">
+                                <i data-lucide="book-open" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <section id="scores" class="content-card overflow-hidden">
+                    <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900">My Scores</h3>
+                            <p class="text-sm text-slate-500">{{ current_term.name }}</p>
+                        </div>
+                        <a href="{% url 'reportcard_home' %}" class="load-in-frame inline-flex items-center gap-2 text-sm font-semibold text-purple-700 hover:text-purple-900">
+                            <span>Print report card</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-slate-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Subject</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 bg-white">
+                                {% for score in scores %}
+                                <tr class="hover:bg-slate-50">
+                                    <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ score.subject.name }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700">{{ score.total }}</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            {{ score.grade }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="px-6 py-10 text-center text-slate-500">No scores recorded yet for this term.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                {% endblock %}
+            </div>
+        </main>
+
+        <footer class="footer text-white p-4 sm:p-6 text-center flex-shrink-0">
+            <div class="max-w-4xl mx-auto px-2">
+                <p class="text-sm sm:text-base md:text-lg font-semibold mb-2 break-words">© 2025 Due Deligence Educational Management Information Systems Ltd.</p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
+                    <i data-lucide="phone" class="w-4 h-4 flex-shrink-0"></i>
+                    <p class="text-xs sm:text-sm break-words">CONTACT US: 0701 760 7529; 0706 436 9705</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Mobile Overlay -->
+<div class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+<script>
+    lucide.createIcons();
+
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const btn = document.getElementById('sidebar-toggle-btn');
+        const iconEl = btn && btn.querySelector('.sidebar-toggle-icon');
+        sidebar.classList.toggle('collapsed');
+        if (btn && iconEl) {
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            btn.title = isCollapsed ? 'Maximize' : 'Minimize';
+            btn.setAttribute('aria-label', isCollapsed ? 'Maximize sidebar' : 'Minimize sidebar');
+            iconEl.setAttribute('data-lucide', isCollapsed ? 'panel-left' : 'panel-left-close');
+            lucide.createIcons();
+        }
+    }
+
+    function toggleMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('hidden');
+    }
+
+    const fullscreenBtn = document.getElementById("fullscreen-btn");
+    if (fullscreenBtn) {
+        const fullscreenIcon = fullscreenBtn.querySelector("i");
+        fullscreenBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        });
+        document.addEventListener("fullscreenchange", () => {
+            if (fullscreenIcon) {
+                fullscreenIcon.setAttribute("data-lucide", document.fullscreenElement ? "minimize" : "maximize");
+                lucide.createIcons();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const link = item.closest('a');
+            if (link && link.getAttribute('href') === currentPath) {
+                item.classList.add('active');
+            }
+        });
+    });
+
+        // Load in-frame: Report Card and Performance Analytics (any a.load-in-frame) open inside
+        // the dashboard iframe; Dashboard link (a.show-dashboard) shows main content again.
+        (function() {
+            const contentFrameWrapper = document.getElementById('content-frame-wrapper');
+            const contentFrame = document.getElementById('content-frame');
+            const dashboardContent = document.getElementById('dashboard-content');
+
+            function showFrame(url) {
+                if (!url) return;
+                const sep = url.indexOf('?') >= 0 ? '&' : '?';
+                contentFrame.src = url + sep + 'embed=1';
+                if (contentFrameWrapper) contentFrameWrapper.classList.remove('hidden');
+                if (dashboardContent) dashboardContent.classList.add('hidden');
+            }
+
+            function showDashboard(opts) {
+                opts = opts || {};
+                contentFrame.src = 'about:blank';
+                if (contentFrameWrapper) contentFrameWrapper.classList.add('hidden');
+                if (dashboardContent) dashboardContent.classList.remove('hidden');
+                if (opts.scrollToScores) {
+                    var el = document.getElementById('scores');
+                    if (el && dashboardContent) {
+                        requestAnimationFrame(function() {
+                            var top = el.getBoundingClientRect().top + dashboardContent.scrollTop - dashboardContent.getBoundingClientRect().top;
+                            dashboardContent.scrollTop = Math.max(0, top - 24);
+                        });
+                    }
+                }
+            }
+
+            document.addEventListener('click', function(e) {
+                const loadInFrame = e.target.closest('a.load-in-frame');
+                if (loadInFrame) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFrame(loadInFrame.getAttribute('href'));
+                    return false;
+                }
+                const showDashboardLink = e.target.closest('a.show-dashboard');
+                if (showDashboardLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDashboard({ scrollToScores: showDashboardLink.classList.contains('scroll-to-scores') });
+                    return false;
+                }
+            }, true);
+        })();
+    </script>
+</body>
+</html>

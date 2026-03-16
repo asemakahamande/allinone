@@ -1,0 +1,43 @@
+{% extends "score/dashboard.html" %}
+
+{% block title %}Delete{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4>Delete {{ type }}</h4>
+                </div>
+                <div class="card-body">
+                    <p>
+                        Are you sure you want to delete 
+                        <strong class="text-danger">{{ object }}</strong>?
+                    </p>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-danger">
+                                Yes, Delete
+                            </button>
+
+                            {# Use only the one that matches your view #}
+                            <a href="{% url 'class_view' %}" class="btn btn-secondary ms-2">
+                                Cancel
+                            </a>
+                            {# or #}
+                            {# 
+                            <a href="{% url 'meeting_list' %}" class="btn btn-secondary ms-2">
+                                Cancel
+                            </a>
+                            #}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

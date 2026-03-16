@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employer Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center py-12 px-4">
+    <!-- Main card: width fits content exactly (no fixed max-w) -->
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg md:max-w-3xl">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">
+            Employer Registration
+        </h2>
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Form Fields: 2 equal columns with balanced gap -->
+            <div class="grid grid-cols-1 md:grid-cols-2 md:gap-x-8 gap-y-5">
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1.5">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ field.errors }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Terms Checkbox & Register Button: Centered as a group -->
+            <div class="mt-8 flex flex-col items-center gap-6">
+                <!-- Checkbox + Terms: full width but naturally left-aligned -->
+                <div class="flex items-start gap-3 max-w-xl">
+                    <input
+                        type="checkbox"
+                        id="termsCheckboxEmployer"
+                        class="mt-1 h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 flex-shrink-0"
+                    >
+                    <label for="termsCheckboxEmployer" class="text-gray-700 text-sm leading-relaxed">
+                        I agree to the
+                        <a
+                            href="https://docs.google.com/document/d/1A6fB28DJj1c1LZiYRfRafRvTVDAVuP5Iu7Xj8bkAbA4/edit?tab=t.0#heading=h.slkswcj1ksk2"
+                            target="_blank"
+                            class="text-blue-600 hover:text-blue-800 underline font-medium"
+                        >
+                            Terms and Conditions
+                        </a>
+                    </label>
+                </div>
+
+                <!-- Register Button: perfectly centered -->
+                <div class="flex justify-center w-full">
+                    <button
+                        type="submit"
+                        id="registerBtnEmployer"
+                        class="hidden px-12 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Register
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const checkboxEmployer = document.getElementById('termsCheckboxEmployer');
+        const registerBtnEmployer = document.getElementById('registerBtnEmployer');
+
+        checkboxEmployer.addEventListener('change', function() {
+            if (checkboxEmployer.checked) {
+                registerBtnEmployer.classList.remove('hidden');
+            } else {
+                registerBtnEmployer.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

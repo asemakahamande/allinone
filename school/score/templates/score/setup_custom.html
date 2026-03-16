@@ -1,0 +1,164 @@
+{% extends "score/dashboard.html" %}
+
+{% block title %}Configure Custom Grading - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="content-card overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+            <h2 class="text-2xl font-bold">
+                {% if is_first_time %}
+                    Set Up Custom Grading System
+                {% else %}
+                    Edit Custom Grading System
+                {% endif %}
+            </h2>
+            <p class="text-blue-100 mt-1">Class: {{ class_group.name }}</p>
+        </div>
+
+        <div class="p-6">
+            {% if is_first_time %}
+                <div class="mb-5 p-4 rounded-lg border-l-4 border-blue-500 bg-blue-50 text-blue-800">
+                    <strong>Start with this suggested template.</strong>
+                    You can rename components, change weight, add or remove rows.
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-sm font-bold">
+                    <strong>Tip:</strong> Keep component names short (6 characters or less) so they fit on report cards and score sheets. For example: <em>Assignment</em> → Assimt, <em>Home work</em> → H/work, <em>Attendance</em> → Attend.
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Component Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Weight (%)</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="components-tbody" class="bg-white divide-y divide-gray-100">
+                            {% if custom_system.components %}
+                                {% for name, weight in custom_system.components.items %}
+                                    <tr>
+                                        <td class="px-4 py-3">
+                                            <input type="text" name="component_name" value="{{ name }}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="number" name="component_weight" value="{{ weight }}" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="CA1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="10" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="Assignment" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="10" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="Attendance" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="5" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="Class Work" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="5" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="Project" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="10" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3"><input type="text" name="component_name" value="Exam" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></td>
+                                    <td class="px-4 py-3"><input type="number" name="component_weight" value="60" min="1" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" required></td>
+                                    <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-5 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" class="px-4 py-2.5 bg-white border border-blue-600 text-blue-700 rounded-lg font-semibold hover:bg-blue-50" onclick="addRow()">
+                        + Add Component
+                    </button>
+
+                    <div class="px-4 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm">
+                        <strong>Total Weight: <span id="total-weight">0</span>%</strong>
+                        <span id="total-message" class="ml-1"></span>
+                    </div>
+                </div>
+
+                <div class="mt-5">
+                    <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow">
+                        Save Grading System
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function addRow() {
+        const tbody = document.getElementById('components-tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-4 py-3"><input type="text" name="component_name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., Quiz" required></td>
+            <td class="px-4 py-3"><input type="number" name="component_weight" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent weight-input" min="1" max="100" value="10" required></td>
+            <td class="px-4 py-3"><button type="button" class="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold" onclick="removeRow(this)">Remove</button></td>
+        `;
+        tbody.appendChild(row);
+        bindWeightInputs();
+        updateTotal();
+    }
+
+    function removeRow(btn) {
+        btn.closest('tr').remove();
+        updateTotal();
+    }
+
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.weight-input').forEach((input) => {
+            total += parseInt(input.value, 10) || 0;
+        });
+
+        document.getElementById('total-weight').textContent = total;
+        const msg = document.getElementById('total-message');
+
+        if (total === 100) {
+            msg.innerHTML = '<span class="text-green-700 font-semibold">Perfect!</span>';
+        } else if (total > 100) {
+            msg.innerHTML = '<span class="text-red-700 font-semibold">Too high!</span>';
+        } else if (total > 0) {
+            msg.innerHTML = '<span class="text-amber-700 font-semibold">Add more weight</span>';
+        } else {
+            msg.textContent = '';
+        }
+    }
+
+    function bindWeightInputs() {
+        document.querySelectorAll('.weight-input').forEach((input) => {
+            input.removeEventListener('input', updateTotal);
+            input.addEventListener('input', updateTotal);
+        });
+    }
+
+    bindWeightInputs();
+    updateTotal();
+</script>
+{% endblock %}

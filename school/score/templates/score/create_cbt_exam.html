@@ -1,0 +1,273 @@
+{% extends base_template|default:"score/dashboard.html" %}
+{% load static %}
+
+{% block title %}Create CBT Exam{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-3 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                    <i data-lucide="plus-circle" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Create New CBT Exam</h1>
+                    <p class="text-gray-600 mt-1">{{ school.name }} - Set up a new computer-based test</p>
+                </div>
+            </div>
+            <a href="{% url 'cbt_exam_list' %}" 
+               class="flex items-center gap-2 px-6 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Back to Exams
+            </a>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Form Card -->
+    <div class="content-card overflow-hidden">
+        <div class="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+            <h2 class="text-xl font-semibold flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                Exam Details
+            </h2>
+        </div>
+
+        <form method="post" class="p-6 space-y-6">
+            {% csrf_token %}
+
+            <!-- Basic Information Section -->
+            <div class="p-6 bg-blue-50 rounded-lg border border-blue-100">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                    Basic Information
+                </h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="type" class="w-4 h-4 text-blue-600"></i>
+                            Exam Title <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" 
+                               name="title" 
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" 
+                               placeholder="e.g., First Term Mathematics Exam"
+                               required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                            Description <span class="text-gray-400 text-xs">(Optional)</span>
+                        </label>
+                        <textarea name="description" 
+                                  rows="3" 
+                                  class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-vertical"
+                                  placeholder="Add any additional instructions or details about this exam..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class & Subject Section -->
+            <div class="p-6 bg-purple-50 rounded-lg border border-purple-100">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="school" class="w-5 h-5 text-purple-600"></i>
+                    Class & Subject
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-purple-600"></i>
+                            Class <span class="text-red-500">*</span>
+                        </label>
+                        {% if is_admin %}
+                            <select name="class_group" 
+                                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white" 
+                                    required>
+                                {% for cls in classes %}
+                                    <option value="{{ cls.id }}"
+                                      {% if request.POST.class_group == cls.id|stringformat:"s" %}selected{% endif %}>
+                                      {{ cls.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <div class="px-4 py-2.5 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="lock" class="w-5 h-5 text-purple-600"></i>
+                                    <span class="font-semibold text-purple-800">{{ selected_class.name }}</span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="class_group" value="{{ selected_class.id }}">
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="book" class="w-4 h-4 text-purple-600"></i>
+                            Subject <span class="text-red-500">*</span>
+                        </label>
+                        <select name="subject" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white" 
+                                required>
+                            {% for subj in subjects %}
+                                <option value="{{ subj.id }}"
+                                  {% if request.POST.subject == subj.id|stringformat:"s" %}selected{% endif %}>
+                                  {{ subj.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Academic Period Section -->
+            <div class="p-6 bg-yellow-50 rounded-lg border border-yellow-100">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-yellow-600"></i>
+                    Academic Period
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="calendar-days" class="w-4 h-4 text-yellow-600"></i>
+                            Session <span class="text-red-500">*</span>
+                        </label>
+                        <select name="session" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all bg-white" 
+                                required>
+                            {% for session in sessions %}
+                                <option value="{{ session.id }}"
+                                  {% if request.POST.session == session.id|stringformat:"s" %}selected{% endif %}>
+                                  {{ session.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="calendar-range" class="w-4 h-4 text-yellow-600"></i>
+                            Term <span class="text-red-500">*</span>
+                        </label>
+                        <select name="term" 
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all bg-white" 
+                                required>
+                            {% for term in terms %}
+                                <option value="{{ term.id }}"
+                                  {% if request.POST.term == term.id|stringformat:"s" %}selected{% endif %}>
+                                  {{ term.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-yellow-600"></i>
+                            Duration (minutes) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" 
+                               name="duration_minutes" 
+                               value="60" 
+                               min="10" 
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all" 
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Settings Section -->
+            <div class="p-6 bg-green-50 rounded-lg border border-green-100">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-green-600"></i>
+                    Exam Settings
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="target" class="w-4 h-4 text-green-600"></i>
+                            Pass Mark (%) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" 
+                               name="pass_mark" 
+                               value="50" 
+                               min="0" 
+                               max="100" 
+                               class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all" 
+                               required>
+                        <p class="text-xs text-gray-500 mt-1">Students need to score above this percentage to pass</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="eye" class="w-4 h-4 text-green-600"></i>
+                            Visibility
+                        </label>
+                        <div class="bg-white border border-gray-300 rounded-lg p-4">
+                            <div class="flex items-start gap-3">
+                                <input class="mt-1 h-5 w-5 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500" 
+                                       type="checkbox" 
+                                       name="is_published" 
+                                       id="publish">
+                                <label class="cursor-pointer" for="publish">
+                                    <span class="font-medium text-gray-800 block">Publish Immediately</span>
+                                    <p class="text-sm text-gray-500">Make this exam available to students right away</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
+                <a href="{% url 'cbt_exam_list' %}" 
+                   class="flex items-center justify-center gap-2 px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    Create Exam
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Help Card -->
+    <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+        <div class="flex gap-3">
+            <div class="flex-shrink-0">
+                <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-800 mb-1">Next Steps</h4>
+                <p class="text-sm text-blue-700">After creating the exam, you'll be able to add questions, set question types, and configure additional settings.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

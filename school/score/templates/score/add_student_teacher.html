@@ -1,0 +1,201 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Add Student - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+                <i data-lucide="user-plus" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Add New Student</h1>
+                <p class="text-slate-600 mt-1">Register a new student in {{ class_group.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="calendar" class="w-5 h-5 text-indigo-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Academic Session &amp; Term</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Academic Session <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        {{ form.session }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i data-lucide="calendar" class="w-5 h-5 text-slate-400"></i>
+                        </div>
+                    </div>
+                    {% if form.session.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.session.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Term <span class="text-red-500">*</span></label>
+                    <div class="relative">
+                        {{ form.term }}
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i data-lucide="calendar-range" class="w-5 h-5 text-slate-400"></i>
+                        </div>
+                    </div>
+                    {% if form.term.errors %}
+                        <p class="text-red-600 text-sm mt-1">{{ form.term.errors|join:", " }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="user" class="w-5 h-5 text-emerald-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Student Information</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Surname <span class="text-red-500">*</span></label>
+                    {{ form.surname }}
+                    {% if form.surname.errors %}<p class="text-red-600 text-sm mt-1">{{ form.surname.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">First Name <span class="text-red-500">*</span></label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<p class="text-red-600 text-sm mt-1">{{ form.first_name.errors|join:", " }}</p>{% endif %}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Middle Name</label>
+                    {{ form.middle_name }}
+                </div>
+            </div>
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-slate-700 mb-2">Gender</label>
+                <div class="flex space-x-6">{{ form.gender }}</div>
+                {% if form.gender.errors %}<p class="text-red-600 text-sm mt-1">{{ form.gender.errors|join:", " }}</p>{% endif %}
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="graduation-cap" class="w-5 h-5 text-purple-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Academic Details</h2>
+            </div>
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="school" class="w-5 h-5 text-indigo-600"></i>
+                    <span class="font-semibold text-slate-800">{{ selected_class.name }}</span>
+                </div>
+            </div>
+            <input type="hidden" name="class_group" value="{{ selected_class.id }}">
+            <p class="text-sm text-slate-500 mt-2">Exam number is auto-generated when you save.</p>
+        </div>
+
+        <div class="card p-6 bg-slate-50">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="toggle-left" class="w-5 h-5 text-slate-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Student Status</h2>
+            </div>
+            <div class="flex flex-wrap gap-6">
+                <label class="flex items-center gap-3 cursor-pointer">{{ form.is_active }} <span class="text-slate-700 font-medium">Active Student</span></label>
+                <label class="flex items-center gap-3 cursor-pointer">{{ form.is_graduated }} <span class="text-slate-700 font-medium">Graduated</span></label>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="users" class="w-5 h-5 text-orange-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Parent/Guardian Information</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Parent Surname <span class="text-red-500">*</span></label>
+                    {{ form.parent_surname }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Parent First Name <span class="text-red-500">*</span></label>
+                    {{ form.parent_first_name }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Parent Middle Name</label>
+                    {{ form.parent_middle_name }}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Parent Email</label>
+                    {{ form.parent_email }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Parent Phone Number</label>
+                    {{ form.parent_phone_number }}
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+                <i data-lucide="map-pin" class="w-5 h-5 text-red-600"></i>
+                <h2 class="text-lg font-semibold text-slate-800">Contact Information</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Location</label>
+                    {{ form.location }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Full Address</label>
+                    {{ form.address }}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+            <button type="submit" name="action" value="save" class="student-btn-save flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold text-white">
+                <i data-lucide="save" class="w-4 h-4 flex-shrink-0"></i>
+                <span>Save Student</span>
+            </button>
+            <button type="submit" name="action" value="save_add" class="teacher-btn-secondary flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold">
+                <i data-lucide="plus-circle" class="w-4 h-4 flex-shrink-0"></i>
+                <span>Save &amp; Add Another</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .student-btn-save {
+        background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+        color: #fff;
+    }
+    .student-btn-save:hover {
+        opacity: 0.9;
+        color: #fff;
+    }
+    .teacher-btn-primary { background-color: #059669; color: #fff; }
+    .teacher-btn-primary:hover { background-color: #047857; }
+    .teacher-btn-secondary { background-color: #0d9488; color: #fff; }
+    .teacher-btn-secondary:hover { background-color: #0f766e; }
+    input[type="text"], input[type="email"], input[type="number"], select, textarea {
+        width: 100%; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+    input[type="radio"], input[type="checkbox"] { width: 1.25rem; height: 1.25rem; cursor: pointer; accent-color: #059669; }
+</style>
+<script>lucide.createIcons();</script>
+{% endblock %}

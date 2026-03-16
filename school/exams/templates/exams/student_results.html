@@ -1,0 +1,155 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Results</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h2 { text-align: center; margin-bottom: 20px; }
+        /* Responsive filter form */
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .filter-form select,
+        .filter-form input[type="text"],
+        .filter-form button {
+            padding: 8px;
+            font-size: 14px;
+        }
+        .filter-form button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .filter-form button:hover {
+            background-color: #0056b3;
+        }
+        /* Table styling */
+        .table-container {
+            width: 100%;
+            overflow-x: auto; /* Horizontal scroll on small screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto; /* Allow columns to adjust */
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ccc;
+            white-space: nowrap; /* Prevent text wrapping for better scrolling */
+        }
+        th {
+            background-color: #007BFF;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e0e0e0;
+        }
+        /* Make first column (Student Name) sticky for better context while scrolling */
+        th:first-child,
+        td:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #007BFF; /* For header */
+            z-index: 2;
+        }
+        td:first-child {
+            background-color: #f9f9f9; /* Slight highlight for data cells */
+            font-weight: bold;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body { margin: 10px; }
+            .filter-form { flex-direction: column; align-items: stretch; }
+            .filter-form select,
+            .filter-form input[type="text"],
+            .filter-form button { width: 100%; }
+            th, td { padding: 10px 8px; font-size: 14px; }
+        }
+        @media (max-width: 480px) {
+            th, td { padding: 8px 6px; font-size: 13px; }
+        }
+    </style>
+</head>
+<body>
+    <h2>Student Results</h2>
+    <form method="get" class="filter-form">
+        <select name="session">
+            <option value="">Select Session</option>
+            {% for s in sessions %}
+                <option value="{{ s }}" {% if selected_session == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+        </select>
+        <select name="term">
+            <option value="">Select Term</option>
+            {% for t in terms %}
+                <option value="{{ t }}" {% if selected_term == t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+        </select>
+        <select name="class">
+            <option value="">Select Class</option>
+            {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class_id == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+        <select name="subject">
+            <option value="">Select Subject</option>
+            {% for sub in subjects %}
+                <option value="{{ sub.id }}" {% if selected_subject_id == sub.id|stringformat:"s" %}selected{% endif %}>{{ sub.name }}</option>
+            {% endfor %}
+        </select>
+        <input type="text" name="search" placeholder="Search student" value="{{ search_name }}">
+        <button type="submit">Filter</button>
+    </form>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Class</th>
+                    <th>Subject</th>
+                    <th>Term</th>
+                    <th>Session</th>
+                    <th>Score</th>
+                    <th>Total</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                    <tr>
+                        <td>{{ r.student_name }}</td>
+                        <td>{{ r.student_class.name }}</td>
+                        <td>{{ r.exam.subject.name }}</td>
+                        <td>{{ r.exam.term }}</td>
+                        <td>{{ r.exam.session }}</td>
+                        <td>{{ r.score }}</td>
+                        <td>{{ r.total }}</td>
+                        <td>{{ r.percentage|floatformat:2 }}%</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align:center;">No results found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

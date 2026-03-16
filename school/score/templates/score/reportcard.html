@@ -1,0 +1,400 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report Card</title>
+
+    <style>
+        /* A4 page; content flows and scales to fit */
+        @page { size: A4; margin: 8mm; }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            padding-top: 3%;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Content-driven height; max-width fits A4; 3% top offset from body */
+        .page-border {
+            position: relative;
+            max-width: 194mm;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.2em;
+            border: 2px solid black;
+            font-size: 11px;
+        }
+
+        /* Watermark inside page (no fixed position = no extra page in WeasyPrint) */
+        .reportcard-watermark {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 40%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page-border > * { position: relative; z-index: 1; }
+
+        .school-header {
+            display: flex;
+            align-items: flex-start;
+            border-bottom: 2px solid black;
+            padding-bottom: 0.6em;
+            margin-bottom: 0.6em;
+        }
+
+        .school-header img {
+            width: 4.5em;
+            height: 4.5em;
+            object-fit: contain;
+            margin-right: 0.8em;
+            flex-shrink: 0;
+        }
+
+        .school-info {
+            flex: 1;
+            text-align: center;
+            min-width: 0;
+        }
+
+        .school-info h1 {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: red;
+            margin: 0;
+            text-transform: uppercase;
+            line-height: 1.15;
+        }
+
+        .school-info p {
+            margin: 0.15em 0;
+            line-height: 1.2;
+            font-size: 1em;
+        }
+
+        .school-info .address { color: #1e3a8a; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 0.3em;
+            font-size: 1em;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 0.25em 0.35em;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th { background: #f5f5f5; font-weight: bold; }
+
+        .report-period {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.15em;
+            margin-bottom: 0.5em;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 0.5em 0 0.25em;
+            text-align: center;
+        }
+
+        .comments { font-size: 1em; margin-top: 0.6em; }
+        .comments-signature-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 0.6em;
+        }
+        .comments-signature-row .comments { width: 60.5%; margin-top: 0; }
+        .comments-signature-row .signature { width: 35.5%; text-align: center; }
+        .signature .line { text-align: center; font-size: 1em; }
+        .signature img { max-width: 5em; height: auto; display: block; margin: 0 auto; }
+
+        .traits-container { display: flex; justify-content: space-between; margin-top: 0.6em; gap: 0.5em; }
+        .traits-table { width: 48%; min-width: 0; }
+        .grading-system { margin-top: 0.6em; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .text-sm { font-size: 1em; }
+
+        .student-info-table .label-cell {
+            text-align: right;
+            padding-right: 0.4em;
+            font-weight: bold;
+            width: 1%;
+            white-space: nowrap;
+        }
+        .student-info-table .data-cell { text-align: left; }
+
+        .col-high-low {
+            max-width: 4.2em;
+            width: 4.2em;
+            font-size: 0.9em;
+            line-height: 1.2;
+            padding: 0.15em 0.25em;
+        }
+        th.col-high-low {
+            font-size: 0.75em;
+        }
+        .col-sub-head {
+            min-width: calc(4em + 1%);
+            max-width: calc(4.4em + 1%);
+            font-size: 0.8em;
+            line-height: 1.2;
+            padding: 0.24em 0.36em;
+            white-space: nowrap;
+        }
+        th.col-sub-head {
+            font-size: 0.8em;
+        }
+
+        /* Scale down when more content (more subjects) so it still fits one A4 */
+        .page-border.scale-sm { font-size: 9px; }
+        .page-border.scale-xs { font-size: 8px; }
+    </style>
+</head>
+
+<body>
+    {% if school.logo %}
+    <div class="reportcard-watermark" style="background-image: url('{{ school.logo.url }}');" aria-hidden="true"></div>
+    {% endif %}
+<div class="page-border">
+
+    <!-- School Header -->
+    <div class="school-header">
+        {% if school.logo %}
+            <img src="{{ school.logo.url }}" alt="School Logo">
+        {% endif %}
+        <div class="school-info">
+            <h1>{{ school.name }}</h1>
+            <p class="address">{{ school.address }}</p>
+            <p>Tel: {{ school.phone }} | Email: {{ school.email }}</p>
+            <p><em>Motto: "{{ school.motto }}"</em></p>
+        </div>
+    </div>
+
+    <!-- Period -->
+    <div class="report-period">
+        {{ term }} Report Card – {{ session }} Academic Session
+    </div>
+
+    <!-- Student Info: same arrangement as original, with label and data in separate columns -->
+    <table class="student-info-table">
+        <tr>
+            <td class="label-cell">Name:</td>
+            <td class="data-cell">{{ student.surname|title }} {{ student.first_name|title }}{% if student.middle_name %} {{ student.middle_name|title }}{% endif %}</td>
+            <td class="label-cell">Exam No:</td>
+            <td class="data-cell">{{ student.exam_no }}</td>
+            <td class="label-cell">Class:</td>
+            <td class="data-cell">{{ student.class_group.name }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">Class Teacher:</td>
+            <td class="data-cell">{{ student.class_group.class_teacher|default:"Not Assigned" }}</td>
+            <td class="label-cell">Attendance:</td>
+            <td class="data-cell">{{ attendance }}</td>
+            <td class="label-cell">Exam Month:</td>
+            <td class="data-cell">{{ school.exam_month }} {{ school.exam_year }}</td>
+        </tr>
+        <tr>
+            <td class="label-cell">School Opened:</td>
+            <td class="data-cell">{{ school.school_open }}</td>
+            <td class="label-cell">Term Ends:</td>
+            <td class="data-cell">{{ school.term_closes_on }}</td>
+            <td class="label-cell">Next Term Begins:</td>
+            <td class="data-cell">{{ school.next_term_begins }}</td>
+        </tr>
+    </table>
+
+    <!-- Academic Performance -->
+    <div class="section-title font-bold">Academic Performance</div>
+
+    <p class="text-center text-sm">
+        <strong>Scoring System:</strong> {{ student.class_group.get_scoring_system_display }}
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th rowspan="2">Subject</th>
+
+                <!-- Dynamic Assessment Components -->
+                {% for component in assessment_components %}
+                    {% if not component.name|is_exam_component %}
+                        <th>{{ component.name }}<br>({{ component.percentage }}%)</th>
+                    {% endif %}
+                {% endfor %}
+                {% for component in assessment_components %}
+                    {% if component.name|is_exam_component %}
+                        <th>{{ component.name }}<br>({{ component.percentage }}%)</th>
+                    {% endif %}
+                {% endfor %}
+
+                <th rowspan="2">Total<br>(100%)</th>
+                <th rowspan="2" class="col-sub-head">Sub<br>Average</th>
+                <th rowspan="2" class="col-high-low"><strong>S/H<br>Score</strong></th>
+                <th rowspan="2" class="col-high-low"><strong>S/L<br>Score</strong></th>
+                <th rowspan="2">Grade</th>
+                <th rowspan="2" class="col-sub-head">Sub<br>Position</th>
+                <th rowspan="2">Remarks</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for s in scores %}
+            <tr>
+                <td>{{ s.subject.name }}</td>
+
+                <!-- Dynamic Score Values -->
+                {% for component in assessment_components %}
+                    {% if not component.name|is_exam_component %}
+                        <td>
+                            {{ s.scores_dict|get_item:component.key|default:"-"|floatformat:1 }}
+                        </td>
+                    {% endif %}
+                {% endfor %}
+                {% for component in assessment_components %}
+                    {% if component.name|is_exam_component %}
+                        <td>
+                            {{ s.scores_dict|get_item:component.key|default:"-"|floatformat:1 }}
+                        </td>
+                    {% endif %}
+                {% endfor %}
+
+                <td>{{ s.total|floatformat:1 }}</td>
+                <td class="col-sub-head">{{ s.avg_score|floatformat:2 }}</td>
+                <td class="col-high-low">{{ s.max_score|floatformat:1 }}</td>
+                <td class="col-high-low">{{ s.min_score|floatformat:1 }}</td>
+                <td>{{ s.grade }}</td>
+                <td class="col-sub-head">{{ s.ordinal_position }}</td>
+                <td>{{ s.remark }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Result Summary -->
+    <div class="section-title font-bold">Result Summary</div>
+    <table>
+        <tr>
+            <th>Total Obtained Score</th>
+            <th>My Average</th>
+            <th>Class Average</th>
+            <th>Subject Highest Score Average</th>
+            <th>Subject Lowest Score Average</th>
+            <th>Maximum Obtainable Score</th>
+        </tr>
+        <tr>
+            <td>{{ total_score }}</td>
+            <td>{{ overall_avg|floatformat:2 }}</td>
+            <td>{{ class_average|floatformat:2 }}</td>
+            <td>{{ subject_highest_avg|floatformat:2 }}</td>
+            <td>{{ subject_lowest_avg|floatformat:2 }}</td>
+            <td>{{ max_total_score }}</td>
+        </tr>
+    </table>
+
+    <!-- Comments & Signature -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px;">
+
+            <!-- Comments -->
+            <div class="comments" style="width: 60.5%; font-size: 11px;">
+                <p><strong>Class Teacher’s Comment:</strong> {{ teacher_comment|default:"No comment." }}</p>
+                <p><strong>Principal’s/Head Teacher’s Comment:</strong> {{ head_comment|default:"" }}</p>
+            </div>
+
+            <!-- Principal Signature & Stamp -->
+            <div class="signature" style="width: 35.5%; text-align: center;">
+                {% if school.stamp_sign %}
+                    <div class="line">
+                        <img src="{{ school.stamp_sign.url }}" alt="Principal Signature & Stamp" style="width:100px; height:auto; display:block; margin:0 auto;">
+                        <br>
+                        <strong style="font-size: 11px;">Principal’s Signature & Stamp</strong>
+                    </div>
+                {% else %}
+                    <div class="line">
+                        ____________________ <br>
+                        <strong style="font-size: 11px;">Principal’s Signature</strong>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+
+
+
+    <!-- Traits -->
+    <div class="traits-container">
+        <div class="traits-table">
+            <div class="section-title font-bold">Affective Traits</div>
+            <table>
+                <tr><th>Trait</th><th>Grade</th><th>Trait</th><th>Grade</th></tr>
+                {% for trait, grade in affective.items %}
+                    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
+                    <td>{{ trait|capfirst }}</td>
+                    <td>{{ grade }}</td>
+                    {% if not forloop.counter0|divisibleby:2 or forloop.last %}</tr>{% endif %}
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="traits-table">
+            <div class="section-title font-bold">Psychomotor Traits</div>
+            <table>
+                <tr><th>Skill</th><th>Grade</th><th>Skill</th><th>Grade</th></tr>
+                {% for skill, grade in psychomotor.items %}
+                    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
+                    <td>{{ skill|capfirst }}</td>
+                    <td>{{ grade }}</td>
+                    {% if not forloop.counter0|divisibleby:2 or forloop.last %}</tr>{% endif %}
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Grading System -->
+    <div class="grading-system">
+        <div class="section-title font-bold">Grading System</div>
+        <table>
+            <tr>
+                <th>% Range</th><th>Grade</th><th>Remark</th>
+                <th>% Range</th><th>Grade</th><th>Remark</th>
+            </tr>
+            <tr><td>91 – 100</td><td>A+</td><td>Exceptional</td><td>56 – 60</td><td>C+</td><td>Above Average</td></tr>
+            <tr><td>81 – 90</td><td>A</td><td>Excellent</td><td>51 – 55</td><td>C</td><td>Average</td></tr>
+            <tr><td>71 – 80</td><td>B+</td><td>Very Good</td><td>33 – 50</td><td>P</td><td>Pass</td></tr>
+            <tr><td>61 – 70</td><td>B</td><td>Good</td><td>0 – 32</td><td>N.I</td><td>Needs Improvement</td></tr>
+        </table>
+    </div>
+
+</div>
+
+<!-- Auto Print -->
+{% if request.GET.print %}
+<script>
+    window.onload = () => window.print();
+    window.onafterprint = () => window.close();
+</script>
+{% endif %}
+
+</body>
+</html>

@@ -1,0 +1,81 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Add Timetable Entry - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+                <i data-lucide="calendar-plus" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Add Timetable Entry</h1>
+                <p class="text-slate-600 mt-1">New schedule entry for {{ class_group.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card p-6 sm:p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Class</label>
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="school" class="w-5 h-5 text-indigo-600"></i>
+                        <span class="font-semibold text-slate-800">{{ selected_class.name }}</span>
+                    </div>
+                </div>
+                <input type="hidden" name="class_name" value="{{ selected_class.name }}">
+            </div>
+
+            {% for field in form %}
+                {% if field.name != 'class_name' %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-semibold text-slate-700 mb-2">
+                            {% if field.name == 'subject' %}<i data-lucide="book" class="w-4 h-4 text-cyan-600 inline mr-1"></i>{% endif %}
+                            {% if field.name == 'teacher' %}<i data-lucide="user" class="w-4 h-4 text-cyan-600 inline mr-1"></i>{% endif %}
+                            {% if field.name == 'day' %}<i data-lucide="calendar" class="w-4 h-4 text-cyan-600 inline mr-1"></i>{% endif %}
+                            {% if field.name == 'start_time' or field.name == 'end_time' %}<i data-lucide="clock" class="w-4 h-4 text-cyan-600 inline mr-1"></i>{% endif %}
+                            {{ field.label }}{% if field.field.required %} <span class="text-red-500">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}<p class="text-red-600 text-sm mt-1">{{ field.errors|join:", " }}</p>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200">
+                <button type="submit" class="routine-btn-save flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-lg font-semibold">
+                    <i data-lucide="save" class="w-4 h-4"></i> Save Entry
+                </button>
+                <a href="{% url 'timetable_list' %}" class="flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Timetable
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .routine-btn-save { background-color: #0891b2; color: #fff; }
+    .routine-btn-save:hover { background-color: #0e7490; color: #fff; }
+    #id_subject, #id_teacher, #id_day, #id_start_time, #id_end_time {
+        width: 100%; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 0.875rem;
+    }
+    #id_subject:focus, #id_teacher:focus, #id_day:focus, #id_start_time:focus, #id_end_time:focus {
+        outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1);
+    }
+</style>
+<script>lucide.createIcons();</script>
+{% endblock %}

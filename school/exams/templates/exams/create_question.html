@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Questions</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 p-8">
+
+<div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-bold mb-4">
+        Add Question – {{ exam }}
+    </h2>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-3">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <button class="bg-green-600 text-white px-4 py-2 rounded">
+            Save Question
+        </button>
+    </form>
+</div>
+
+</body>
+</html>

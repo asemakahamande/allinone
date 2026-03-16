@@ -1,0 +1,139 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Add Subject - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 text-white">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Add New Subject</h1>
+                <p class="text-slate-600 mt-1">Create a new subject for {{ class_group.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="card p-6 sm:p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Subject Name -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="book" class="w-4 h-4 text-cyan-600"></i>
+                    Subject Name <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                    {{ form.name }}
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <i data-lucide="book-open" class="w-5 h-5 text-slate-400"></i>
+                    </div>
+                </div>
+                {% if form.name.errors %}
+                    <p class="text-red-600 text-sm mt-2 flex items-center gap-1">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        {{ form.name.errors|join:", " }}
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Class Group (teacher: fixed to their class) -->
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                    <i data-lucide="layers" class="w-4 h-4 text-cyan-600"></i>
+                    Class
+                </label>
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="school" class="w-5 h-5 text-indigo-600"></i>
+                        <span class="font-semibold text-slate-800">{{ selected_class.name }}</span>
+                    </div>
+                </div>
+                <input type="hidden" name="class_group" value="{{ selected_class.id }}">
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-slate-200">
+                <button type="submit" name="action" value="save"
+                    class="subject-btn-save flex-1 flex items-center justify-center gap-2 rounded-lg font-semibold shadow-lg hover:shadow-xl text-white">
+                    <i data-lucide="save" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Save Subject</span>
+                </button>
+                <button type="submit" name="action" value="save_add"
+                    class="teacher-btn-secondary flex-1 flex items-center justify-center gap-2 rounded-lg font-semibold shadow-lg hover:shadow-xl">
+                    <i data-lucide="plus-circle" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>Save &amp; Add Another</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .subject-btn-save {
+        background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+        color: #ffffff;
+        padding: 0.75rem 1.5rem;
+        transition: opacity 0.2s ease, box-shadow 0.2s ease;
+    }
+    .subject-btn-save:hover {
+        opacity: 0.9;
+        color: #ffffff;
+    }
+    .teacher-btn-primary {
+        background-color: #4f46e5; /* indigo-600 */
+        color: #ffffff;
+        padding: 0.75rem 1.5rem;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .teacher-btn-primary:hover {
+        background-color: #4338ca; /* indigo-700 */
+    }
+
+    .teacher-btn-secondary {
+        background-color: #059669; /* emerald-600 */
+        color: #ffffff;
+        padding: 0.75rem 1.5rem;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .teacher-btn-secondary:hover {
+        background-color: #047857; /* emerald-700 */
+    }
+
+    #id_name {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        padding-right: 2.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    #id_name:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+</style>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

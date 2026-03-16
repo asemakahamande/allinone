@@ -1,0 +1,255 @@
+{% extends "score/dashboard.html" %}
+{% load custom_filters %}
+
+
+
+{% block content %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Publish Results</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="p-6 bg-gray-100">
+  <div class="max-w-2xl mx-auto bg-white shadow rounded-lg p-6">
+    <h1 class="text-2xl font-bold mb-4">Publish Results</h1>
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if payment_active %}
+    <p class="mb-4 text-gray-700">
+      You currently have <strong class="text-blue-600">{{ available_count }}</strong> unused pins. Payment is required to publish results.
+    </p>
+    {% else %}
+    <p class="mb-4 text-gray-700">
+      <strong class="text-green-600">Payment is not required for your school.</strong> You can publish results without pins.
+    </p>
+    {% endif %}
+
+    <form method="POST" id="publishForm">
+      {% csrf_token %}
+
+      <!-- Term & Session -->
+      <div class="mb-4">
+        <label class="block mb-1 font-semibold">Term:</label>
+        <select name="term" id="term_select" required class="w-full border rounded px-3 py-2">
+          <option value="">-- Select Term --</option>
+          {% for term in terms %}
+            <option value="{{ term.id }}">{{ term.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-4">
+        <label class="block mb-1 font-semibold">Session:</label>
+        <select name="session" id="session_select" required class="w-full border rounded px-3 py-2">
+          <option value="">-- Select Session --</option>
+          {% for session in sessions %}
+            <option value="{{ session.id }}">{{ session.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Scope -->
+      <div class="mb-4">
+        <label class="block mb-1 font-semibold">Publish Scope:</label>
+        <select name="scope" id="scope" class="w-full border rounded px-3 py-2" required>
+          <option value="">-- Select Scope --</option>
+          <option value="school">Entire School (All Unpublished Classes)</option>
+          <option value="class">Specific Class(es)</option>
+          <option value="student">Individual Student(s)</option>
+        </select>
+      </div>
+
+      <!-- Class Selection (for class and student scope) -->
+      <div class="mb-4 hidden" id="class_field">
+        <label class="block mb-2 font-semibold">Select Class(es):</label>
+        <div class="max-h-48 overflow-y-auto border rounded p-3 bg-gray-50">
+          {% for cls in classes %}
+            <label class="flex items-center mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded">
+              <input type="checkbox" name="class_ids" value="{{ cls.id }}" class="class-checkbox mr-3 w-4 h-4">
+              <span>{{ cls.name }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Student Selection (for student scope) -->
+      <div class="mb-4 hidden" id="student_field">
+        <label class="block mb-2 font-semibold">Select Students:</label>
+        <div class="mb-2">
+          <select id="student_class_filter" class="w-full border rounded px-3 py-2">
+            <option value="">-- Filter by Class --</option>
+            {% for cls in classes %}
+              <option value="{{ cls.id }}">{{ cls.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div id="students_checkboxes" class="max-h-64 overflow-y-auto border rounded p-3 bg-gray-50">
+          <p class="text-gray-500">Please select a term and session first, then filter by class to load students.</p>
+        </div>
+      </div>
+
+      <!-- Preview Section -->
+      <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded hidden" id="preview_section">
+        <h3 class="font-semibold mb-2">Preview:</h3>
+        <p id="preview_text" class="text-sm text-gray-700"></p>
+      </div>
+
+      <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold">
+        Publish Results
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const classesData = {
+      {% for cls in classes %}
+        "{{ cls.id }}": {
+          name: "{{ cls.name|escapejs }}",
+          students: [
+            {% for student in cls.students.all %}
+              {id: "{{ student.id }}", full_name: "{{ student.full_name|escapejs }}"},
+            {% endfor %}
+          ]
+        },
+      {% endfor %}
+    };
+
+    // Toggle fields based on scope
+    document.getElementById('scope').addEventListener('change', function() {
+      const scope = this.value;
+      const classField = document.getElementById('class_field');
+      const studentField = document.getElementById('student_field');
+      
+      classField.classList.add('hidden');
+      studentField.classList.add('hidden');
+      
+      if (scope === 'class') {
+        classField.classList.remove('hidden');
+      } else if (scope === 'student') {
+        classField.classList.remove('hidden');
+        studentField.classList.remove('hidden');
+      }
+      
+      updatePreview();
+    });
+
+    // Load students based on term, session, and class filter
+    document.getElementById('student_class_filter').addEventListener('change', function() {
+      const classId = this.value;
+      const termId = document.getElementById('term_select').value;
+      const sessionId = document.getElementById('session_select').value;
+      const studentsDiv = document.getElementById('students_checkboxes');
+      
+      if (!termId || !sessionId) {
+        studentsDiv.innerHTML = '<p class="text-red-500">Please select term and session first.</p>';
+        return;
+      }
+      
+      if (!classId) {
+        studentsDiv.innerHTML = '<p class="text-gray-500">Please select a class to view students.</p>';
+        return;
+      }
+      
+      studentsDiv.innerHTML = '<p class="text-gray-500">Loading students...</p>';
+      
+      // Fetch published status for students
+      fetch(`/check-published-students/?term=${termId}&session=${sessionId}&class=${classId}`)
+        .then(response => response.json())
+        .then(data => {
+          const publishedStudentIds = data.published_student_ids || [];
+          studentsDiv.innerHTML = '';
+          
+          if (classesData[classId] && classesData[classId].students.length > 0) {
+            classesData[classId].students.forEach(student => {
+              const isPublished = publishedStudentIds.includes(parseInt(student.id));
+              const label = document.createElement('label');
+              label.className = `flex items-center mb-2 cursor-pointer hover:bg-gray-100 p-2 rounded ${isPublished ? 'opacity-50' : ''}`;
+              label.innerHTML = `
+                <input type="checkbox" name="student_ids" value="${student.id}" 
+                       class="student-checkbox mr-3 w-4 h-4" 
+                       ${isPublished ? 'disabled' : ''}>
+                <span>${student.full_name} ${isPublished ? '<span class="text-xs text-red-600 ml-2">(Already Published)</span>' : ''}</span>
+              `;
+              studentsDiv.appendChild(label);
+            });
+          } else {
+            studentsDiv.innerHTML = '<p class="text-gray-500">No students in this class.</p>';
+          }
+          
+          updatePreview();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          studentsDiv.innerHTML = '<p class="text-red-500">Error loading students.</p>';
+        });
+    });
+
+    // Update preview
+    function updatePreview() {
+      const scope = document.getElementById('scope').value;
+      const previewSection = document.getElementById('preview_section');
+      const previewText = document.getElementById('preview_text');
+      
+      if (!scope) {
+        previewSection.classList.add('hidden');
+        return;
+      }
+      
+      let text = '';
+      
+      if (scope === 'school') {
+        text = 'Will publish results for all classes that have not been published yet in the selected term/session.';
+      } else if (scope === 'class') {
+        const checkedClasses = document.querySelectorAll('.class-checkbox:checked');
+        if (checkedClasses.length > 0) {
+          const classNames = Array.from(checkedClasses).map(cb => {
+            const classId = cb.value;
+            return classesData[classId] ? classesData[classId].name : '';
+          }).filter(Boolean).join(', ');
+          text = `Will publish results for students in: ${classNames} (excluding individually published students)`;
+        } else {
+          text = 'Select classes to publish results for their students.';
+        }
+      } else if (scope === 'student') {
+        const checkedStudents = document.querySelectorAll('.student-checkbox:checked:not(:disabled)');
+        text = checkedStudents.length > 0 
+          ? `Will publish results for ${checkedStudents.length} selected student(s).`
+          : 'Select individual students to publish their results.';
+      }
+      
+      if (text) {
+        previewText.textContent = text;
+        previewSection.classList.remove('hidden');
+      } else {
+        previewSection.classList.add('hidden');
+      }
+    }
+
+    // Update preview on checkbox changes
+    document.addEventListener('change', function(e) {
+      if (e.target.classList.contains('class-checkbox') || 
+          e.target.classList.contains('student-checkbox')) {
+        updatePreview();
+      }
+    });
+
+    // Update preview when term/session changes
+    document.getElementById('term_select').addEventListener('change', updatePreview);
+    document.getElementById('session_select').addEventListener('change', updatePreview);
+  </script>
+</body>
+</html>
+
+{% endblock %}

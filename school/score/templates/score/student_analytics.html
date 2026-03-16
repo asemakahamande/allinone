@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Analytics - {{ student.full_name }}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fc;
+            color: #5a5c69;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+        }
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid #e3e6f0;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem 1.25rem;
+        }
+        .text-primary { color: #4e73df !important; }
+        .text-success { color: #1cc88a !important; }
+        .text-danger { color: #e74a3b !important; }
+        .text-warning { color: #f6c23e !important; }
+        .border-left-primary { border-left: .25rem solid #4e73df !important; }
+        .border-left-success { border-left: .25rem solid #1cc88a !important; }
+        .border-left-danger { border-left: .25rem solid #e74a3b !important; }
+        .border-left-warning { border-left: .25rem solid #f6c23e !important; }
+        .border-left-info { border-left: .25rem solid #36b9cc !important; }
+        .shadow { box-shadow: 0 .5rem 1rem rgba(0,0,0,.08) !important; }
+        h1, h6 { font-weight: 600; }
+        .stat-card {
+            padding: 1.5rem;
+        }
+        .subject-list {
+            list-style: none;
+            padding: 0;
+        }
+        .subject-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .subject-list li:last-child {
+            border-bottom: none;
+        }
+        .badge-score {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+        @media print {
+            .print-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800">
+                <i class="fas fa-chart-line text-primary"></i>
+                Performance Analytics
+            </h1>
+            <p class="text-muted mb-0">{{ student.full_name }} - {{ student.admission_number }}</p>
+        </div>
+        <div class="text-end">
+            <small class="text-muted d-block">Class: <strong>{{ current_class.name }}</strong></small>
+            <small class="text-muted d-block">Session: <strong>{{ current_session.name }}</strong></small>
+            <small class="text-muted d-block">Term: <strong>{{ latest_term.name }}</strong></small>
+        </div>
+    </div>
+
+    <!-- Quick Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-primary shadow h-100">
+                <div class="card-body stat-card">
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-2">
+                        <i class="fas fa-trophy"></i> Class Position
+                    </div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">
+                        {% if position_in_class %}
+                            {{ position_in_class }}<sup>{{ position_in_class|slice:"-2:" }}</sup> / {{ current_class.student_set.count }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Latest Term</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-success shadow h-100">
+                <div class="card-body stat-card">
+                    <div class="text-xs font-weight-bold text-success text-uppercase mb-2">
+                        <i class="fas fa-star"></i> Average Score
+                    </div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">
+                        {{ student_stats.average_score|floatformat:1 }}%
+                    </div>
+                    <small class="text-muted">Current Term Average</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-info shadow h-100">
+                <div class="card-body stat-card">
+                    <div class="text-xs font-weight-bold text-info text-uppercase mb-2">
+                        <i class="fas fa-arrow-up"></i> Best Session
+                    </div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">
+                        {{ best_avg }}%
+                    </div>
+                    <small class="text-muted">{{ best_session }}</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-left-warning shadow h-100">
+                <div class="card-body stat-card">
+                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-2">
+                        <i class="fas fa-book"></i> Total Subjects
+                    </div>
+                    <div class="h3 mb-0 font-weight-bold text-gray-800">
+                        {{ student_stats.total_subjects }}
+                    </div>
+                    <small class="text-muted">Current Term</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Strengths & Weaknesses -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="fas fa-check-circle"></i> Top Performing Subjects
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="subject-list">
+                        {% for score in strengths %}
+                        <li class="d-flex justify-content-between align-items-center">
+                            <span>{{ score.subject.name }}</span>
+                            <span class="badge badge-score bg-success">{{ score.total }}%</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted">No data available</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Areas for Improvement
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="subject-list">
+                        {% for score in weaknesses %}
+                        <li class="d-flex justify-content-between align-items-center">
+                            <span>{{ score.subject.name }}</span>
+                            <span class="badge badge-score bg-danger">{{ score.total }}%</span>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted">No data available</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Performance Across Subjects -->
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar"></i> Performance Across Subjects (Latest Term)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="subjectsChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Progress Across Terms -->
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line"></i> Progress Across Terms (Current Session)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="termsChart" height="280"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row g-4 mb-4">
+        <!-- 3. Performance Across Sessions -->
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-alt"></i> Performance Across Academic Sessions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="sessionsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 3 -->
+    <div class="row g-4 mb-4">
+        <!-- 4. Comparison with Classmates -->
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-users"></i> Comparison with Other Students (Top 15)
+                    </h6>
+                    <small class="text-muted">Current student highlighted in gold</small>
+                </div>
+                <div class="card-body">
+                    <canvas id="comparisonChart" height="350"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 4 -->
+    <div class="row g-4 mb-4">
+        <!-- 5. Subject-wise Comparison -->
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-balance-scale"></i> Performance vs Class Average by Subject
+                    </h6>
+                    <small class="text-muted">Green: Your Score | Blue: Class Average | Yellow: Highest Score</small>
+                </div>
+                <div class="card-body">
+                    <canvas id="subjectComparisonChart" height="350"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 5 -->
+    <div class="row g-4 mb-4">
+        <!-- 6. Overall Class Performance -->
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-school"></i> Overall Class Performance Across All Subjects
+                    </h6>
+                    <small class="text-muted">Green: Excellent (≥70%) | Yellow: Good (≥50%) | Red: Needs Improvement (<50%)</small>
+                </div>
+                <div class="card-body">
+                    <canvas id="overallClassChart" height="350"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Performance Table -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-table"></i> Overall Class Subject Performance (Detailed)
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Subject</th>
+                                    <th>Class Average</th>
+                                    <th>Highest Score</th>
+                                    <th>Lowest Score</th>
+                                    <th>Total Students</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in overall_performance_data %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td><strong>{{ item.subject }}</strong></td>
+                                    <td>{{ item.average|floatformat:1 }}%</td>
+                                    <td><span class="badge bg-success">{{ item.highest|floatformat:1 }}%</span></td>
+                                    <td><span class="badge bg-danger">{{ item.lowest|floatformat:1 }}%</span></td>
+                                    <td>{{ item.student_count }}</td>
+                                    <td>
+                                        {% if item.average >= 70 %}
+                                            <span class="badge bg-success">Excellent</span>
+                                        {% elif item.average >= 50 %}
+                                            <span class="badge bg-warning">Good</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Needs Work</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">No performance data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Print Button -->
+<button class="btn btn-primary btn-lg rounded-circle print-btn" onclick="window.print()">
+    <i class="fas fa-print"></i>
+</button>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+<script>
+// Chart color palette
+const colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796', '#6f42c1', '#fd7e14', '#20c997', '#17a2b8'];
+
+// Parse JSON data from Django context (CRITICAL: Parse first!)
+const subjectsData = JSON.parse('{{ subjects_json|escapejs }}');
+const termsData = JSON.parse('{{ terms_json|escapejs }}');
+const sessionsData = JSON.parse('{{ sessions_json|escapejs }}');
+const comparisonData = JSON.parse('{{ comparison_json|escapejs }}');
+const subjectComparisonData = JSON.parse('{{ subject_comparison_json|escapejs }}');
+const overallClassData = JSON.parse('{{ overall_class_json|escapejs }}');
+
+// Validate data
+console.log('Chart Data Validation:');
+console.log('Subjects:', subjectsData);
+console.log('Terms:', termsData);
+console.log('Sessions:', sessionsData);
+
+// 1. Subjects Chart (Bar)
+new Chart(document.getElementById('subjectsChart'), {
+    type: 'bar',
+    data: {
+        labels: subjectsData.labels || [],
+        datasets: [{
+            label: 'Total Score',
+            data: subjectsData.data || [],
+            backgroundColor: subjectsData.backgroundColor || colors,
+            borderColor: subjectsData.backgroundColor || colors,
+            borderWidth: 2,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { 
+                beginAtZero: true, 
+                max: 100, 
+                title: { display: true, text: 'Total Score (%)', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: { 
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return 'Score: ' + context.parsed.y + '%';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// 2. Terms Chart (Line)
+new Chart(document.getElementById('termsChart'), {
+    type: 'line',
+    data: {
+        labels: termsData.labels || [],
+        datasets: [{
+            label: 'Average Score',
+            data: termsData.data || [],
+            backgroundColor: 'rgba(54, 185, 204, 0.2)',
+            borderColor: '#36b9cc',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 5,
+            pointBackgroundColor: '#36b9cc',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { 
+                beginAtZero: true, 
+                max: 100, 
+                title: { display: true, text: 'Average Score (%)', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: true, position: 'top' }
+        }
+    }
+});
+
+// 3. Sessions Chart (Bar with gradient)
+new Chart(document.getElementById('sessionsChart'), {
+    type: 'bar',
+    data: {
+        labels: sessionsData.labels || [],
+        datasets: [{
+            label: 'Overall Average Score',
+            data: sessionsData.data || [],
+            backgroundColor: '#4e73df',
+            borderColor: '#4e73df',
+            borderWidth: 2,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { 
+                beginAtZero: true, 
+                max: 100, 
+                title: { display: true, text: 'Overall Average (%)', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: true, position: 'top' }
+        }
+    }
+});
+
+// 4. Comparison Chart (Horizontal Bar)
+new Chart(document.getElementById('comparisonChart'), {
+    type: 'bar',
+    data: {
+        labels: comparisonData.labels || [],
+        datasets: [{
+            label: 'Total Score',
+            data: comparisonData.data || [],
+            backgroundColor: comparisonData.backgroundColor || colors,
+            borderColor: comparisonData.backgroundColor || colors,
+            borderWidth: 2,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { 
+                beginAtZero: true,
+                title: { display: true, text: 'Total Score', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            y: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+
+// 5. Subject Comparison Chart (Grouped Bar)
+new Chart(document.getElementById('subjectComparisonChart'), {
+    type: 'bar',
+    data: {
+        labels: subjectComparisonData.labels || [],
+        datasets: subjectComparisonData.datasets || []
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { 
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: 'Score (%)', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { 
+                display: true, 
+                position: 'top',
+                labels: { font: { weight: 'bold' } }
+            }
+        }
+    }
+});
+
+// 6. Overall Class Chart (Bar)
+new Chart(document.getElementById('overallClassChart'), {
+    type: 'bar',
+    data: {
+        labels: overallClassData.labels || [],
+        datasets: [{
+            label: 'Class Average',
+            data: overallClassData.data || [],
+            backgroundColor: overallClassData.backgroundColor || colors,
+            borderColor: overallClassData.backgroundColor || colors,
+            borderWidth: 2,
+            borderRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: { 
+                beginAtZero: true,
+                max: 100,
+                title: { display: true, text: 'Average Score (%)', font: { weight: 'bold' } },
+                grid: { color: '#e3e6f0' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.parsed.y + '%';
+                        if (context.parsed.y >= 70) {
+                            label += ' (Excellent)';
+                        } else if (context.parsed.y >= 50) {
+                            label += ' (Good)';
+                        } else {
+                            label += ' (Needs Improvement)';
+                        }
+                        return label;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

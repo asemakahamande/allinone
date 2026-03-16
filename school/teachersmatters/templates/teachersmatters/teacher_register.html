@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <!-- Card Container - fully responsive, no horizontal overflow -->
+    <div class="bg-white rounded-lg shadow-lg w-full max-w-lg sm:max-w-xl md:max-w-3xl p-6 md:p-8 mx-auto">
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-6 md:mb-8">
+            Teacher Registration
+        </h2>
+
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Form Fields: Responsive 2 columns -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                {% for field in form %}
+                    <div class="min-w-0">
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                        </label>
+
+                        <!-- Render the field and manually add Tailwind classes -->
+                        {{ field }}
+                        {% if field.field.widget.attrs.class %}
+                            {% with field.field.widget.attrs.class|add:" w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" as updated_class %}
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const el = document.getElementById('{{ field.id_for_label }}');
+                                        if (el) el.className = '{{ updated_class }}';
+                                    });
+                                </script>
+                            {% endwith %}
+                        {% else %}
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const el = document.getElementById('{{ field.id_for_label }}');
+                                    if (el) el.className = 'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+                                });
+                            </script>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                            <p class="mt-1 text-xs text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+                        {% if field.errors %}
+                            <p class="mt-1 text-xs text-red-600">{{ field.errors }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Terms & Register Button -->
+            <div class="flex flex-col items-center mt-8 gap-6">
+                <div class="flex items-start gap-3 max-w-md">
+                    <input
+                        type="checkbox"
+                        id="termsCheckbox"
+                        class="mt-1 h-5 w-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300 flex-shrink-0"
+                    >
+                    <label for="termsCheckbox" class="text-gray-700 text-sm leading-relaxed">
+                        I agree to the
+                        <a
+                            href="https://docs.google.com/document/d/1RzZrWQKRTU6qnqQZFsLg6M2n5yEWORNGbJlV7N_I5PY/edit?tab=t.0#heading=h.vegy3djkk"
+                            target="_blank"
+                            class="text-blue-600 hover:text-blue-800 underline font-medium"
+                        >
+                            Terms and Conditions
+                        </a>
+                    </label>
+                </div>
+
+                <button
+                    type="submit"
+                    id="registerBtn"
+                    class="hidden px-12 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Register
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const checkbox = document.getElementById('termsCheckbox');
+        const registerBtn = document.getElementById('registerBtn');
+
+        checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+                registerBtn.classList.remove('hidden');
+            } else {
+                registerBtn.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

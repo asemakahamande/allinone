@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Question List</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-3xl mx-auto bg-white p-6 rounded shadow">
+        <h2 class="text-xl font-bold mb-4">All Questions</h2>
+        <ul class="divide-y divide-gray-200">
+            {% for question in questions %}
+            <li class="py-2">
+                <strong>Exam:</strong> {{ question.exam.subject.name }} -
+                <strong>Question:</strong> {{ question.question_text|truncatechars:50 }} -
+                <strong>Answer:</strong> {{ question.correct_answer }}
+            </li>
+            {% empty %}
+            <li>No questions added yet.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'exams:create_question' %}" class="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            Add New Question
+        </a>
+    </div>
+</body>
+</html>

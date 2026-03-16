@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Report Cards</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="mb-6">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-3 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Generate Report Cards</h1>
+                    <p class="text-gray-600 mt-1">Select session and term to view your report card</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-purple-50 border-l-4 border-purple-500 rounded-lg flex items-center gap-3">
+            <i data-lucide="graduation-cap" class="w-5 h-5 text-purple-600"></i>
+            <div>
+                <span class="font-semibold text-purple-800">Student</span>
+                <span class="text-purple-600 text-sm">({{ user_class_group.name }})</span>
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+            <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+            <form method="POST" action="{% url 'reportcard_home' %}?embed=1" id="reportcardForm">
+                {% csrf_token %}
+                <input type="hidden" name="class_id" value="{{ user_class_group.id }}">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-600"></i>
+                            Academic Session <span class="text-red-500">*</span>
+                        </label>
+                        <select name="session" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white" required>
+                            <option value="">-- Select Session --</option>
+                            {% for s in sessions %}
+                            <option value="{{ s }}" {% if default_session == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <i data-lucide="calendar-range" class="w-4 h-4 text-indigo-600"></i>
+                            Term <span class="text-red-500">*</span>
+                        </label>
+                        <select name="term" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white" required>
+                            <option value="">-- Select Term --</option>
+                            {% for t in terms %}
+                            <option value="{{ t }}" {% if default_term == t %}selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                    <button type="submit" class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-6 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        Continue to Report Card
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+            <div class="flex items-center gap-2">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                <p class="text-sm text-blue-800">You can only view report cards for your class (<strong>{{ user_class_group.name }}</strong>)</p>
+            </div>
+        </div>
+    </div>
+    <script>
+        lucide.createIcons();
+        document.getElementById('reportcardForm').addEventListener('submit', function(e) {
+            var btn = this.querySelector('button[type="submit"]');
+            if (btn) {
+                var icon = btn.querySelector('i');
+                if (icon) { icon.setAttribute('data-lucide', 'loader-2'); icon.classList.add('animate-spin'); }
+                btn.disabled = true;
+                lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block result_list %}
+  {% if total_schools is not None %}
+  <div class="module" style="margin-bottom: 15px; padding: 12px 15px; background: #f8f9fa; border-left: 4px solid #417690;">
+    <strong>Total registered schools:</strong> <span style="font-size: 1.2em;">{{ total_schools }}</span>
+  </div>
+  {% endif %}
+  {{ block.super }}
+{% endblock %}

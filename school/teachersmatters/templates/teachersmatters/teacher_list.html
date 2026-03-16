@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teachers</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 min-h-screen py-8 px-4">
+
+<div class="max-w-7xl mx-auto">
+    <h2 class="text-3xl font-bold text-center mb-6">Teachers</h2>
+
+    <p class="text-center mb-6">
+        Logged in as: <strong>{{ role|title }}</strong> ({{ user_name }}) |
+        <a href="{% url 'logt' %}" class="text-blue-600 hover:underline">Logout</a>
+    </p>
+
+    <!-- Teacher cards container -->
+    <div class="flex flex-wrap justify-center gap-6">
+        {% for teacher in teachers %}
+        <div class="relative bg-white border border-gray-300 rounded-lg shadow-md w-full sm:w-64 md:w-72 lg:w-80 p-4 flex flex-col">
+            
+            <!-- Image -->
+            {% if teacher.image %}
+                <img src="{{ teacher.image.url }}" alt="{{ teacher }}"
+                     class="w-full h-36 object-cover rounded mb-3">
+            {% else %}
+                <div class="w-full h-36 bg-gray-200 rounded mb-3 flex items-center justify-center text-gray-500 text-sm">
+                    No Image
+                </div>
+            {% endif %}
+
+            <!-- Bio -->
+            <h3 class="text-lg font-semibold mb-1">
+                {{ teacher.sname }} {{ teacher.fname }} {{ teacher.mname|default:"" }}
+            </h3>
+            <p class="text-sm mb-0.5"><strong>Email:</strong> {{ teacher.email }}</p>
+            <p class="text-sm mb-0.5"><strong>Phone:</strong> {{ teacher.phone }}</p>
+            <p class="text-sm mb-0.5"><strong>Discipline:</strong> {{ teacher.discipline }}</p>
+            <p class="text-sm mb-0.5"><strong>Specialization:</strong> {{ teacher.specialization }}</p>
+            <p class="text-sm mb-0.5"><strong>Experience:</strong> {{ teacher.experience_years }} years</p>
+            <p class="text-sm mb-2">
+                <strong>Location:</strong> {{ teacher.town }}, {{ teacher.state }}, {{ teacher.country }}
+            </p>
+
+            <!-- Status & Action -->
+            {% if role == 'employer' %}
+            <div class="flex flex-wrap gap-2 justify-center mt-3">
+                {% if teacher.is_hired %}
+                    <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">HIRED</span>
+                    {% if teacher.hired_by_current_user %}
+                        <form method="post" action="{% url 'unhire_teacher' teacher.id %}">
+                            {% csrf_token %}
+                            <button type="submit" 
+                                onclick="return confirm('Are you sure you want to unhire {{ teacher.sname }} {{ teacher.fname }}?');"
+                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs font-bold">
+                                Unhire
+                            </button>
+                        </form>
+                    {% else %}
+                        <button type="button" onclick="toggleUnhireForm('unhire-form-{{ teacher.id }}')"
+                            class="bg-yellow-700 hover:bg-yellow-800 text-white px-3 py-1 rounded text-xs font-bold">
+                            Unhire (Admin)
+                        </button>
+                    {% endif %}
+                {% else %}
+                    <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">AVAILABLE</span>
+                    <form method="post" action="{% url 'hire_teacher' teacher.id %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                            onclick="return confirm('Are you sure you want to hire {{ teacher.sname }} {{ teacher.fname }}?');"
+                            class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-bold mt-1">
+                            Hire
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Admin override modal -->
+            {% if role == 'employer' and teacher.is_hired and not teacher.hired_by_current_user %}
+            <div id="unhire-form-{{ teacher.id }}" 
+                class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+                    <h4 class="text-red-600 text-lg font-bold mb-4">Admin Override Required</h4>
+                    <p class="font-semibold mb-4">Unhire {{ teacher.sname }} {{ teacher.fname }} {{ teacher.mname|default:"" }}</p>
+                    <form method="post" action="{% url 'unhire_teacher' teacher.id %}">
+                        {% csrf_token %}
+                        <input type="password" name="owner_password" placeholder="Enter owner password" required
+                            class="w-full p-3 border-2 border-red-600 rounded mb-4 text-sm">
+                        <div class="flex gap-3">
+                            <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded font-bold">
+                                Confirm Unhire
+                            </button>
+                            <button type="button" onclick="toggleUnhireForm('unhire-form-{{ teacher.id }}')" 
+                                class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded font-bold">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+        {% empty %}
+            <p class="w-full text-center py-16 text-gray-500">No teachers registered yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleUnhireForm(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.toggle('hidden');
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends "score/dashboard.html" %}
+
+{% block title %}Bulk Import Questions - {{ exam.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-10">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow-lg rounded-lg">
+            <div class="bg-blue-600 text-white px-6 py-4 rounded-t-lg">
+                <h4 class="text-lg font-bold">Bulk Import Questions - {{ exam.title }}</h4>
+            </div>
+            <div class="p-6">
+                <p class="mb-3">Upload a CSV file with the following columns:</p>
+                <code class="block mb-4 bg-gray-100 p-2 rounded text-sm">
+                    question, option_a, option_b, option_c, option_d, correct_answer, explanation (optional), marks (optional), order (optional)
+                </code>
+
+                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                    {% csrf_token %}
+                    <div>
+                        <input type="file" name="csv_file" accept=".csv"
+                               class="w-full border border-gray-300 rounded px-3 py-2"
+                               required>
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <a href="{% url 'cbt_question_list' exam.id %}" 
+                           class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                            Import Questions
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

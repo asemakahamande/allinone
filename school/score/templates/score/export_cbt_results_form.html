@@ -1,0 +1,57 @@
+{% extends base_template|default:"score/dashboard.html" %}
+
+{% block title %}Export CBT Results{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-6">
+  <div class="bg-white rounded-xl shadow p-6 border border-gray-100">
+    <h1 class="text-2xl font-bold text-slate-900 mb-2">Export CBT Results (CSV)</h1>
+    {% if is_teacher %}
+      <p class="text-sm text-slate-600 mb-6">Select session and term to export results for your class: <span class="font-semibold">{{ teacher_class_group.name }}</span>.</p>
+    {% else %}
+      <p class="text-sm text-slate-600 mb-6">Select class, session and term to export CBT results.</p>
+    {% endif %}
+
+    <form method="get" action="{% url 'export_cbt_results' %}" class="space-y-4">
+      {% if not is_teacher %}
+      <div>
+        <label for="class" class="block text-sm font-medium text-slate-700 mb-1">Class</label>
+        <select id="class" name="class" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="">Select Class</option>
+          {% for c in classes %}
+            <option value="{{ c.id }}" {% if selected_class == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div>
+        <label for="session" class="block text-sm font-medium text-slate-700 mb-1">Session</label>
+        <select id="session" name="session" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="">Select Session</option>
+          {% for s in sessions %}
+            <option value="{{ s.id }}" {% if selected_session == s.id|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label for="term" class="block text-sm font-medium text-slate-700 mb-1">Term</label>
+        <select id="term" name="term" required class="w-full rounded-lg border border-slate-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+          <option value="">Select Term</option>
+          {% for t in terms %}
+            <option value="{{ t.id }}" {% if selected_term == t.id|stringformat:"s" %}selected{% endif %}>{{ t.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold hover:bg-indigo-700 transition">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          Export CSV
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

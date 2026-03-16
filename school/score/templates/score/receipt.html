@@ -1,0 +1,200 @@
+{% comment %} <!DOCTYPE html>
+<html>
+<head>
+  <title>Payment Receipt</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .receipt {
+      background: #fff;
+      max-width: 600px;
+      margin: auto;
+      padding: 30px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+
+    .header h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #333;
+    }
+
+    .header p {
+      margin: 5px 0;
+      color: #555;
+      font-size: 13px;
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .table th, .table td {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    .table th {
+      background: #f1f5f9;
+      width: 40%;
+      color: #333;
+    }
+
+    .table td {
+      color: #444;
+    }
+
+    .status-paid {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-failed {
+      color: red;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      color: orange;
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-style: italic;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt">
+    <div class="header">
+      <h2>{{ school.name }} - Payment Receipt</h2>
+      <p>Date: {{ payment.created_at|date:"Y-m-d H:i" }}</p>
+    </div>
+
+    <table class="table">
+      <tr>
+        <th>Reference</th>
+        <td>{{ payment.reference }}</td>
+      </tr>
+      <tr>
+        <th>Status</th>
+        <td>
+          {% if payment.is_successful %}
+            <span class="status-paid">✅ Paid</span>
+          {% elif payment.status == "pending" %}
+            <span class="status-pending">⌛ Pending</span>
+          {% else %}
+            <span class="status-failed">❌ Failed</span>
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <th>Number of Pins</th>
+        <td>{{ payment.num_students }}</td>
+      </tr>
+      <tr>
+        <th>Amount Paid</th>
+        <td><strong>{{ payment.amount_display }}</strong></td>
+      </tr>
+      <tr>
+        <th>Paid By</th>
+        <td>{{ payment.user.username }}</td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      Thank you for your payment. Please keep this receipt for your records.
+    </div>
+  </div>
+</body>
+</html> {% endcomment %}
+
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Receipt</title>
+  <style>
+    body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; background: #f8f9fa; padding: 20px; }
+    .receipt { background: #fff; max-width: 600px; margin: auto; padding: 25px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+    .header { text-align: center; border-bottom: 2px solid #007bff; margin-bottom: 15px; padding-bottom: 10px; }
+    .header h2 { margin: 0; font-size: 20px; }
+    .header p { margin: 4px 0; font-size: 13px; color: #555; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
+    th { background: #f1f5f9; width: 40%; }
+    .status-paid { color: green; font-weight: bold; }
+    .status-pending { color: orange; font-weight: bold; }
+    .status-failed { color: red; font-weight: bold; }
+    .footer { text-align: center; margin-top: 20px; font-size: 13px; color: #666; font-style: italic; }
+  </style>
+</head>
+<body>
+
+<div class="receipt">
+  <div class="header">
+    <h2>{{ school.name }} – Payment Receipt</h2>
+    <p>Date: {{ payment.created_at|date:"Y-m-d H:i" }}</p>
+  </div>
+
+  <table>
+    <tr>
+      <th>Reference</th>
+      <td>{{ payment.reference }}</td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <td>
+        {% if payment.is_successful %}
+          <span class="status-paid">Paid</span>
+        {% elif payment.status == "pending" %}
+          <span class="status-pending">Pending</span>
+        {% else %}
+          <span class="status-failed">Failed</span>
+        {% endif %}
+      </td>
+    </tr>
+    <tr>
+      <th>Number of Pins</th>
+      <td>{{ payment.num_students }}</td>
+    </tr>
+    <tr>
+      <th>Amount Paid</th>
+      <td><strong>N{{ payment.amount_display }}</strong></td>
+    </tr>
+    <tr>
+      <th>Paid By</th>
+      <td>{{ school.admin_name }}</td>
+    </tr>
+  </table>
+
+  <div class="footer">
+    Thank you for your payment. Please keep this receipt for your records.
+  </div>
+</div>
+
+</body>
+</html>

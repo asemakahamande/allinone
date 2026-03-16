@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Exam</title>
+
+    <!-- Tailwind CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+    <div class="bg-white shadow-lg rounded-lg w-full max-w-lg p-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">
+            Create Exam
+        </h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <!-- Subject -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Subject
+                </label>
+                {{ form.subject }}
+            </div>
+
+            <!-- Term -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Term
+                </label>
+                {{ form.term }}
+            </div>
+
+            <!-- Session -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Session
+                </label>
+                {{ form.session }}
+            </div>
+
+            <!-- Duration -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (minutes)
+                </label>
+                {{ form.duration_minutes }}
+            </div>
+
+            <button
+                type="submit"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                Save Exam
+            </button>
+        </form>
+    </div>
+
+</body>
+</html>

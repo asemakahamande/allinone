@@ -1,0 +1,271 @@
+{% extends "score/dashboard.html" %}
+{% load static %}
+
+{% block title %}Class Management{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Class Management</h1>
+                <p class="text-gray-600 mt-1">Manage classes, subjects, and students</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Class Selector Card -->
+    <div class="content-card p-6 mb-6">
+        <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+            Select Class
+        </label>
+        <form method="get">
+            <select name="class_id" 
+                    onchange="this.form.submit()"
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white">
+                <option value="">-- Choose a Class --</option>
+                {% for cls in classes %}
+                    <option value="{{ cls.id }}" {% if selected_class and cls.id == selected_class.id %}selected{% endif %}>
+                        {{ cls.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    {% if selected_class %}
+    <!-- Class Header Card -->
+    <div class="content-card p-6 mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-1">Class: {{ selected_class.name }}</h2>
+                {% if selected_class.class_teacher %}
+                    <p class="text-gray-600 flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        Class Teacher: {{ selected_class.class_teacher }}
+                    </p>
+                {% endif %}
+            </div>
+            {% if is_admin %}
+            <div class="flex gap-3">
+                <a href="{% url 'edit_class' selected_class.id %}" 
+                   class="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all">
+                    <i data-lucide="edit" class="w-4 h-4"></i>
+                    Update Class
+                </a>
+                <button type="button"
+                        onclick="confirmDelete('class', '{{ selected_class.name }}', '{% url 'delete_class' selected_class.id %}')"
+                        class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Delete Class
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Subjects Card -->
+    <div class="content-card p-6 mb-6">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+            <i data-lucide="book-open" class="w-5 h-5 text-cyan-600"></i>
+            <h2 class="text-lg font-semibold text-gray-800">Subjects ({{ subjects|length }})</h2>
+        </div>
+        {% if subjects %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Subject Name</th>
+                            {% if is_admin or is_teacher %}
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for subject in subjects %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-cyan-100">
+                                        <i data-lucide="book" class="w-4 h-4 text-cyan-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">{{ subject.name }}</span>
+                                </div>
+                            </td>
+                            {% if is_admin or is_teacher %}
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'update_subject' subject.id %}" 
+                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-all">
+                                        <i data-lucide="edit" class="w-3 h-3"></i>
+                                        Update
+                                    </a>
+                                    <button type="button"
+                                            onclick="confirmDelete('subject', '{{ subject.name }}', '{% url 'delete_subject' subject.id %}')"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-all">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i data-lucide="book-open" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                <p>No subjects in this class.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Students Card -->
+    <div class="content-card p-6">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-gray-200">
+            <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
+            <h2 class="text-lg font-semibold text-gray-800">Students ({{ students|length }})</h2>
+        </div>
+        {% if students %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            {% if is_admin or is_teacher %}
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for student in students %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-emerald-100">
+                                        <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">{{ student.surname }} {{ student.first_name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if student.is_active %}
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        <i data-lucide="check-circle" class="w-3 h-3"></i>
+                                        Active
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        <i data-lucide="x-circle" class="w-3 h-3"></i>
+                                        Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            {% if is_admin or is_teacher %}
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'update_student' student.id %}" 
+                                       class="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-all">
+                                        <i data-lucide="edit" class="w-3 h-3"></i>
+                                        Update
+                                    </a>
+                                    <button type="button"
+                                            onclick="confirmDelete('student', '{{ student.surname }} {{ student.first_name }}', '{% url 'delete_student' student.id %}')"
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm transition-all">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i data-lucide="users" class="w-12 h-12 mx-auto mb-2 text-gray-400"></i>
+                <p>No students in this class.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <div class="content-card p-12 text-center">
+        <div class="flex flex-col items-center gap-4">
+            <div class="p-4 rounded-full bg-blue-100">
+                <i data-lucide="layers" class="w-12 h-12 text-blue-600"></i>
+            </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Select a Class</h3>
+                <p class="text-gray-600">Please select a class to manage students and subjects.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function confirmDelete(type, name, url) {
+        if (!confirm(`Are you sure you want to delete this ${type}: "${name}"?\nThis action cannot be undone.`)) {
+            return;
+        }
+
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+            }
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            alert("Delete failed.");
+        });
+    }
+
+    lucide.createIcons();
+</script>
+{% endblock %}

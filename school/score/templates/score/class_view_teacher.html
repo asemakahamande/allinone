@@ -1,0 +1,216 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Class View - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+                <i data-lucide="layout-grid" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Class View</h1>
+                <p class="text-slate-600 mt-1">Subjects and students in {{ class_group.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">{{ message }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if selected_class %}
+    <div class="card p-6 mb-6">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800 mb-1">Class: {{ selected_class.name }}</h2>
+                {% if selected_class.class_teacher %}
+                    <p class="text-slate-600 flex items-center gap-2">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                        Class Teacher: {{ selected_class.class_teacher }}
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-6 mb-6">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+            <i data-lucide="book-open" class="w-5 h-5 text-cyan-600"></i>
+            <h2 class="text-lg font-semibold text-slate-800">Subjects ({{ subjects|length }})</h2>
+        </div>
+        {% if subjects %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Subject Name</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-200">
+                        {% for subject in subjects %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-cyan-100">
+                                        <i data-lucide="book" class="w-4 h-4 text-cyan-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-900">{{ subject.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'update_subject' subject.id %}" class="class-view-btn class-view-btn-update">
+                                        <i data-lucide="edit" class="w-3 h-3"></i> Update
+                                    </a>
+                                    <button type="button" onclick="confirmDelete('subject', '{{ subject.name|escapejs }}', '{% url 'delete_subject' subject.id %}')" class="class-view-btn class-view-btn-delete">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-slate-500">
+                <i data-lucide="book-open" class="w-12 h-12 mx-auto mb-2 text-slate-400"></i>
+                <p>No subjects in this class.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card p-6">
+        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
+            <i data-lucide="users" class="w-5 h-5 text-emerald-600"></i>
+            <h2 class="text-lg font-semibold text-slate-800">Students ({{ students|length }})</h2>
+        </div>
+        {% if students %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-200">
+                        {% for student in students %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-emerald-100">
+                                        <i data-lucide="user" class="w-4 h-4 text-emerald-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-900">{{ student.surname }} {{ student.first_name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if student.is_active %}
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'update_student' student.id %}" class="class-view-btn class-view-btn-update">
+                                        <i data-lucide="edit" class="w-3 h-3"></i> Update
+                                    </a>
+                                    <button type="button" onclick="confirmDelete('student', '{{ student.surname|escapejs }} {{ student.first_name|escapejs }}', '{% url 'delete_student' student.id %}')" class="class-view-btn class-view-btn-delete">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-slate-500">
+                <i data-lucide="users" class="w-12 h-12 mx-auto mb-2 text-slate-400"></i>
+                <p>No students in this class.</p>
+            </div>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="card p-12 text-center">
+        <div class="p-4 rounded-full bg-indigo-100 inline-block">
+            <i data-lucide="layers" class="w-12 h-12 text-indigo-600"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-slate-800 mt-4 mb-2">No class selected</h3>
+        <p class="text-slate-600">You are not assigned to a class.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .class-view-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .class-view-btn-update {
+        background-color: #059669;
+        color: #ffffff;
+    }
+    .class-view-btn-update:hover {
+        background-color: #047857;
+        color: #ffffff;
+    }
+    .class-view-btn-delete {
+        background-color: #dc2626;
+        color: #ffffff;
+    }
+    .class-view-btn-delete:hover {
+        background-color: #b91c1c;
+        color: #ffffff;
+    }
+</style>
+
+<script>
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.indexOf(name + '=') === 0) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function confirmDelete(type, name, url) {
+        if (!confirm('Are you sure you want to delete this ' + type + ': "' + name + '"? This action cannot be undone.')) return;
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        }).then(function(r) {
+            if (r.redirected) window.location.href = r.url;
+            else location.reload();
+        }).catch(function() { alert('Delete failed.'); });
+    }
+    lucide.createIcons();
+</script>
+{% endblock %}

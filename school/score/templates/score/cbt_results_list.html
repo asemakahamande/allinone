@@ -1,0 +1,282 @@
+{% extends base_template|default:"score/dashboard.html" %}
+
+{% block title %}CBT Results{% endblock %}
+
+{% block extra_head %}
+<!-- Keep Tailwind and Font Awesome -->
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+  .filter-card {
+    transition: all 0.3s ease;
+  }
+  .badge-passed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: #064e3b; /* dark green text so PASS is visible */
+  }
+  .badge-failed {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: #7f1d1d; /* dark red text so FAIL is visible */
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen p-6">
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div class="flex justify-between items-center flex-wrap gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800 mb-2">
+            <i class="fas fa-clipboard-check text-blue-600 mr-2"></i>
+            CBT Results
+          </h1>
+          <p class="text-gray-600">{{ school.name }} - View all computer-based test results</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+      <div class="bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-100 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-400 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-700 px-4 py-3 rounded relative mb-3" role="alert">
+        <span class="block sm:inline">{{ message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Filters Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6 filter-card">
+      <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        <i class="fas fa-filter text-purple-600 mr-2"></i>
+        Filter Results
+      </h2>
+
+      <form method="get">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Session Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-calendar-alt text-blue-500 mr-1"></i>
+              Session
+            </label>
+            <select name="session" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+              <option value="">All Sessions</option>
+              {% for s in sessions %}
+                <option value="{{ s.id }}" {% if selected_session == s.id|stringformat:"s" %}selected{% endif %}>
+                  {{ s.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Term Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-clock text-green-500 mr-1"></i>
+              Term
+            </label>
+            <select name="term" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+              <option value="">All Terms</option>
+              {% for t in terms %}
+                <option value="{{ t.id }}" {% if selected_term == t.id|stringformat:"s" %}selected{% endif %}>
+                  {{ t.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Class Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-school text-purple-500 mr-1"></i>
+              Class
+            </label>
+            <select name="class" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+              <option value="">All Classes</option>
+              {% for c in classes %}
+                <option value="{{ c.id }}" {% if selected_class == c.id|stringformat:"s" %}selected{% endif %}>
+                  {{ c.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Subject Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-book text-indigo-500 mr-1"></i>
+              Subject
+            </label>
+            <select name="subject" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+              <option value="">All Subjects</option>
+              {% for subj in subjects %}
+                <option value="{{ subj.id }}" {% if selected_subject == subj.id|stringformat:"s" %}selected{% endif %}>
+                  {{ subj.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Exam Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-file-alt text-yellow-500 mr-1"></i>
+              Exam
+            </label>
+            <select name="exam" class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+              <option value="">All Exams</option>
+              {% for e in exams %}
+                <option value="{{ e.id }}" {% if selected_exam == e.id|stringformat:"s" %}selected{% endif %}>
+                  {{ e.title }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Search Filter -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              <i class="fas fa-search text-red-500 mr-1"></i>
+              Search
+            </label>
+            <input type="text" 
+                   name="search" 
+                   value="{{ search_name }}" 
+                   placeholder="Name or Exam No" 
+                   class="w-full border-2 border-gray-300 rounded-lg p-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+          </div>
+
+          <!-- Filter Button (spans 2 columns on larger screens) -->
+          <div class="md:col-span-2 flex items-end">
+            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 shadow-lg">
+              <i class="fas fa-filter"></i> Apply Filters
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results Summary Card -->
+    <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 mb-1">Total Results</p>
+          <p class="text-2xl font-bold text-blue-600">{{ results.count }}</p>
+        </div>
+        <div class="bg-green-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 mb-1">Passed</p>
+          <p class="text-2xl font-bold text-green-600">
+            {{ results|length|add:"0" }}
+          </p>
+        </div>
+        <div class="bg-red-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 mb-1">Failed</p>
+          <p class="text-2xl font-bold text-red-600">0</p>
+        </div>
+        <div class="bg-purple-50 p-4 rounded-lg">
+          <p class="text-sm text-gray-600 mb-1">Average Score</p>
+          <p class="text-2xl font-bold text-purple-600">--</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="p-6 border-b">
+        <h2 class="text-xl font-semibold text-gray-800">
+          <i class="fas fa-list text-indigo-600 mr-2"></i>
+          All Results
+        </h2>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white">
+          <thead>
+            <tr class="bg-gradient-to-r from-indigo-500 to-indigo-600 text-white">
+              <th class="py-3 px-4 text-left">#</th>
+              <th class="py-3 px-4 text-left">Student</th>
+              <th class="py-3 px-4 text-left">Exam No</th>
+              <th class="py-3 px-4 text-left">Exam</th>
+              <th class="py-3 px-4 text-left">Subject</th>
+              <th class="py-3 px-4 text-center">Score</th>
+              <th class="py-3 px-4 text-center">Percentage</th>
+              <th class="py-3 px-4 text-center">Status</th>
+              <th class="py-3 px-4 text-center">Submitted</th>
+              <th class="py-3 px-4 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for result in results %}
+              <tr class="border-b hover:bg-gray-50 transition-colors">
+                <td class="py-3 px-4 text-gray-600">{{ forloop.counter }}</td>
+                <td class="py-3 px-4 font-medium text-gray-800">
+                  {{ result.student.full_name }}
+                </td>
+                <td class="py-3 px-4 text-gray-600">
+                  {{ result.student.exam_no|default:"—" }}
+                </td>
+                <td class="py-3 px-4 text-gray-700">
+                  {{ result.exam.title }}
+                </td>
+                <td class="py-3 px-4 text-gray-700">
+                  {{ result.exam.subject.name }}
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <span class="font-semibold text-gray-800">
+                    {{ result.score }} / {{ result.total }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <span class="font-semibold text-blue-600">
+                    {{ result.percentage|floatformat:1 }}%
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-center">
+                  {% if result.passed %}
+                    <span class="badge-passed px-3 py-1 rounded-full text-sm font-semibold inline-flex items-center gap-1">
+                      <i class="fas fa-check-circle"></i> Passed
+                    </span>
+                  {% else %}
+                    <span class="badge-failed px-3 py-1 rounded-full text-sm font-semibold inline-flex items-center gap-1">
+                      <i class="fas fa-times-circle"></i> Failed
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="py-3 px-4 text-center text-gray-600 text-sm">
+                  {{ result.submitted_at|date:"d M Y" }}<br>
+                  <span class="text-xs text-gray-500">{{ result.submitted_at|date:"H:i" }}</span>
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <a href="{% url 'view_cbt_result' result.id %}" 
+                     class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition-all inline-flex items-center gap-1">
+                    <i class="fas fa-eye text-xs"></i> View
+                  </a>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="10" class="py-12 px-4 text-center text-gray-500">
+                  <i class="fas fa-inbox text-6xl mb-3 block text-gray-300"></i>
+                  <p class="text-lg font-medium">No results found</p>
+                  <p class="text-sm text-gray-400 mt-1">Try adjusting your filters or search criteria</p>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+{% endblock %}

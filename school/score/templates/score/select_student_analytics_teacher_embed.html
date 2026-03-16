@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Analytics</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 p-4 sm:p-6">
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-3 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 text-white">
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Student Performance Analytics</h1>
+                    <p class="text-slate-600 mt-1">Select a student to view detailed performance</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-indigo-50 border-l-4 border-indigo-500 rounded-lg flex items-center gap-3">
+            <i data-lucide="user-check" class="w-5 h-5 text-indigo-600"></i>
+            <div>
+                <span class="font-semibold text-indigo-800">Class</span>
+                <span class="text-indigo-600 text-sm">({{ user_class_group.name }})</span>
+            </div>
+        </div>
+
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm border border-gray-200">
+            <form method="post" id="analyticsForm" action="{% url 'select_student_analytics' %}?embed=1">
+                {% csrf_token %}
+                <input type="hidden" name="embed" value="1">
+                <input type="hidden" name="class_group" value="{{ user_class_group.id }}">
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Academic Session</label>
+                    <select name="session" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 bg-white" onchange="this.form.submit()">
+                        <option value="">-- Select Session --</option>
+                        {% for session in sessions %}
+                            <option value="{{ session.id }}" {% if selected_session and session.id == selected_session.id %}selected{% endif %}>{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Term</label>
+                    <select name="term" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 bg-white" onchange="this.form.submit()">
+                        <option value="">-- Select Term --</option>
+                        {% for term in terms %}
+                            <option value="{{ term.id }}" {% if selected_term and term.id == selected_term.id %}selected{% endif %}>{{ term.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if students %}
+                    <div class="h-px bg-gray-200 my-6"></div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Student</label>
+                        <select name="student" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-pink-500 bg-white" required>
+                            <option value="">-- Select Student --</option>
+                            {% for s in students %}
+                                <option value="{{ s.id }}">{{ s.full_name }}{% if s.exam_no %} ({{ s.exam_no }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                        View Analytics
+                    </button>
+                {% else %}
+                    <div class="text-center py-8 bg-slate-50 border border-slate-200 rounded-lg">
+                        <i data-lucide="info" class="w-8 h-8 text-indigo-600 mx-auto mb-2"></i>
+                        <h3 class="font-semibold text-slate-800 mb-1">Select session and term</h3>
+                        <p class="text-slate-600 text-sm">Choose session and term above to load students from {{ user_class_group.name }}.</p>
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analyticsForm').addEventListener('submit', function() {
+            var btn = this.querySelector('button[type="submit"]');
+            var student = this.querySelector('select[name="student"]');
+            if (btn && student && student.value) {
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Loading...';
+                btn.disabled = true;
+                lucide.createIcons();
+            }
+        });
+        lucide.createIcons();
+    </script>
+</body>
+</html>

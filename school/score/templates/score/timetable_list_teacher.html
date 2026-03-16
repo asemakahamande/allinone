@@ -1,0 +1,133 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Timetable - {{ class_group.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+                <i data-lucide="calendar-days" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">Timetable</h1>
+                <p class="text-slate-600 mt-1">View schedule for {{ class_group.name }}</p>
+            </div>
+        </div>
+        <a href="{% url 'add_timetable' %}" class="routine-btn-add flex items-center gap-2 px-6 py-3 rounded-lg font-semibold">
+            <i data-lucide="plus" class="w-4 h-4"></i> Add Entry
+        </a>
+    </div>
+
+    <div class="card p-6 mb-6">
+        <form method="get" class="flex flex-col sm:flex-row gap-4 items-end">
+            <div class="flex-1 w-full">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Class</label>
+                <div class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="school" class="w-5 h-5 text-indigo-600"></i>
+                        <span class="font-semibold text-slate-800">{{ selected_class.name }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 w-full">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Day</label>
+                <select name="day" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">All Days</option>
+                    {% for d, day_name in days %}
+                        <option value="{{ d }}" {% if day_query == d %}selected{% endif %}>{{ day_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="routine-btn-filter flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg font-semibold">
+                    <i data-lucide="filter" class="w-4 h-4"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {% if timetables %}
+        <div class="card overflow-hidden">
+            <div class="px-6 py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white">
+                <h2 class="text-xl font-semibold flex items-center gap-2">
+                    <i data-lucide="calendar-days" class="w-5 h-5"></i>
+                    Timetable ({{ timetables|length }})
+                </h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Class</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Subject</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Teacher</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Day</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase">Time</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-slate-600 uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-slate-200">
+                        {% for t in timetables %}
+                        <tr class="hover:bg-slate-50 {% if t.start_time == t.earliest_start %}bg-amber-50/50{% endif %}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-indigo-100 text-indigo-800">{{ t.class_name }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-1.5 rounded-full bg-cyan-100">
+                                        <i data-lucide="book" class="w-4 h-4 text-cyan-600"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-900">{{ t.subject }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ t.teacher|default:"—" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">{{ t.get_day_display }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600 font-medium">{{ t.start_time|time:"H:i" }} - {{ t.end_time|time:"H:i" }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{% url 'update_timetable' t.id %}" class="routine-btn-update">
+                                        <i data-lucide="edit" class="w-3 h-3"></i> Update
+                                    </a>
+                                    <form method="post" action="{% url 'delete_timetable' t.id %}" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="routine-btn-delete" onclick="return confirm('Delete this timetable entry?');">
+                                            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="card p-12 text-center">
+            <div class="p-4 rounded-full bg-blue-100 inline-block">
+                <i data-lucide="calendar-days" class="w-12 h-12 text-blue-600"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-slate-800 mt-4 mb-2">No Timetable Entries</h3>
+            <p class="text-slate-600 mb-4">Add entries for {{ class_group.name }}.</p>
+            <a href="{% url 'add_timetable' %}" class="routine-btn-add inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold">
+                <i data-lucide="plus" class="w-4 h-4"></i> Add Entry
+            </a>
+        </div>
+    {% endif %}
+</div>
+<style>
+    .routine-btn-add { background-color: #0891b2; color: #fff; }
+    .routine-btn-add:hover { background-color: #0e7490; color: #fff; }
+    .routine-btn-filter { background-color: #059669; color: #fff; }
+    .routine-btn-filter:hover { background-color: #047857; color: #fff; }
+    .routine-btn-update { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; background-color: #2563eb; color: #fff; text-decoration: none; }
+    .routine-btn-update:hover { background-color: #1d4ed8; color: #fff; }
+    .routine-btn-delete { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.375rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; background-color: #dc2626; color: #fff; border: none; cursor: pointer; }
+    .routine-btn-delete:hover { background-color: #b91c1c; color: #fff; }
+</style>
+<script>lucide.createIcons();</script>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 text-gray-900">
+<div class="container mx-auto py-8 px-4">
+
+    <h1 class="text-3xl font-bold text-center text-blue-600 mb-8">Result Analysis</h1>
+
+    <!-- ===== TOP SUMMARY ===== -->
+    <div class="flex flex-wrap justify-center gap-6 mb-8">
+
+        <div class="bg-white rounded-lg shadow p-6 w-72 text-center">
+            <div class="text-lg font-semibold">Your Score: {{ score }} / {{ total }}</div>
+            <div class="mt-2">
+                <span class="text-green-600 font-semibold">{{ correct_percentage }}% Correct</span> |
+                <span class="text-red-600 font-semibold">{{ wrong_percentage }}% Wrong</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6 w-72 flex justify-center items-center">
+            <img src="data:image/png;base64,{{ chart_base64 }}" alt="Performance Chart" class="rounded max-w-full">
+        </div>
+
+    </div>
+
+    <!-- ===== REVIEW SECTION ===== -->
+    <h2 class="text-2xl font-semibold mb-4">Detailed Review</h2>
+
+    {% for question in question_results %}
+    <div class="review-card bg-white shadow rounded-lg mb-4 {% if forloop.first %}active{% endif %}">
+        <div class="p-2 font-bold text-white text-sm {% if question.is_correct %}bg-green-600{% else %}bg-red-600{% endif %}">
+            Question {{ forloop.counter }} {% if question.is_correct %} — Correct{% else %} — Incorrect{% endif %}
+        </div>
+        <div class="p-4 text-left text-sm space-y-2">
+            {% if question.image %}
+            <img src="{{ question.image.url }}" alt="Question Image" class="mb-2 max-h-40 rounded">
+            {% endif %}
+
+            <p><strong>Question:</strong> {{ question.question|safe }}</p>
+            <p>
+                <strong>Your Answer:</strong>
+                <span class="{% if question.is_correct %}text-green-600 font-semibold{% else %}text-red-600 font-semibold{% endif %}">
+                    {{ question.your_answer }}
+                </span>
+            </p>
+            <p><strong>Correct Answer:</strong> <span class="text-green-600 font-semibold">{{ question.correct_option_text }}</span></p>
+
+            {% if question.explanation %}
+            <p><strong>Explanation:</strong> {{ question.explanation|safe }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <!-- ===== NAVIGATION ===== -->
+    <div class="flex justify-center gap-4 mt-4 mb-6">
+        <button id="prevButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300"
+                onclick="showQuestion(currentIndex - 1)" disabled>← Previous</button>
+        <button id="nextButton" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300"
+                onclick="showQuestion(currentIndex + 1)">Next →</button>
+    </div>
+
+    <!-- ===== QUESTION QUICK NAV ===== -->
+    <div class="flex flex-wrap justify-center gap-2">
+        {% for question in question_results %}
+        <button type="button"
+                class="px-2 py-1 rounded text-white {% if not question.is_correct %}bg-red-600{% else %}bg-blue-600{% endif %} hover:opacity-80"
+                onclick="showQuestion({{ forloop.counter0 }})">
+            {{ forloop.counter }}
+        </button>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-8">
+        <a href="{% url 'cbt_login' %}" class="inline-block px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">
+            Back to CBT Login
+        </a>
+    </div>
+
+</div>
+
+<script type="text/javascript" id="MathJax-script" async
+        src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
+
+<script>
+    let currentIndex = 0;
+
+    function showQuestion(index) {
+        const cards = document.querySelectorAll('.review-card');
+        const buttons = document.querySelectorAll('.flex.flex-wrap button');
+
+        if (index < 0 || index >= cards.length) return;
+
+        cards.forEach((card, i) => {
+            card.classList.toggle('hidden', i !== index);
+        });
+
+        buttons.forEach((btn, i) => {
+            btn.classList.toggle('opacity-80', i !== index);
+            btn.classList.toggle('outline outline-2 outline-yellow-400', i === index);
+        });
+
+        currentIndex = index;
+
+        document.getElementById('prevButton').disabled = currentIndex === 0;
+        document.getElementById('nextButton').disabled = currentIndex === cards.length - 1;
+    }
+
+    window.onload = function () {
+        showQuestion(0);
+    }
+</script>
+</body>
+</html>

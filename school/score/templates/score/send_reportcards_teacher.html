@@ -1,0 +1,280 @@
+{% extends "score/teacher_dashboard.html" %}
+{% load static %}
+
+{% block title %}Send Report Cards{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- Header Section -->
+    <div class="mb-6">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="p-3 rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 text-white">
+                <i data-lucide="mail" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Send Report Cards</h1>
+                <p class="text-gray-600 mt-1">Email report cards to parents</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Display -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 rounded-lg border-l-4 flex items-center gap-3 {% if message.tags == 'error' %}bg-red-50 text-red-800 border-red-500{% elif message.tags == 'success' %}bg-green-50 text-green-800 border-green-500{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border-yellow-500{% else %}bg-blue-50 text-blue-800 border-blue-500{% endif %}">
+                    <i data-lucide="{% if message.tags == 'error' %}alert-circle{% elif message.tags == 'success' %}check-circle{% elif message.tags == 'warning' %}alert-triangle{% else %}info{% endif %}" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Form Card -->
+    <div class="card p-8">
+        <form method="POST" id="sendReportForm">
+            {% csrf_token %}
+
+            <!-- Filter Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Session -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="calendar-days" class="w-4 h-4 text-pink-600"></i>
+                        Session <span class="text-red-500">*</span>
+                    </label>
+                    <select name="session" 
+                            id="sessionSelect" 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all bg-white" 
+                            required>
+                        <option value="">-- Select Session --</option>
+                        {% for s in sessions %}
+                            <option value="{{ s.name }}">{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Term -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="calendar-range" class="w-4 h-4 text-pink-600"></i>
+                        Term <span class="text-red-500">*</span>
+                    </label>
+                    <select name="term" 
+                            id="termSelect" 
+                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all bg-white" 
+                            required>
+                        <option value="">-- Select Term --</option>
+                        {% for t in terms %}
+                            <option value="{{ t.name }}">{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Class (fixed for teacher) -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-pink-600"></i>
+                        Class <span class="text-red-500">*</span>
+                    </label>
+                    <div class="px-4 py-2.5 bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="lock" class="w-5 h-5 text-pink-600"></i>
+                            <span class="font-semibold text-pink-800">{{ selected_class.name }}</span>
+                        </div>
+                    </div>
+                    <input type="hidden" name="class_id" id="classSelect" value="{{ selected_class.id }}">
+                </div>
+            </div>
+
+            <!-- Students List Section -->
+            <div id="studentList" class="hidden">
+                <div class="border-t border-gray-200 pt-6 mt-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <i data-lucide="users" class="w-5 h-5 text-pink-600"></i>
+                            Select Students with Published Results
+                        </h3>
+                        <label class="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg cursor-pointer transition-all">
+                            <input type="checkbox" 
+                                   id="selectAll" 
+                                   class="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500">
+                            <span class="text-sm font-semibold text-gray-700">Select All</span>
+                        </label>
+                    </div>
+
+                    <div id="studentsContainer" 
+                         class="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                        <div class="flex items-center justify-center py-8">
+                            <div class="text-center">
+                                <i data-lucide="loader-2" class="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin"></i>
+                                <p class="text-gray-500">Select session and term to load students</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+                        <button type="submit" 
+                                class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 text-white py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            Send Report Cards
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Info Card -->
+    <div class="mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+        <div class="flex gap-3">
+            <div class="flex-shrink-0">
+                <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+            </div>
+            <div>
+                <h4 class="font-semibold text-blue-800 mb-1">How it works</h4>
+                <ul class="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                    <li>Only students with published results will be shown</li>
+                    <li>Report cards will be sent to the parent's email address</li>
+                    <li>Students without parent email addresses will be skipped</li>
+                    <li>Each parent will receive a PDF attachment of their child's report card</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+
+    function loadStudents() {
+        const sessionSelect = document.getElementById('sessionSelect');
+        const termSelect = document.getElementById('termSelect');
+        const classSelect = document.getElementById('classSelect');
+        const studentList = document.getElementById('studentList');
+        const container = document.getElementById('studentsContainer');
+
+        const sessionName = sessionSelect.value;
+        const termName = termSelect.value;
+        const classId = classSelect ? classSelect.value : null;
+
+        if (!sessionName || !termName || !classId) {
+            studentList.classList.add('hidden');
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="text-center">
+                    <i data-lucide="loader-2" class="w-8 h-8 text-pink-600 mx-auto mb-2 animate-spin"></i>
+                    <p class="text-gray-600 font-medium">Loading students...</p>
+                </div>
+            </div>
+        `;
+        lucide.createIcons();
+        studentList.classList.remove('hidden');
+
+        fetch(`/get_students/${classId}/?session=${encodeURIComponent(sessionName)}&term=${encodeURIComponent(termName)}`)
+            .then(res => res.json())
+            .then(data => {
+                container.innerHTML = '';
+                if (data.students.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-8">
+                            <div class="p-4 rounded-full bg-yellow-100 mx-auto w-fit mb-3">
+                                <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-600"></i>
+                            </div>
+                            <p class="text-yellow-800 font-semibold">No students with published results found in this class.</p>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                } else {
+                    data.students.forEach((stu, index) => {
+                        const hasEmail = stu.email && stu.email.trim() !== '';
+                        const emailDisplay = hasEmail 
+                            ? `<span class="text-green-700 font-medium">${stu.email}</span>`
+                            : `<span class="text-gray-400 italic">No email</span>`;
+                        
+                        const emailIcon = hasEmail 
+                            ? '<i data-lucide="mail" class="w-4 h-4 text-green-600"></i>'
+                            : '<i data-lucide="mail-x" class="w-4 h-4 text-gray-400"></i>';
+
+                        container.innerHTML += `
+                            <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-white transition-colors cursor-pointer border border-transparent hover:border-pink-200 ${index !== data.students.length - 1 ? 'mb-2' : ''}">
+                                <input class="student-checkbox w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500" 
+                                       type="checkbox" 
+                                       name="students" 
+                                       value="${stu.id}" 
+                                       id="student_${stu.id}"
+                                       ${!hasEmail ? 'disabled' : ''}>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <div class="p-1.5 rounded-full bg-pink-100">
+                                            <i data-lucide="user" class="w-4 h-4 text-pink-600"></i>
+                                        </div>
+                                        <span class="font-medium text-gray-900">${stu.name}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 mt-1 ml-8 text-sm">
+                                        ${emailIcon}
+                                        ${emailDisplay}
+                                    </div>
+                                </div>
+                            </label>
+                        `;
+                    });
+                    lucide.createIcons();
+                }
+            })
+            .catch(err => {
+                console.error('Error loading students:', err);
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="p-4 rounded-full bg-red-100 mx-auto w-fit mb-3">
+                            <i data-lucide="alert-circle" class="w-8 h-8 text-red-600"></i>
+                        </div>
+                        <p class="text-red-800 font-semibold">Error loading students. Please try again.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+            });
+    }
+
+    document.getElementById('sessionSelect').addEventListener('change', loadStudents);
+    document.getElementById('termSelect').addEventListener('change', loadStudents);
+    const classSelectEl = document.getElementById('classSelect');
+    if (classSelectEl) classSelectEl.addEventListener('change', loadStudents);
+
+    document.getElementById('selectAll').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.student-checkbox:not(:disabled)');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const sessionSelect = document.getElementById('sessionSelect');
+        const termSelect = document.getElementById('termSelect');
+        if (sessionSelect && termSelect && sessionSelect.value && termSelect.value) {
+            loadStudents();
+        }
+    });
+
+    document.getElementById('sendReportForm').addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const selectedStudents = document.querySelectorAll('.student-checkbox:checked:not(:disabled)');
+        
+        if (selectedStudents.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one student with an email address.');
+            return;
+        }
+
+        if (submitBtn) {
+            const icon = submitBtn.querySelector('i');
+            icon.setAttribute('data-lucide', 'loader-2');
+            icon.classList.add('animate-spin');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending...';
+            lucide.createIcons();
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "score/dashboard.html" %}
+
+{% block title %}Make Payment - Due Deligence{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
+    <h1 class="text-2xl font-bold mb-6">Make Payment</h1>
+
+    {% if messages %}
+    <div class="mb-4">
+        {% for message in messages %}
+        <div class="p-3 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mb-6 p-4 bg-gray-50 rounded">
+        <p class="text-lg font-medium">Price per student: ₦{{ pin_price }}</p>
+        <p class="text-sm text-gray-600">Plan: {{ tier_display }}</p>
+    </div>
+
+    <form id="payment-form" method="POST" action="{% url 'process_payment' %}">
+        {% csrf_token %}
+
+        <label class="block mb-2 font-medium">Choose number of students:</label>
+        <select name="num_students_select" id="num_students_select" class="w-full border rounded px-3 py-2 mb-4">
+            <option value="">-- Select --</option>
+            {% for option in options %}
+                <option value="{{ option.value }}">{{ option.text }}</option>
+            {% endfor %}
+        </select>
+
+        <label class="block mb-2 font-medium">Or enter manually:</label>
+        <input type="number" name="num_students_input" id="num_students_input" min="1"
+               class="w-full border rounded px-3 py-2 mb-4"
+               placeholder="e.g. 5, 20, 100">
+
+        <div id="total-display" class="mb-4 text-lg font-medium"></div>
+
+        <button type="submit" form="payment-form" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">
+            Proceed to Pay
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('num_students_select');
+    const input = document.getElementById('num_students_input');
+    const totalDisplay = document.getElementById('total-display');
+    const pinPrice = {{ pin_price }};
+
+    function updateTotal() {
+        let num = 0;
+        if (select.value) {
+            num = parseInt(select.value);
+        } else if (input.value) {
+            num = parseInt(input.value);
+        }
+        if (num > 0) {
+            totalDisplay.textContent = `Total: ₦${(num * pinPrice).toLocaleString()}`;
+        } else {
+            totalDisplay.textContent = '';
+        }
+    }
+
+    select.addEventListener('change', updateTotal);
+    input.addEventListener('input', updateTotal);
+});
+</script>
+{% endblock %} 
+
+

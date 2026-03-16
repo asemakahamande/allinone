@@ -1,0 +1,38 @@
+{% extends base_dashboard_template %}
+
+{% block title %}Performance Analytics - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="content-card overflow-hidden">
+    <div class="p-5 sm:p-6 border-b border-slate-200">
+        <h3 class="text-lg font-bold text-slate-900">Performance Analytics</h3>
+        <p class="text-sm text-slate-500 mt-1">{{ student.full_name }}{% if student.admission_number %} - {{ student.admission_number }}{% endif %}</p>
+    </div>
+    <iframe id="analytics-embed-frame" src="{{ embed_analytics_url }}" class="w-full border-0" style="height: 1200px; min-height: 900px;" title="Student Analytics"></iframe>
+</div>
+<script>
+    (function() {
+        const frame = document.getElementById('analytics-embed-frame');
+        if (!frame) return;
+
+        function resizeFrame() {
+            try {
+                const doc = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+                if (!doc) return;
+                const bodyHeight = doc.body ? doc.body.scrollHeight : 0;
+                const htmlHeight = doc.documentElement ? doc.documentElement.scrollHeight : 0;
+                const nextHeight = Math.max(bodyHeight, htmlHeight, 900);
+                frame.style.height = nextHeight + 'px';
+            } catch (e) {
+                // Ignore sizing errors; keep fallback fixed height.
+            }
+        }
+
+        frame.addEventListener('load', function() {
+            resizeFrame();
+            setTimeout(resizeFrame, 300);
+            setTimeout(resizeFrame, 1000);
+        });
+    })();
+</script>
+{% endblock %}
