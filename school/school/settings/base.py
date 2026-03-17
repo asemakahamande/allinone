@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!q92qxfibhjx4j1__n=&vtc#^!tt$*84ohic=gm5=71o2$38s)'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!q92qxfibhjx4j1__n=&vtc#^!tt$*84ohic=gm5=71o2$38s)')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
     'score.middleware.SessionCookieInjectMiddleware',  # Before SessionMiddleware: pick role-specific session cookie
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -134,12 +135,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BASE_DIR.parent / 'static']  # Correct path: school/static
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files (Uploads)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Cloudinary for media storage (if configured)
+if os.getenv('CLOUDINARY_CLOUD_NAME'):
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+        'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+        'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+    }
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 
 # Default primary key field type
@@ -157,7 +168,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_HOST_USER = "asemakahamande01@gmail.com"
-EMAIL_HOST_PASSWORD = "gnhracyswxdfddhb"
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "gnhracyswxdfddhb")
 DEFAULT_FROM_EMAIL = "Termly Report Card <asemakahamande01@gmail.com>"
 SERVER_EMAIL = EMAIL_HOST_USER
 ADMIN_EMAIL = "asemakahamande01@gmail.com"
@@ -166,11 +177,9 @@ ADMIN_EMAIL = "asemakahamande01@gmail.com"
 # ==================================================
 # PAYSTACK PAYMENT CONFIGURATION
 # ==================================================
-# Read from .env (live keys). Fallback to test keys only when env vars are unset or empty.
-_default_secret = "sk_live_245989366322524defc076a98b6ae9ccdd3d6a3b"
-_default_public = "pk_live_958d2a42794baf8386f154a0eeeab3558dbf55d3"
-PAYSTACK_SECRET_KEY = (os.getenv("PAYSTACK_SECRET_KEY") or _default_secret).strip()
-PAYSTACK_PUBLIC_KEY = (os.getenv("PAYSTACK_PUBLIC_KEY") or _default_public).strip()
+# Read from .env (live keys).
+PAYSTACK_SECRET_KEY = os.getenv("PAYSTACK_SECRET_KEY", "").strip()
+PAYSTACK_PUBLIC_KEY = os.getenv("PAYSTACK_PUBLIC_KEY", "").strip()
 PAYSTACK_BASE_URL = (os.getenv("PAYSTACK_BASE_URL") or "https://api.paystack.co").strip()
 
 # Production: set SECRET_KEY and Paystack live keys in your host's env (e.g. Render
@@ -200,6 +209,10 @@ SESSION_COOKIE_NAME = 'schoolsessionid'  # Custom session cookie name
 X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
 SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS protection
+SECURE_HSTS_SECONDS = 31536000  # 1 year HSTS
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+CSRF_COOKIE_SECURE = True  # Secure CSRF cookie
 
 # Development: no HTTPS redirect (set True only in production with HTTPS)
 SECURE_SSL_REDIRECT = False
