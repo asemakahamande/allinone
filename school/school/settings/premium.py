@@ -1,23 +1,32 @@
-# settings/premium.py
 from .base import *
 import os
 
-# 1. Identity of this tier
 TIER_NAME = 'premium'
 PIN_PRICE_PER_STUDENT = 1000
 
-# 2. Domain Security
-# Only allow connections from your $1000 domain
-ALLOWED_HOSTS = ['premium.duediligence.com', 'www.premium.duediligence.com', '127.0.0.1', 'localhost']
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-# 3. Enable DEBUG for development
-DEBUG = True
+RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
+ALLOWED_HOSTS = [
+    'premium.duediligence.com',
+    'www.premium.duediligence.com',
+    '127.0.0.1',
+    'localhost',
+]
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
 
-# 4. Database for Premium (SQLite for local dev)
+# ✅ Same database as basic and pro
 DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'db_premium.sqlite3',
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.getenv('DB_NAME'),
+    'USER': os.getenv('DB_USER'),
+    'PASSWORD': os.getenv('DB_PASSWORD'),
+    'HOST': os.getenv('DB_HOST'),
+    'PORT': os.getenv('DB_PORT', '5432'),
 }
 
-# 5. (Optional) Separate Media Folder for Premium uploads
-MEDIA_ROOT = BASE_DIR / 'media_premium'
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True

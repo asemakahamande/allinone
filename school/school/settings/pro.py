@@ -1,23 +1,32 @@
-# settings/pro.py
 from .base import *
 import os
 
-# 1. Identity of this tier
 TIER_NAME = 'pro'
 PIN_PRICE_PER_STUDENT = 500
 
-# 2. Domain Security
-# This ensures this specific database only works on your Pro URL
-ALLOWED_HOSTS = ['pro.duediligence.com', 'www.pro.duediligence.com', '127.0.0.1', 'localhost']
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-# 3. Enable DEBUG for development
-DEBUG = True
+RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
+ALLOWED_HOSTS = [
+    'pro.duediligence.com',
+    'www.pro.duediligence.com',
+    '127.0.0.1',
+    'localhost',
+]
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
 
-# 4. Database for Pro (SQLite for local dev)
+# ✅ Same database as basic and premium
 DATABASES['default'] = {
-    'ENGINE': 'django.db.backends.sqlite3',
-    'NAME': BASE_DIR / 'db_pro.sqlite3',
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': os.getenv('DB_NAME'),
+    'USER': os.getenv('DB_USER'),
+    'PASSWORD': os.getenv('DB_PASSWORD'),
+    'HOST': os.getenv('DB_HOST'),
+    'PORT': os.getenv('DB_PORT', '5432'),
 }
 
-# 5. (Optional) Separate Media Folder for Pro uploads
-MEDIA_ROOT = BASE_DIR / 'media_pro'
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True

@@ -1,28 +1,32 @@
-# settings/basic.py
 from .base import *
 import os
 
-# 1. Identity of this tier
 TIER_NAME = 'basic'
 PIN_PRICE_PER_STUDENT = 200
 
-# 2. Domain Security
-ALLOWED_HOSTS = ['basic.duediligence.com', 'www.basic.duediligence.com', '127.0.0.1', 'localhost', os.getenv('RENDER_EXTERNAL_URL', '')]
-
-# 3. Enable DEBUG for development (set to False in production)
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-# 4. Database for Basic (PostgreSQL for production)
+# Render injects RENDER_EXTERNAL_HOSTNAME (not URL) — handle both
+RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
+ALLOWED_HOSTS = [
+    'basic.duediligence.com',
+    'www.basic.duediligence.com',
+    '127.0.0.1',
+    'localhost',
+]
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
+
 DATABASES['default'] = {
     'ENGINE': 'django.db.backends.postgresql',
     'NAME': os.getenv('DB_NAME'),
     'USER': os.getenv('DB_USER'),
     'PASSWORD': os.getenv('DB_PASSWORD'),
     'HOST': os.getenv('DB_HOST'),
-    'PORT': os.getenv('DB_PORT'),
+    'PORT': os.getenv('DB_PORT', '5432'),
 }
 
-# Production overrides
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
