@@ -12,8 +12,12 @@ Pillow==11.3.0
 
 # PDF generation (for report cards)
 xhtml2pdf==0.2.11
+python-bidi==0.4.2
 reportlab==3.6.13
 pypdf==6.0.0
+
+# Charts and graphs
+matplotlib==3.10.3
 
 # Database (PostgreSQL for production)
 psycopg2-binary==2.9.11
@@ -23,18 +27,14 @@ gunicorn==23.0.0
 
 # Static files in production
 whitenoise==6.7.0
+whitenoise[brotli]
 
 # Cloud storage for media files
 cloudinary==1.44.1
 django-cloudinary-storage==0.3.0
 
-# Email (optional: for better reliability)
-# django-anymail[sendgrid]
-
-# Optional for local development:
-# django-tailwind-cli==4.5.1  # For styling
-
-gunicorn==23.0.0
-python-bidi==0.4.2
+# WeasyPrint (HTML to PDF) and its dependencies
 weasyprint==62.3
-matplotlib==3.10.3
+
+# Email
+django-anymail[brevo]
