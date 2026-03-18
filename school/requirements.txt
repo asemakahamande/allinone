@@ -33,3 +33,6 @@ django-cloudinary-storage==0.3.0
 
 # Optional for local development:
 # django-tailwind-cli==4.5.1  # For styling
+
+gunicorn==23.0.0
+python-bidi==0.4.2
