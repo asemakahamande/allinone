@@ -7251,6 +7251,116 @@ def get_user_context(request):
     return None
 
 
+# @school_required
+# def select_student_for_analytics(request):
+#     # Get user context
+#     user_ctx = get_user_context(request)
+#     if not user_ctx:
+#         return redirect('login')  # or appropriate error page
+    
+#     school = user_ctx['school']
+
+#     sessions = AcademicSession.objects.all().order_by("-name")
+#     terms = Term.objects.all()
+#     classes = user_ctx['classes']  # Filtered based on user role
+
+#     selected_session = None
+#     selected_term = None
+#     selected_class = None
+#     students = None
+
+#     # Pre-select class for teacher/student
+#     if user_ctx['is_teacher'] or user_ctx['is_student']:
+#         selected_class = user_ctx['class_group']
+
+#     if request.method == "POST":
+#         session_id = request.POST.get("session")
+#         term_id = request.POST.get("term")
+#         class_id = request.POST.get("class_group")
+#         student_id = request.POST.get("student")
+
+#         # Handle dropdown reloading
+#         if session_id:
+#             selected_session = get_object_or_404(AcademicSession, id=session_id)
+
+#         if term_id:
+#             selected_term = get_object_or_404(Term, id=term_id)
+
+#         if class_id:
+#             # Security check: ensure user has access to this class
+#             if user_ctx['is_admin']:
+#                 selected_class = get_object_or_404(ClassGroup, id=class_id, school=school)
+#             elif user_ctx['is_teacher']:
+#                 if int(class_id) != user_ctx['class_group'].id:
+#                     return redirect('select_student_for_analytics')
+#                 selected_class = user_ctx['class_group']
+#             elif user_ctx['is_student']:
+#                 if int(class_id) != user_ctx['class_group'].id:
+#                     return redirect('select_student_for_analytics')
+#                 selected_class = user_ctx['class_group']
+            
+#             # Filter students based on user role
+#             if user_ctx['is_student']:
+#                 # Student can only see themselves
+#                 students = Student.objects.filter(
+#                     id=user_ctx['student'].id,
+#                     school=school
+#                 ).order_by("surname", "first_name")
+#             else:
+#                 # Admin and Teacher can see all students in the class
+#                 students = Student.objects.filter(
+#                     class_group=selected_class,
+#                     school=school
+#                 ).order_by("surname", "first_name")
+
+#         # Final submit → redirect to analytics page
+#         if student_id and selected_session and selected_term:
+#             # Security check: verify student access
+#             if user_ctx['is_student']:
+#                 if int(student_id) != user_ctx['student'].id:
+#                     return redirect('select_student_for_analytics')
+#             elif user_ctx['is_teacher']:
+#                 # Verify student belongs to teacher's class
+#                 student = get_object_or_404(Student, id=student_id, school=school)
+#                 if student.class_group.id != user_ctx['class_group'].id:
+#                     return redirect('select_student_for_analytics')
+            
+#             url = reverse(
+#                 "student_analytics",
+#                 kwargs={"student_id": student_id}
+#             )
+#             qs = f"session={selected_session.id}&term={selected_term.id}"
+#             if request.GET.get("embed") or request.POST.get("embed"):
+#                 qs += "&embed=1"
+#             return redirect(f"{url}?{qs}")
+
+#     context = {
+#         "sessions": sessions,
+#         "terms": terms,
+#         "classes": classes,
+#         "students": students,
+#         "selected_session": selected_session,
+#         "selected_term": selected_term,
+#         "selected_class": selected_class,
+#         "is_admin": user_ctx['is_admin'],
+#         "is_teacher": user_ctx['is_teacher'],
+#         "is_student": user_ctx['is_student'],
+#         "user_class_group": user_ctx['class_group'],
+#         "school": school,
+#     }
+
+#     if user_ctx['is_teacher'] and user_ctx.get('class_group'):
+#         teacher_ctx = get_teacher_dashboard_context(user_ctx['class_group'])
+#         teacher_ctx.update(context)
+#         return render(request, "score/select_student_analytics_teacher.html", teacher_ctx)
+
+#     if user_ctx['is_student'] and (request.GET.get("embed") or request.POST.get("embed")):
+#         response = render(request, "score/select_student_analytics_embed.html", context)
+#         response["X-Frame-Options"] = "SAMEORIGIN"
+#         return response
+
+#     return render(request, "score/select_student_analytics.html", context)
+
 @school_required
 def select_student_for_analytics(request):
     # Get user context
@@ -7268,6 +7378,9 @@ def select_student_for_analytics(request):
     selected_term = None
     selected_class = None
     students = None
+
+    # Detect embed mode (from GET or POST)
+    is_embed = request.GET.get("embed") == "1" or request.POST.get("embed") == "1"
 
     # Pre-select class for teacher/student
     if user_ctx['is_teacher'] or user_ctx['is_student']:
@@ -7298,7 +7411,7 @@ def select_student_for_analytics(request):
                 if int(class_id) != user_ctx['class_group'].id:
                     return redirect('select_student_for_analytics')
                 selected_class = user_ctx['class_group']
-            
+
             # Filter students based on user role
             if user_ctx['is_student']:
                 # Student can only see themselves
@@ -7324,13 +7437,13 @@ def select_student_for_analytics(request):
                 student = get_object_or_404(Student, id=student_id, school=school)
                 if student.class_group.id != user_ctx['class_group'].id:
                     return redirect('select_student_for_analytics')
-            
+
             url = reverse(
                 "student_analytics",
                 kwargs={"student_id": student_id}
             )
             qs = f"session={selected_session.id}&term={selected_term.id}"
-            if request.GET.get("embed") or request.POST.get("embed"):
+            if is_embed:
                 qs += "&embed=1"
             return redirect(f"{url}?{qs}")
 
@@ -7349,18 +7462,43 @@ def select_student_for_analytics(request):
         "school": school,
     }
 
+    # ----------------------------------------------------------------
+    # TEACHER
+    # ----------------------------------------------------------------
     if user_ctx['is_teacher'] and user_ctx.get('class_group'):
+        if is_embed:
+            # Standalone template — no {% extends %}, loads cleanly in iframe
+            response = render(request, "score/select_student_analytics_teacher_embed.html", context)
+            response["X-Frame-Options"] = "SAMEORIGIN"
+            return response
+        # Full page — extends teacher_dashboard.html
         teacher_ctx = get_teacher_dashboard_context(user_ctx['class_group'])
         teacher_ctx.update(context)
         return render(request, "score/select_student_analytics_teacher.html", teacher_ctx)
 
-    if user_ctx['is_student'] and (request.GET.get("embed") or request.POST.get("embed")):
-        response = render(request, "score/select_student_analytics_embed.html", context)
+    # ----------------------------------------------------------------
+    # STUDENT
+    # ----------------------------------------------------------------
+    if user_ctx['is_student']:
+        if is_embed:
+            # Standalone template — loads cleanly in iframe
+            response = render(request, "score/select_student_analytics_embed.html", context)
+            response["X-Frame-Options"] = "SAMEORIGIN"
+            return response
+        # Full page — extends student dashboard (or base)
+        return render(request, "score/select_student_analytics.html", context)
+
+    # ----------------------------------------------------------------
+    # ADMIN
+    # ----------------------------------------------------------------
+    if is_embed:
+        # Standalone template — no {% extends %}, loads cleanly in iframe
+        response = render(request, "score/select_student_analytics_admin_embed.html", context)
         response["X-Frame-Options"] = "SAMEORIGIN"
         return response
 
+    # Full page — extends dashboard.html
     return render(request, "score/select_student_analytics.html", context)
-
 
 @school_required
 def student_performance_analytics(request, student_id):
