@@ -271,7 +271,7 @@
 <!-- Mobile Overlay -->
 <div class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
-<script>
+{% comment %} <script>
     lucide.createIcons();
 
     function toggleSidebar() {
@@ -368,6 +368,175 @@
                 }
             }, true);
         })();
-    </script>
+    </script> {% endcomment %}
+    <script>
+    lucide.createIcons();
+
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const btn = document.getElementById('sidebar-toggle-btn');
+        const iconEl = btn && btn.querySelector('.sidebar-toggle-icon');
+        sidebar.classList.toggle('collapsed');
+        if (btn && iconEl) {
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            btn.title = isCollapsed ? 'Maximize' : 'Minimize';
+            btn.setAttribute('aria-label', isCollapsed ? 'Maximize sidebar' : 'Minimize sidebar');
+            iconEl.setAttribute('data-lucide', isCollapsed ? 'panel-left' : 'panel-left-close');
+            lucide.createIcons();
+        }
+    }
+
+    function toggleMobileSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        sidebar.classList.toggle('mobile-open');
+        overlay.classList.toggle('hidden');
+    }
+
+    function toggleDropdown(id, button) {
+        const menu = document.getElementById(id);
+        document.querySelectorAll('.submenu').forEach(submenu => {
+            if (submenu.id !== id) {
+                submenu.classList.remove('open');
+                submenu.previousElementSibling?.classList.remove('open');
+            }
+        });
+        menu.classList.toggle('open');
+        button.classList.toggle('open');
+    }
+
+    const fullscreenBtn = document.getElementById("fullscreen-btn");
+    if (fullscreenBtn) {
+        const fullscreenIcon = fullscreenBtn.querySelector("i");
+        fullscreenBtn.addEventListener("click", () => {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        });
+        document.addEventListener("fullscreenchange", () => {
+            if (fullscreenIcon) {
+                fullscreenIcon.setAttribute("data-lucide", document.fullscreenElement ? "minimize" : "maximize");
+                lucide.createIcons();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const link = item.closest('a');
+            if (link && link.getAttribute('href') === currentPath) {
+                item.classList.add('active');
+            }
+        });
+    });
+
+    /* ══════════════════════════════════════════════════════════
+       IFRAME SYSTEM — no views changes needed.
+       iframe stays invisible (opacity:0) while the page loads,
+       CSS strips the inner layout, THEN it fades in.
+       This prevents the brief flash of the inner navbar.
+    ══════════════════════════════════════════════════════════ */
+    (function () {
+        const contentFrameWrapper = document.getElementById('content-frame-wrapper');
+        const contentFrame        = document.getElementById('content-frame');
+        const dashboardContent    = document.getElementById('dashboard-content');
+
+        /* Keep iframe invisible until layout is stripped */
+        contentFrame.style.opacity   = '0';
+        contentFrame.style.transition = 'opacity 0.15s ease';
+
+        /* Normalise any href to a same-origin path string */
+        function toPath(href) {
+            if (!href) return href;
+            if (href.startsWith('/') && !href.startsWith('//')) return href;
+            try { return new URL(href, window.location.origin).pathname + new URL(href, window.location.origin).search; }
+            catch (_) { return href; }
+        }
+
+        /* Strip the inner page's layout via injected CSS, then reveal */
+        function stripInnerLayout(doc) {
+            try {
+                const style = doc.createElement('style');
+                style.textContent = `
+                    aside.sidebar,
+                    header.header,
+                    footer.footer,
+                    #mobile-overlay { display: none !important; }
+
+                    .main-content {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                    }
+                    body, html {
+                        height: auto !important;
+                        overflow: auto !important;
+                    }
+                    main,
+                    #dashboard-content,
+                    .flex-1 {
+                        height: auto !important;
+                        overflow: visible !important;
+                        min-height: 0 !important;
+                    }
+                `;
+                doc.head.appendChild(style);
+            } catch (err) {
+                console.warn('iframe CSS injection skipped:', err);
+            }
+            /* Reveal only after layout is stripped */
+            contentFrame.style.opacity = '1';
+        }
+
+        function showFrame(url) {
+            if (!url) return;
+            url = toPath(url);
+            /* Hide before loading so the new page is invisible until stripped */
+            contentFrame.style.opacity = '0';
+            contentFrame.onload = function () {
+                const doc = contentFrame.contentDocument || contentFrame.contentWindow.document;
+                stripInnerLayout(doc);
+            };
+            contentFrame.src = url;
+            if (contentFrameWrapper) contentFrameWrapper.classList.remove('hidden');
+            if (dashboardContent)    dashboardContent.classList.add('hidden');
+        }
+
+        function showDashboard(opts) {
+            opts = opts || {};
+            contentFrame.onload    = null;
+            contentFrame.style.opacity = '0';
+            contentFrame.src       = 'about:blank';
+            if (contentFrameWrapper) contentFrameWrapper.classList.add('hidden');
+            if (dashboardContent)    dashboardContent.classList.remove('hidden');
+            if (opts.scrollToScores) {
+                var el = document.getElementById('scores');
+                if (el && dashboardContent) {
+                    requestAnimationFrame(function () {
+                        var top = el.getBoundingClientRect().top + dashboardContent.scrollTop - dashboardContent.getBoundingClientRect().top;
+                        dashboardContent.scrollTop = Math.max(0, top - 24);
+                    });
+                }
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const loadInFrame = e.target.closest('a.load-in-frame');
+            if (loadInFrame) {
+                e.preventDefault();
+                e.stopPropagation();
+                showFrame(toPath(loadInFrame.getAttribute('href') || loadInFrame.href));
+                return false;
+            }
+            const showDashboardLink = e.target.closest('a.show-dashboard');
+            if (showDashboardLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                showDashboard({ scrollToScores: showDashboardLink.classList.contains('scroll-to-scores') });
+                return false;
+            }
+        }, true);
+    })();
+</script>
 </body>
 </html>

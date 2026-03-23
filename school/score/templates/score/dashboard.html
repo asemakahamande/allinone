@@ -850,6 +850,184 @@
     });
 
     /* ══════════════════════════════════════════════════════════
+       IFRAME SYSTEM — no views changes needed.
+       iframe stays invisible (opacity:0) while the page loads,
+       CSS strips the inner layout, THEN it fades in.
+       This prevents the brief flash of the inner navbar.
+    ══════════════════════════════════════════════════════════ */
+    (function () {
+        const wrapper   = document.getElementById('content-frame-wrapper');
+        const frame     = document.getElementById('content-frame');
+        const dashboard = document.getElementById('dashboard-content');
+
+        /* Keep iframe invisible until layout is stripped */
+        frame.style.opacity  = '0';
+        frame.style.transition = 'opacity 0.15s ease';
+
+        /* Normalise any href to a same-origin path string */
+        function toPath(href) {
+            if (!href) return href;
+            if (href.startsWith('/') && !href.startsWith('//')) return href;
+            try { return new URL(href, window.location.origin).pathname + new URL(href, window.location.origin).search; }
+            catch (_) { return href; }
+        }
+
+        /* Strip the inner page's layout via injected CSS, then reveal */
+        function stripInnerLayout(doc) {
+            try {
+                const style = doc.createElement('style');
+                style.textContent = `
+                    aside.sidebar,
+                    header.header,
+                    footer.footer,
+                    #mobile-overlay { display: none !important; }
+
+                    .main-content {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                    }
+                    body, html {
+                        height: auto !important;
+                        overflow: auto !important;
+                    }
+                    main,
+                    #dashboard-content,
+                    .flex-1 {
+                        height: auto !important;
+                        overflow: visible !important;
+                        min-height: 0 !important;
+                    }
+                `;
+                doc.head.appendChild(style);
+            } catch (err) {
+                console.warn('iframe CSS injection skipped:', err);
+            }
+            /* Reveal only after layout is stripped */
+            frame.style.opacity = '1';
+        }
+
+        function showFrame(url) {
+            if (!url) return;
+            url = toPath(url);
+            /* Hide before loading so the new page is invisible until stripped */
+            frame.style.opacity = '0';
+            frame.onload = function () {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                stripInnerLayout(doc);
+            };
+            frame.src = url;
+            if (wrapper)   wrapper.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+        }
+
+        function showDashboard() {
+            frame.onload = null;
+            frame.style.opacity = '0';
+            frame.src = 'about:blank';
+            if (wrapper)   wrapper.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+        }
+
+        document.addEventListener('click', function (e) {
+            const frameLink     = e.target.closest('a.load-in-frame');
+            const dashboardLink = e.target.closest('a.show-dashboard');
+
+            if (frameLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
+                return;
+            }
+            if (dashboardLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                showDashboard();
+            }
+        }, true);
+    })();
+</script>
+{% comment %} <script>
+    lucide.createIcons();
+
+    /* ── Sidebar toggle ── */
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const btn     = document.getElementById('sidebar-toggle-btn');
+        const iconEl  = btn && btn.querySelector('.sidebar-toggle-icon');
+        sidebar.classList.toggle('collapsed');
+        if (btn && iconEl) {
+            const collapsed = sidebar.classList.contains('collapsed');
+            btn.title = collapsed ? 'Maximize' : 'Minimize';
+            btn.setAttribute('aria-label', collapsed ? 'Maximize sidebar' : 'Minimize sidebar');
+            iconEl.setAttribute('data-lucide', collapsed ? 'panel-left' : 'panel-left-close');
+            lucide.createIcons();
+        }
+    }
+
+    /* ── Mobile overlay toggle ── */
+    function toggleMobileSidebar() {
+        document.querySelector('.sidebar').classList.toggle('mobile-open');
+        document.getElementById('mobile-overlay').classList.toggle('hidden');
+    }
+
+    /* ── Dropdown accordion ── */
+    function toggleDropdown(id, button) {
+        const menu = document.getElementById(id);
+        document.querySelectorAll('.submenu').forEach(s => {
+            if (s.id !== id) { s.classList.remove('open'); s.previousElementSibling?.classList.remove('open'); }
+        });
+        menu.classList.toggle('open');
+        button.classList.toggle('open');
+    }
+
+    /* ── Fullscreen ── */
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    if (fullscreenBtn) {
+        const fsIcon = fullscreenBtn.querySelector('i');
+        fullscreenBtn.addEventListener('click', () => {
+            document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        });
+        document.addEventListener('fullscreenchange', () => {
+            if (fsIcon) {
+                fsIcon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize' : 'maximize');
+                lucide.createIcons();
+            }
+        });
+    }
+
+    /* ── Pie charts + active menu item ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const link = item.closest('a');
+            if (link && link.getAttribute('href') === currentPath) item.classList.add('active');
+        });
+
+        const chartColors = ['#6366f1','#8b5cf6','#a855f7','#d946ef','#ec4899','#f43f5e','#14b8a6','#06b6d4','#3b82f6','#64748b'];
+
+        function buildPie(dataElId, canvasId, valueKey) {
+            const el = document.getElementById(dataElId);
+            if (!el || typeof Chart === 'undefined') return;
+            const data = JSON.parse(el.textContent);
+            if (!data || !data.length) return;
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.map(d => d.name),
+                    datasets: [{ data: data.map(d => d[valueKey]), backgroundColor: chartColors.slice(0, data.length), borderWidth: 1, borderColor: '#fff' }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        buildPie('students-per-class-data', 'students-per-class-chart', 'student_count');
+        buildPie('subjects-per-class-data', 'subjects-per-class-chart', 'subject_count');
+    });
+
+    /* ══════════════════════════════════════════════════════════
        IFRAME SYSTEM  — no views changes needed.
        Every a.load-in-frame opens inside the iframe.
        On load, CSS is injected to hide the inner page's own
@@ -944,7 +1122,7 @@
             }
         }, true);
     })();
-</script>
+</script> {% endcomment %}
 </body>
 </html>
 
