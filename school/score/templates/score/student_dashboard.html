@@ -271,7 +271,7 @@
 <!-- Mobile Overlay -->
 <div class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden" id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
 
-<script>
+{% comment %} <script>
     lucide.createIcons();
 
     function toggleSidebar() {
@@ -351,29 +351,25 @@
                 }
             }
 
-            document.addEventListener('click', function (e) {
-                const frameLink     = e.target.closest('a.load-in-frame');
-                const dashboardLink = e.target.closest('a.show-dashboard');
-
-                    if (frameLink) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
-                        // Close mobile sidebar if open
-                        if (window.innerWidth < 1024) toggleMobileSidebar();
-                        return;
-                    }
-                    if (dashboardLink) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        showDashboard();
-                        // Close mobile sidebar if open
-                        if (window.innerWidth < 1024) toggleMobileSidebar();
-                    }
-                }, true);
+            document.addEventListener('click', function(e) {
+                const loadInFrame = e.target.closest('a.load-in-frame');
+                if (loadInFrame) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFrame(loadInFrame.getAttribute('href'));
+                    return false;
+                }
+                const showDashboardLink = e.target.closest('a.show-dashboard');
+                if (showDashboardLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDashboard({ scrollToScores: showDashboardLink.classList.contains('scroll-to-scores') });
+                    return false;
+                }
+            }, true);
         })();
-    </script>
-    {% comment %} <script>
+    </script> {% endcomment %}
+    <script>
     lucide.createIcons();
 
     function toggleSidebar() {
@@ -525,22 +521,26 @@
         }
 
         document.addEventListener('click', function (e) {
-            const loadInFrame = e.target.closest('a.load-in-frame');
-            if (loadInFrame) {
-                e.preventDefault();
-                e.stopPropagation();
-                showFrame(toPath(loadInFrame.getAttribute('href') || loadInFrame.href));
-                return false;
-            }
-            const showDashboardLink = e.target.closest('a.show-dashboard');
-            if (showDashboardLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showDashboard({ scrollToScores: showDashboardLink.classList.contains('scroll-to-scores') });
-                return false;
-            }
-        }, true);
+            const frameLink     = e.target.closest('a.load-in-frame');
+            const dashboardLink = e.target.closest('a.show-dashboard');
+
+                if (frameLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                    return;
+                }
+                if (dashboardLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDashboard();
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                }
+            }, true);
     })();
-</script> {% endcomment %}
+</script>
 </body>
 </html>
