@@ -46,7 +46,6 @@ INSTALLED_APPS = [
 ]
 
 
-X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -62,7 +61,6 @@ MIDDLEWARE = [
     'score.middleware.SessionCookiePathMiddleware',
     # ✅ School Authentication Middleware - must be AFTER SessionMiddleware and AuthenticationMiddleware
     'score.middleware.SchoolAuthenticationMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'school.urls'
@@ -239,7 +237,7 @@ SESSION_COOKIE_NAME = 'schoolsessionid'  # Custom session cookie name
 # ==================================================
 # SECURITY SETTINGS
 # ==================================================
-X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
+X_FRAME_OPTIONS = 'SAMEORIGIN'  # Prevent clickjacking
 SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
 SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS protection
 SECURE_HSTS_SECONDS = 31536000  # 1 year HSTS
