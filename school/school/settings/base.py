@@ -45,6 +45,9 @@ INSTALLED_APPS = [
     'exams',
 ]
 
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
@@ -59,6 +62,7 @@ MIDDLEWARE = [
     'score.middleware.SessionCookiePathMiddleware',
     # ✅ School Authentication Middleware - must be AFTER SessionMiddleware and AuthenticationMiddleware
     'score.middleware.SchoolAuthenticationMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'school.urls'
@@ -338,3 +342,5 @@ BEFORE DEPLOYING TO PRODUCTION:
 5. python manage.py check --deploy
 6. python manage.py collectstatic --noinput
 """
+
+
