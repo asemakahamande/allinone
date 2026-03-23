@@ -3383,13 +3383,15 @@ def reportcard_view(request, student_id, session, term):
     chart_colors = [colors[i % len(colors)] for i in range(len(chart_labels))]
 
     context = {
-        "school": setting,
+        # "school": setting,
+        "school": school,
         "student": student,
         "scores": scores,
         "assessment_components": assessment_components,
         "affective": affective_data,
         "psychomotor": psychomotor_data,
-        "setting": setting,
+        # "setting": setting,
+        "setting": school,
         "total_score": total_score,
         "max_total_score": max_total_score,
         "overall_avg": overall_avg,
