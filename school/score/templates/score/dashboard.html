@@ -758,7 +758,7 @@
                 </p>
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
                     <i data-lucide="phone" class="w-4 h-4 flex-shrink-0"></i>
-                    <p class="text-xs sm:text-sm break-words">CONTACT US: 0701 760 7529; 0706 436 9705</p>
+                    <p class="text-xs sm:text-sm break-words">CONTACT US: 07057359429; 09039982165</p>
                 </div>
             </div>
         </footer>
@@ -933,18 +933,22 @@
             const frameLink     = e.target.closest('a.load-in-frame');
             const dashboardLink = e.target.closest('a.show-dashboard');
 
-            if (frameLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
-                return;
-            }
-            if (dashboardLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showDashboard();
-            }
-        }, true);
+                if (frameLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                    return;
+                }
+                if (dashboardLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDashboard();
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                }
+            }, true);
     })();
 </script>
 </body>

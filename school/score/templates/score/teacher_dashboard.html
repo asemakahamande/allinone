@@ -656,7 +656,7 @@
                 </p>
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
                     <i data-lucide="phone" class="w-4 h-4 flex-shrink-0"></i>
-                    <p class="text-xs sm:text-sm break-words">CONTACT US: 0701 760 7529; 0706 436 9705</p>
+                    <p class="text-xs sm:text-sm break-words">CONTACT US: 07057359429; 09039982165</p>
                 </div>
             </div>
         </footer>
@@ -818,171 +818,27 @@
         }
 
         document.addEventListener('click', function (e) {
-            const loadInFrame = e.target.closest('a.load-in-frame');
-            if (loadInFrame) {
-                e.preventDefault();
-                e.stopPropagation();
-                showFrame(toPath(loadInFrame.getAttribute('href') || loadInFrame.href));
-                return false;
-            }
-            const showDashboardLink = e.target.closest('a.show-dashboard');
-            if (showDashboardLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showDashboard({ scrollToScores: showDashboardLink.classList.contains('scroll-to-scores') });
-                return false;
-            }
-        }, true);
-    })();
-</script>
-{% comment %} <script>
-    lucide.createIcons();
-
-    /* ── Sidebar toggle ── */
-    function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const btn     = document.getElementById('sidebar-toggle-btn');
-        const iconEl  = btn && btn.querySelector('.sidebar-toggle-icon');
-        sidebar.classList.toggle('collapsed');
-        if (btn && iconEl) {
-            const collapsed = sidebar.classList.contains('collapsed');
-            btn.title = collapsed ? 'Maximize' : 'Minimize';
-            btn.setAttribute('aria-label', collapsed ? 'Maximize sidebar' : 'Minimize sidebar');
-            iconEl.setAttribute('data-lucide', collapsed ? 'panel-left' : 'panel-left-close');
-            lucide.createIcons();
-        }
-    }
-
-    /* ── Mobile overlay toggle ── */
-    function toggleMobileSidebar() {
-        document.querySelector('.sidebar').classList.toggle('mobile-open');
-        document.getElementById('mobile-overlay').classList.toggle('hidden');
-    }
-
-    /* ── Dropdown accordion ── */
-    function toggleDropdown(id, button) {
-        const menu = document.getElementById(id);
-        document.querySelectorAll('.submenu').forEach(s => {
-            if (s.id !== id) { s.classList.remove('open'); s.previousElementSibling?.classList.remove('open'); }
-        });
-        menu.classList.toggle('open');
-        button.classList.toggle('open');
-    }
-
-    /* ── Fullscreen ── */
-    const fullscreenBtn = document.getElementById('fullscreen-btn');
-    if (fullscreenBtn) {
-        const fsIcon = fullscreenBtn.querySelector('i');
-        fullscreenBtn.addEventListener('click', () => {
-            document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
-        });
-        document.addEventListener('fullscreenchange', () => {
-            if (fsIcon) {
-                fsIcon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize' : 'maximize');
-                lucide.createIcons();
-            }
-        });
-    }
-
-    /* ── Active menu item ── */
-    document.addEventListener('DOMContentLoaded', () => {
-        const currentPath = window.location.pathname;
-        document.querySelectorAll('.menu-item').forEach(item => {
-            const link = item.closest('a');
-            if (link && link.getAttribute('href') === currentPath) item.classList.add('active');
-        });
-    });
-
-    /* ══════════════════════════════════════════════════════════
-       IFRAME SYSTEM — no views changes needed.
-       Every a.load-in-frame opens inside the iframe.
-       On load, CSS is injected to hide the inner page's own
-       sidebar / header / footer so only the content shows.
-       a.show-dashboard restores the default dashboard cards.
-    ══════════════════════════════════════════════════════════ */
-    (function () {
-        const wrapper   = document.getElementById('content-frame-wrapper');
-        const frame     = document.getElementById('content-frame');
-        const dashboard = document.getElementById('dashboard-content');
-
-        /* Normalise any href to a same-origin path string */
-        function toPath(href) {
-            if (!href) return href;
-            if (href.startsWith('/') && !href.startsWith('//')) return href;
-            try { return new URL(href, window.location.origin).pathname + new URL(href, window.location.origin).search; }
-            catch (_) { return href; }
-        }
-
-        /* Strip the inner page's layout via injected CSS */
-        function stripInnerLayout(doc) {
-            try {
-                const style = doc.createElement('style');
-                style.textContent = `
-                    aside.sidebar,
-                    header.header,
-                    footer.footer,
-                    #mobile-overlay { display: none !important; }
-
-                    .main-content {
-                        margin-left: 0 !important;
-                        width: 100% !important;
-                        height: auto !important;
-                    }
-                    body, html {
-                        height: auto !important;
-                        overflow: auto !important;
-                    }
-                    main,
-                    #dashboard-content,
-                    .flex-1 {
-                        height: auto !important;
-                        overflow: visible !important;
-                        min-height: 0 !important;
-                    }
-                `;
-                doc.head.appendChild(style);
-            } catch (err) {
-                console.warn('iframe CSS injection skipped:', err);
-            }
-        }
-
-        function showFrame(url) {
-            if (!url) return;
-            url = toPath(url);
-            frame.src = url;                         /* No embed=1 — views untouched */
-            frame.onload = function () {
-                const doc = frame.contentDocument || frame.contentWindow.document;
-                stripInnerLayout(doc);
-            };
-            if (wrapper)   wrapper.classList.remove('hidden');
-            if (dashboard) dashboard.classList.add('hidden');
-        }
-
-        function showDashboard() {
-            frame.onload = null;
-            frame.src    = 'about:blank';
-            if (wrapper)   wrapper.classList.add('hidden');
-            if (dashboard) dashboard.classList.remove('hidden');
-        }
-
-        document.addEventListener('click', function (e) {
             const frameLink     = e.target.closest('a.load-in-frame');
             const dashboardLink = e.target.closest('a.show-dashboard');
 
-            if (frameLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
-                return;
-            }
-            if (dashboardLink) {
-                e.preventDefault();
-                e.stopPropagation();
-                showDashboard();
-            }
-        }, true);
+                if (frameLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                    return;
+                }
+                if (dashboardLink) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showDashboard();
+                    // Close mobile sidebar if open
+                    if (window.innerWidth < 1024) toggleMobileSidebar();
+                }
+            }, true);
     })();
-</script> {% endcomment %}
+</script>
 </body>
 </html>
 
