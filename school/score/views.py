@@ -3134,7 +3134,8 @@ def reportcard_view(request, student_id, session, term):
     # Verify student belongs to this school
     student = get_object_or_404(Student, id=student_id, school=school)
 
-    setting = SchoolSetting.objects.first()
+    # setting = SchoolSetting.objects.first()
+    setting = get_object_or_404(SchoolSetting, school=school)
     session_str = session or "2025/2026"
     term_str = term or "First Term"
 
@@ -3383,15 +3384,15 @@ def reportcard_view(request, student_id, session, term):
     chart_colors = [colors[i % len(colors)] for i in range(len(chart_labels))]
 
     context = {
-        # "school": setting,
-        "school": school,
+        "school": setting,
+        # "school": school,
         "student": student,
         "scores": scores,
         "assessment_components": assessment_components,
         "affective": affective_data,
         "psychomotor": psychomotor_data,
-        # "setting": setting,
-        "setting": school,
+        "setting": setting,
+        # "setting": school,
         "total_score": total_score,
         "max_total_score": max_total_score,
         "overall_avg": overall_avg,
