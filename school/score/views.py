@@ -4045,7 +4045,8 @@ def get_students(request, class_id):
 # ==================== CONTEXT HELPER (USED BY PDF GENERATION) ====================
 def reportcard_view_context(student, academic_session, term_obj):
     """Generate report card context for a student - reusable for PDF generation"""
-    setting = SchoolSetting.objects.first()
+    # setting = SchoolSetting.objects.first()
+    setting = SchoolSetting.objects.filter(school=student.school).first()
 
     scores = Score.objects.filter(
         student=student,
