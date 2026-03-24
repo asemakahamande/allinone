@@ -16,6 +16,7 @@ python-bidi==0.4.2
 reportlab==3.6.13
 pypdf==6.0.0
 
+
 # Charts and graphs
 matplotlib==3.10.3
 
@@ -35,6 +36,6 @@ django-cloudinary-storage==0.3.0
 
 # WeasyPrint (HTML to PDF) and its dependencies
 weasyprint==62.3
-
+pydyf==0.11.0
 # Email
 django-anymail[brevo]
