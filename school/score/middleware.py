@@ -1,75 +1,3 @@
-# # score/middleware.py
-# """
-# School Authentication Middleware
-# Ensures that all requests (except public pages) have a valid school session
-# """
-
-# from django.shortcuts import redirect
-# from django.contrib import messages
-# from django.urls import resolve
-# from .models import School
-
-
-# class SchoolAuthenticationMiddleware:
-#     """
-#     Middleware to ensure school authentication and attach school to request
-#     """
-#     def __init__(self, get_response):
-#         self.get_response = get_response
-        
-#         # URL names that don't require school authentication
-#         self.exempt_url_names = [
-#             'login',
-#             'register',
-#             'forgot_password',
-#             'reset_password',
-#             'index',  # homepage
-#         ]
-        
-#         # URL paths that don't require authentication
-#         self.exempt_url_paths = [
-#             '/static/',
-#             '/media/',
-#             '/admin/',
-#         ]
-
-#     def __call__(self, request):
-#         # Get the current URL path and name
-#         path = request.path
-        
-#         # Check if path starts with exempt paths
-#         if any(path.startswith(exempt_path) for exempt_path in self.exempt_url_paths):
-#             return self.get_response(request)
-        
-#         # Check if URL name is exempt
-#         try:
-#             url_name = resolve(path).url_name
-#             if url_name in self.exempt_url_names:
-#                 return self.get_response(request)
-#         except:
-#             pass
-        
-#         # Get school from session
-#         school_id = request.session.get("school_id")
-        
-#         if not school_id:
-#             messages.error(request, "Please log in to continue.")
-#             return redirect("login")
-        
-#         # Attach school to request for easy access
-#         try:
-#             request.school = School.objects.get(id=school_id)
-#         except School.DoesNotExist:
-#             request.session.flush()
-#             messages.error(request, "Invalid session. Please log in again.")
-#             return redirect("login")
-
-#         response = self.get_response(request)
-#         return response
-
-
-
-
 # score/middleware.py
 """
 School Authentication Middleware
@@ -217,5 +145,29 @@ class SchoolAuthenticationMiddleware:
             request.session.flush()
             messages.error(request, "Invalid session. Please log in again.")
             return redirect("login")
+
+        return self.get_response(request)
+
+
+
+
+
+class TierDetectionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        host = request.get_host().split(':')[0].lower()
+        if host.startswith('www.'):
+            host = host[4:]
+
+        tier_config = getattr(settings, 'TIER_CONFIG', {})
+        config = tier_config.get(host, {
+            'TIER_NAME': 'basic',
+            'PIN_PRICE_PER_STUDENT': 200,
+        })
+
+        request.tier_name = config['TIER_NAME']
+        request.pin_price = config['PIN_PRICE_PER_STUDENT']
 
         return self.get_response(request)

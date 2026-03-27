@@ -27,9 +27,21 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!q92qxfibhjx4j1__n=&vtc#^!
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# Tier modules (basic/pro/premium) override this; allow localhost for dev.
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
+RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
 
+ALLOWED_HOSTS = [
+    'basic.duediligence.com',
+    'www.basic.duediligence.com',
+    'pro.duediligence.com',
+    'www.pro.duediligence.com',
+    'premium.duediligence.com',
+    'www.premium.duediligence.com',
+    '127.0.0.1',
+    'localhost',
+    '0.0.0.0',
+]
+if RENDER_HOST:
+    ALLOWED_HOSTS.append(RENDER_HOST)
 
 # Application definition
 
@@ -50,6 +62,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
+    'score.middleware.TierDetectionMiddleware',
     'score.middleware.SessionCookieInjectMiddleware',  # Before SessionMiddleware: pick role-specific session cookie
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -329,16 +342,20 @@ SESSION_TIMEOUT_WARNING = 300  # 5 minutes before expiry
 
 
 # ==================================================
-# NOTES FOR PRODUCTION DEPLOYMENT
+# TIER CONFIGURATION
 # ==================================================
-"""
-BEFORE DEPLOYING TO PRODUCTION:
-1. Change DEBUG to False
-2. Set proper ALLOWED_HOSTS
-3. Use environment variables for sensitive data (SECRET_KEY, DB, EMAIL_HOST_PASSWORD, PAYSTACK_*)
-4. Enable HTTPS security settings (SECURE_SSL_REDIRECT, SESSION_COOKIE_SECURE, etc.)
-5. python manage.py check --deploy
-6. python manage.py collectstatic --noinput
-"""
-
+TIER_CONFIG = {
+    'basic.duediligence.com': {
+        'TIER_NAME': 'basic',
+        'PIN_PRICE_PER_STUDENT': 200,
+    },
+    'pro.duediligence.com': {
+        'TIER_NAME': 'pro',
+        'PIN_PRICE_PER_STUDENT': 500,
+    },
+    'premium.duediligence.com': {
+        'TIER_NAME': 'premium',
+        'PIN_PRICE_PER_STUDENT': 1000,
+    },
+}
 
