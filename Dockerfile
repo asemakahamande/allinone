@@ -16,7 +16,9 @@ RUN apt-get update \
     libpangocairo-1.0-0 \
     libpangoft2-1.0-0 \
     libgdk-pixbuf2.0-0 \
-    libgobject-2.0-0 \
+    libglib2.0-0 \
+    libxml2 \
+    libxslt1.1 \
     libffi-dev \
     fonts-dejavu-core \
  && rm -rf /var/lib/apt/lists/*
