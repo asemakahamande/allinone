@@ -20,5 +20,8 @@ jobs:
       - name: Check xhtml2pdf import
         run: docker run --rm school-app:ci python -c "import xhtml2pdf; print('xhtml2pdf OK')"
 
+      - name: Check WeasyPrint import
+        run: docker run --rm school-app:ci python -c "import weasyprint; print('weasyprint OK')"
+
       - name: Show freetype library
         run: docker run --rm school-app:ci bash -lc "ldconfig -p | grep libfreetype || true"

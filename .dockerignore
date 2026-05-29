@@ -1,0 +1,30 @@
+# Ignore git and CI metadata
+.git
+.github
+
+# Ignore local Python artifacts
+**/__pycache__
+**/*.py[cod]
+*.pyo
+*.pyd
+
+# Ignore editor/temp files
+*.swp
+*.swo
+.DS_Store
+
+# Ignore local secrets and virtual environments
+.env
+venv
+.env.*
+
+# Ignore local logs and sqlite databases
+*.log
+*.sqlite3
+
+# Ignore local deployment and media artifacts that should not be baked into the image
+logs
+media
+media_premium
+media_pro
+school/staticfiles

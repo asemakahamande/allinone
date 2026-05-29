@@ -25,20 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-!q92qxfibhjx4j1__n=&vtc#^!tt$*84ohic=gm5=71o2$38s)')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
-
 ALLOWED_HOSTS = [
-    'basic.duediligence.com',
-    'www.basic.duediligence.com',
-    'pro.duediligence.com',
-    'www.pro.duediligence.com',
-    'premium.duediligence.com',
-    'www.premium.duediligence.com',
-    '127.0.0.1',
-    'localhost',
-    '0.0.0.0',
+    host.strip() for host in os.getenv(
+        'ALLOWED_HOSTS',
+        'basic.duediligence.com,www.basic.duediligence.com,pro.duediligence.com,www.pro.duediligence.com,premium.duediligence.com,www.premium.duediligence.com,127.0.0.1,localhost,0.0.0.0'
+    ).split(',')
+    if host.strip()
 ]
 if RENDER_HOST:
     ALLOWED_HOSTS.append(RENDER_HOST)
