@@ -13,7 +13,6 @@ from requests.exceptions import SSLError, RequestException, ConnectionError, Tim
 from django.conf import settings
 from .models import ClassGroup, Student, Subject, Score, SchoolSetting, AffectiveTrait, PsychomotorSkill, AcademicSession, Term, Payment, Pin
 from .helpers import ScoreHelper
-from xhtml2pdf import pisa
 from .decorators import school_required
 
 # Add these to your views.py (BEFORE your existing views)
@@ -2888,7 +2887,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from xhtml2pdf import pisa
 from io import BytesIO
 from datetime import datetime
 import os
@@ -3082,7 +3080,6 @@ from datetime import datetime
 
 # -------------------- PDF / HTML RENDERING -------------------- #
 from weasyprint import HTML
-from xhtml2pdf import pisa
 
 # -------------------- MODELS -------------------- #
 from .models import (
@@ -5599,6 +5596,12 @@ def download_receipt(request, reference):
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="receipt_{reference}.pdf"'
+
+    try:
+        from xhtml2pdf import pisa
+    except Exception as e:
+        logger.exception("xhtml2pdf import failed: %s", e)
+        return HttpResponse("PDF generation dependency missing on server.", status=500)
 
     pisa_status = pisa.CreatePDF(BytesIO(html.encode("utf-8")), dest=response)
 

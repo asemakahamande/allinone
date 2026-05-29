@@ -1,0 +1,24 @@
+name: Docker build and PDF dependency check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t school-app:ci allinone
+
+      - name: Check reportlab import
+        run: docker run --rm school-app:ci python -c "import reportlab.graphics.utils; print('reportlab OK')"
+
+      - name: Check xhtml2pdf import
+        run: docker run --rm school-app:ci python -c "import xhtml2pdf; print('xhtml2pdf OK')"
+
+      - name: Show freetype library
+        run: docker run --rm school-app:ci bash -lc "ldconfig -p | grep libfreetype || true"
