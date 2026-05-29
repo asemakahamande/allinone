@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t school-app:ci allinone
+        run: docker build -t school-app:ci .
 
       - name: Check reportlab import
         run: docker run --rm school-app:ci python -c "import reportlab.graphics.utils; print('reportlab OK')"
