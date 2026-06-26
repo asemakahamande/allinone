@@ -3,9 +3,12 @@ from django.contrib.auth.decorators import login_required
 from io import BytesIO
 import base64
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+except ImportError:
+    pass
 
 from .models import Exam, Question, StudentResult, ClassLevel
 from .forms import ExamLoginForm
@@ -52,9 +55,12 @@ def exam_login(request):
 from django.shortcuts import render, redirect, get_object_or_404
 from io import BytesIO
 import base64
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+except ImportError:
+    pass
 
 from .models import Exam, Question, StudentResult, ClassLevel
 

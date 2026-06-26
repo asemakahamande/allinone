@@ -1,0 +1,1091 @@
+ERROR 2026-06-25 14:12:50,417 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:12:50,648 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:12:50,804 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:12:50,932 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:12:51,072 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:13:04,761 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:13:04,877 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:13:05,026 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:13:05,169 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:13:05,329 views 16028 15676 WeasyPrint import failed: No module named 'weasyprint'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+ModuleNotFoundError: No module named 'weasyprint'
+ERROR 2026-06-25 14:19:49,674 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:19:50,066 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:19:50,669 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:19:51,420 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:19:52,081 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:13,730 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:14,073 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:14,384 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:15,017 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:15,389 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:27,605 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:27,994 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:28,288 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:28,576 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:20:28,850 views 16028 12932 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+INFO 2026-06-25 14:32:36,714 views 6480 15144 Decoded session: '2026/2027', term: 'First Term'
+ERROR 2026-06-25 14:35:29,791 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:35:30,038 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:35:30,359 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:35:30,658 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 14:35:30,907 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+INFO 2026-06-25 14:36:10,747 views 9420 7316 Decoded session: '2026/2027', term: 'First Term'
+ERROR 2026-06-25 14:36:12,244 views 9420 7316 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+INFO 2026-06-25 14:43:16,899 views 236 10800 Decoded session: '2026/2027', term: 'First Term'
+ERROR 2026-06-25 15:07:56,950 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:07:57,664 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:07:58,226 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:07:59,264 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:07:59,910 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:08:12,297 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:08:12,965 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:08:13,560 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:08:14,079 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+ERROR 2026-06-25 15:08:14,719 views 2216 7340 WeasyPrint import failed: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+Traceback (most recent call last):
+  File "C:\Users\USER\Desktop\School App\allinone\school\score\views.py", line 3114, in get_weasyprint_HTML
+    from weasyprint import HTML
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\__init__.py", line 371, in <module>
+    from .css import preprocess_stylesheet  # noqa: I001, E402
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\css\__init__.py", line 29, in <module>
+    from ..text.fonts import FontConfiguration
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\fonts.py", line 17, in <module>
+    from .constants import (  # isort:skip
+        CAPS_KEYS, EAST_ASIAN_KEYS, FONTCONFIG_STRETCH, FONTCONFIG_STYLE, FONTCONFIG_WEIGHT,
+        LIGATURE_KEYS, NUMERIC_KEYS, PANGO_STRETCH, PANGO_STYLE, PANGO_VARIANT)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\constants.py", line 5, in <module>
+    from .ffi import pango
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 476, in <module>
+    gobject = _dlopen(
+        ffi, 'libgobject-2.0-0', 'gobject-2.0-0', 'gobject-2.0',
+        'libgobject-2.0.so.0', 'libgobject-2.0.0.dylib', 'libgobject-2.0-0.dll')
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\weasyprint\text\ffi.py", line 464, in _dlopen
+    return ffi.dlopen(names[0], flags)  # pragma: no cover
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 150, in dlopen
+    lib, function_cache = _make_ffi_library(self, name, flags)
+                          ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 834, in _make_ffi_library
+    backendlib = _load_backend_lib(backend, libname, flags)
+  File "C:\Users\USER\Desktop\School App\allinone\school\venv\Lib\site-packages\cffi\api.py", line 829, in _load_backend_lib
+    raise OSError(msg)
+OSError: cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'
+WARNING 2026-06-25 15:18:18,943 views 11920 3388 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:18:23,718 views 11920 14980 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:19:00,710 views 11920 1512 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+INFO 2026-06-25 15:19:18,219 views 11920 15416 Decoded session: '2026/2027', term: 'First Term'
+WARNING 2026-06-25 15:19:20,021 views 11920 13360 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:19:22,839 views 11920 13272 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:19:41,787 views 11920 15416 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:20:23,984 views 11920 9304 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:20:50,612 views 11920 1512 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:20:52,571 views 11920 3388 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:20:54,609 views 11920 14980 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:20:58,179 views 11920 13360 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:00,594 views 11920 9304 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:02,277 views 11920 3388 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:04,102 views 11920 1512 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:05,682 views 11920 13360 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:07,495 views 11920 14980 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:08,554 views 11920 3388 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:09,752 views 11920 13272 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:11,167 views 11920 13360 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:12,152 views 11920 1512 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:13,608 views 11920 14980 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:15,057 views 11920 3388 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:16,281 views 11920 13272 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:17,765 views 11920 13360 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:19,563 views 11920 1512 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:22,757 views 11920 14980 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:23,947 views 11920 9304 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:25,531 views 11920 13272 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:33,671 views 11920 9304 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:44,838 views 11920 13272 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:21:45,833 views 11920 9304 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:26:29,475 views 9580 5044 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:26:47,494 views 9580 5044 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:26:50,509 views 9580 5044 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:26:52,135 views 9580 5044 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:26:53,983 views 9580 5044 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:27:06,838 views 9580 9212 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-25 15:27:28,068 views 9580 9212 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:07,124 views 14424 2920 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:12,436 views 14424 12452 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:13,241 views 14424 4280 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:14,096 views 14424 14240 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:14,605 views 14424 6524 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+INFO 2026-06-26 01:41:23,572 views 14424 1804 Decoded session: '2026/2027', term: 'First Term'
+WARNING 2026-06-26 01:41:25,537 views 14424 14240 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:26,994 views 14424 6524 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:28,893 views 14424 12452 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:29,966 views 14424 2920 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:31,913 views 14424 1804 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:34,048 views 14424 14240 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:36,759 views 14424 4280 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:38,254 views 14424 6524 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:42,652 views 14424 2920 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:44,762 views 14424 12984 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:49,224 views 14424 12452 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:52,136 views 14424 6524 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:54,300 views 14424 14240 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:55,915 views 14424 4280 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:41:59,386 views 14424 2920 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:00,653 views 14424 12452 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:02,182 views 14424 12984 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:04,029 views 14424 14240 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:04,996 views 14424 4280 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:06,620 views 14424 12452 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:07,714 views 14424 2920 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:08,912 views 14424 6524 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:12,086 views 14424 12984 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:13,434 views 14424 4280 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:15,771 views 14424 12984 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:42:18,046 views 14424 12984 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:55:56,195 views 7964 3088 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:56:04,929 views 7964 3088 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:56:06,422 views 7964 3088 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:56:07,739 views 7964 3088 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+WARNING 2026-06-26 01:56:09,039 views 7964 3088 WeasyPrint import failed (cannot load library 'libgobject-2.0-0': error 0x7e.  Additionally, ctypes.util.find_library() did not manage to locate a library called 'libgobject-2.0-0'), falling back to xhtml2pdf
+INFO 2026-06-26 02:41:11,368 views 15984 11636 Decoded session: '2026/2027', term: 'First Term'
+INFO 2026-06-26 17:08:04,613 views 9016 16884 Decoded session: '2026/2027', term: 'First Term'
+INFO 2026-06-26 18:21:36,565 views 6628 232 Decoded session: '2026/2027', term: 'First Term'
+INFO 2026-06-26 18:21:42,758 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:21:43,030 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:22:02,196 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:22:02,318 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:22:04,488 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:22:04,578 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:22:07,478 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:22:07,596 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:22:09,765 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:22:09,898 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:22:12,260 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:22:12,382 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:23:10,500 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:23:11,387 views 6628 232 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:09,815 views 6628 6140 Decoded session: '2026/2027', term: 'First Term'
+INFO 2026-06-26 18:36:12,182 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:12,365 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:32,044 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:32,127 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:34,218 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:34,294 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:36,343 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:36,415 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:38,476 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:38,549 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:36:40,515 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:36:40,591 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png
+INFO 2026-06-26 18:37:40,831 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/first.jpg to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/first.jpg
+INFO 2026-06-26 18:37:40,926 views 6628 6140 weasyprint_url_fetcher: Resolved http://localhost:8000/media/school_logos/Screenshot_2026-06-23_205106.png to file:///C:/Users/USER/Desktop/School%20App/allinone/school/school/media/school_logos/Screenshot_2026-06-23_205106.png

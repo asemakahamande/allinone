@@ -287,11 +287,8 @@
         }
 
         if (submitBtn) {
-            const icon = submitBtn.querySelector('i');
-            icon.setAttribute('data-lucide', 'loader-2');
-            icon.classList.add('animate-spin');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending...';
+            submitBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sending .......';
             lucide.createIcons();
         }
     });

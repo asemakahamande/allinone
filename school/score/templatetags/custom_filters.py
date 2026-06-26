@@ -23,7 +23,12 @@ def get_item(dictionary, key):
     Usage: {{ my_dict|get_item:key }}
     """
     if isinstance(dictionary, dict):
-        return dictionary.get(key, "")
+        if key in dictionary:
+            return dictionary[key]
+        str_key = str(key)
+        for k, v in dictionary.items():
+            if str(k) == str_key:
+                return v
     return ""
 
 

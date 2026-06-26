@@ -162,9 +162,14 @@ class TierDetectionMiddleware:
             host = host[4:]
 
         tier_config = getattr(settings, 'TIER_CONFIG', {})
+        
+        # Fall back to settings values in local development if host isn't in TIER_CONFIG
+        default_tier = getattr(settings, 'TIER_NAME', 'basic')
+        default_price = getattr(settings, 'PIN_PRICE_PER_STUDENT', 200)
+
         config = tier_config.get(host, {
-            'TIER_NAME': 'basic',
-            'PIN_PRICE_PER_STUDENT': 200,
+            'TIER_NAME': default_tier,
+            'PIN_PRICE_PER_STUDENT': default_price,
         })
 
         request.tier_name = config['TIER_NAME']

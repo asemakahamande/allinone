@@ -11,14 +11,14 @@ requests==2.32.4
 Pillow==11.3.0
 
 # PDF generation (for report cards)
-xhtml2pdf==0.2.11
-python-bidi==0.4.2
-reportlab==3.6.13
+xhtml2pdf==0.2.17
+python-bidi
+reportlab
 pypdf==6.0.0
 
 
 # Charts and graphs
-matplotlib==3.10.3
+matplotlib
 
 # Database (PostgreSQL for production)
 psycopg2-binary==2.9.11

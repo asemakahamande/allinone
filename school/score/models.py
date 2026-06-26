@@ -222,9 +222,9 @@ class Student(models.Model):
             return ""
         words = school.name.split()
         if len(words) >= 2:
-            return (words[0][0] + words[1][0]).upper()
+            return (words[0][:2] if len(words[0]) >= 2 else (words[0][0] + words[1][0])).lower()
         if len(words) == 1:
-            return words[0][0].upper()
+            return words[0][:2].lower()
         return ""
 
     @staticmethod
@@ -234,7 +234,7 @@ class Student(models.Model):
         E.g. SA/JSS3/0001, SA/JSS3/0002, SA/JSS3/0008.
         """
         school_abbrev = Student.get_school_abbreviation(school)
-        class_name = (class_group.name or "").strip().upper()
+        class_name = (class_group.name or "").strip().replace(" ", "").lower()
         if not school_abbrev or not class_name:
             return None
         prefix = f"{school_abbrev}/{class_name}/"
@@ -269,7 +269,7 @@ class Student(models.Model):
         parts = self.exam_no.split("/")
         if len(parts) == 3:
             prefix, _, serial = parts
-            class_name = (new_class.name or "").strip().upper()
+            class_name = (new_class.name or "").strip().replace(" ", "").lower()
             self.exam_no = f"{prefix}/{class_name}/{serial}"
             self.save(update_fields=["exam_no"])
 
@@ -279,7 +279,7 @@ class Student(models.Model):
             parts = new_exam_no.split("/")
             if len(parts) == 3:
                 prefix, _, serial = parts
-                class_name = (next_class.name or "").strip().upper()
+                class_name = (next_class.name or "").strip().replace(" ", "").lower()
                 new_exam_no = f"{prefix}/{class_name}/{serial}"
 
         return Student.objects.create(

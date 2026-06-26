@@ -12,6 +12,11 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
 
+# SQLite database override for local development
+# if not os.getenv('DB_NAME'):
+#     DATABASES['default']['NAME'] = BASE_DIR / 'db_basic.sqlite3'
+
+
 
 
 # from .base import *

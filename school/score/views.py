@@ -211,19 +211,19 @@ def create_student_account(student):
     if student.user:
         return student.user, student.generated_password
     
-    # Generate unique username
-    school_prefix = student.school.name[:3].upper().replace(' ', '')
-    
+    # Use admission number (exam_no) exactly as the username
     if student.exam_no:
-        base = student.exam_no.replace('/', '_').lower()
+        username = student.exam_no
     else:
-        base = f"{student.surname}_{student.first_name}".lower().replace(' ', '_')
-    
-    username = f"{school_prefix}_{base}"
+        # Fallback if somehow there's no admission number
+        school_prefix = student.school.name[:2].lower().replace(' ', '')
+        base = f"{student.surname}{student.first_name}".lower().replace(' ', '')
+        username = f"{school_prefix}_{base}"
     
     counter = 1
+    original_username = username
     while User.objects.filter(username=username).exists():
-        username = f"{school_prefix}_{base}{counter}"
+        username = f"{original_username}{counter}"
         counter += 1
     
     # Generate password
@@ -646,8 +646,30 @@ def settings_view(request):
             "exam_year": current_year,
             "exam_month": "January",
             "school_open": 0,
+            "name": school.name,
+            "email": school.email,
+            "phone": school.phone,
+            "address": school.address,
+            "logo": school.logo,
         }
     )
+
+    # Automatically pull info from the school registration if it's still the default dummy data
+    needs_save = False
+    if setting.name == "Your School Name":
+        setting.name = school.name
+        setting.email = school.email
+        setting.phone = school.phone
+        setting.address = school.address
+        needs_save = True
+        
+    # Also sync logo if the settings has no logo but the school registration does
+    if not setting.logo and school.logo:
+        setting.logo = school.logo
+        needs_save = True
+        
+    if needs_save:
+        setting.save()
 
     if request.method == "POST":
         # 1. Update text fields from the form 'name' attributes
@@ -2290,11 +2312,18 @@ def enterscore(request):
     selected_term = (
         Term.objects.filter(name=term_name).first()
         or Term.objects.filter(name="First Term").first()
+        or Term.objects.first()
     )
+    if not selected_term:
+        selected_term, _ = Term.objects.get_or_create(name="First Term")
+
     selected_session = (
         AcademicSession.objects.filter(name=session_name).first()
         or AcademicSession.objects.filter(name="2025/2026").first()
+        or AcademicSession.objects.first()
     )
+    if not selected_session:
+        selected_session, _ = AcademicSession.objects.get_or_create(name="2025/2026")
     
     # --- Custom grading detection ---
     use_custom = selected_class.scoring_system == "custom"
@@ -3079,7 +3108,71 @@ from io import BytesIO
 from datetime import datetime
 
 # -------------------- PDF / HTML RENDERING -------------------- #
-from weasyprint import HTML
+
+def fetch_resources(uri, rel):
+    """
+    Convert HTML URIs to absolute system paths so xhtml2pdf can access those resources
+    """
+    if not uri:
+        return uri
+        
+    import os
+    from django.conf import settings
+    from django.contrib.staticfiles import finders
+
+    path = None
+    if uri.startswith(settings.MEDIA_URL):
+        path = os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+    elif uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, "")) if settings.STATIC_ROOT else None
+        if path is None or not os.path.isfile(path):
+            found = finders.find(uri.replace(settings.STATIC_URL, ""))
+            if found:
+                path = found
+
+    if path and os.path.isfile(path):
+        return path
+    return uri
+
+class XHTML2PDFWrapper:
+    def __init__(self, *args, **kwargs):
+        self.string = kwargs.get('string') or (args[0] if args else "")
+        self.base_url = kwargs.get('base_url', '')
+
+    def write_pdf(self, target, **kwargs):
+        from xhtml2pdf import pisa
+        from io import BytesIO
+        
+        # pisa.CreatePDF handles strings or byte streams. We pass bytes.
+        pdf_source = BytesIO(self.string.encode("utf-8"))
+        
+        if isinstance(target, str):
+            with open(target, "wb") as f:
+                pisa_status = pisa.CreatePDF(pdf_source, dest=f, link_callback=fetch_resources)
+                if pisa_status.err:
+                    raise Exception("xhtml2pdf generation error")
+        else:
+            pisa_status = pisa.CreatePDF(pdf_source, dest=target, link_callback=fetch_resources)
+            if pisa_status.err:
+                raise Exception("xhtml2pdf generation error")
+
+def get_weasyprint_HTML(*args, **kwargs):
+    try:
+        import os
+        # Windows requires explicit DLL directory additions for GTK3 runtime from python 3.8+
+        if hasattr(os, 'add_dll_directory'):
+            try:
+                os.add_dll_directory(r"C:\Program Files\GTK3-Runtime Win64\bin")
+            except Exception:
+                pass
+        from weasyprint import HTML
+        return HTML(*args, **kwargs)
+    except Exception as exc:
+        logger.warning("WeasyPrint import failed (%s), falling back to xhtml2pdf", exc)
+        return XHTML2PDFWrapper(*args, **kwargs)
+
+# Expose HTML as a lazy alias so existing call sites still work.
+HTML = get_weasyprint_HTML
 
 # -------------------- MODELS -------------------- #
 from .models import (
@@ -3741,6 +3834,46 @@ def reportcard_students(request, class_id, session, term):
         return response
     return render(request, "score/reportcard_students.html", render_ctx)
 
+def weasyprint_url_fetcher(url):
+    import urllib.parse
+    import os
+    import pathlib
+    from django.conf import settings
+    from django.contrib.staticfiles import finders
+    try:
+        from weasyprint import default_url_fetcher
+    except ImportError:
+        return url
+
+    parsed = urllib.parse.urlparse(url)
+    if not parsed.path:
+        return default_url_fetcher(url)
+
+    local_path = None
+    if parsed.path.startswith(settings.MEDIA_URL):
+        rel_path = parsed.path.replace(settings.MEDIA_URL, "", 1)
+        rel_path = urllib.parse.unquote(rel_path)
+        local_path = os.path.join(settings.MEDIA_ROOT, rel_path)
+    elif parsed.path.startswith(settings.STATIC_URL):
+        rel_path = parsed.path.replace(settings.STATIC_URL, "", 1)
+        rel_path = urllib.parse.unquote(rel_path)
+        if hasattr(settings, 'STATIC_ROOT') and settings.STATIC_ROOT:
+            local_path = os.path.join(settings.STATIC_ROOT, rel_path)
+        if not local_path or not os.path.isfile(local_path):
+            found = finders.find(rel_path)
+            if found:
+                local_path = found
+
+    if local_path and os.path.isfile(local_path):
+        file_uri = pathlib.Path(local_path).as_uri()
+        import logging
+        logging.getLogger(__name__).info(f"weasyprint_url_fetcher: Resolved {url} to {file_uri}")
+        return default_url_fetcher(file_uri)
+    
+    import logging
+    logging.getLogger(__name__).warning(f"weasyprint_url_fetcher: Could not resolve {url}, falling back to default")
+    return default_url_fetcher(url)
+
 @school_required
 def reportcard_download_all(request, class_id, session_str, term_str):
     school = request.school  # ✅ Add this line
@@ -3783,10 +3916,14 @@ def reportcard_download_all(request, class_id, session_str, term_str):
             html_string = render_to_string("score/reportcard.html", context)
 
             pdf_buffer = BytesIO()
-            HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf(pdf_buffer)
+            HTML(
+                string=html_string, 
+                base_url=request.build_absolute_uri('/'),
+                url_fetcher=weasyprint_url_fetcher
+            ).write_pdf(pdf_buffer)
 
             safe_name = student.full_name.replace(' ', '_')
-            pdf_filename = f"{safe_name}_reportcard.pdf"
+            pdf_filename = f"{safe_name}_{student.id}_reportcard.pdf"
             zip_file.writestr(pdf_filename, pdf_buffer.getvalue())
             generated_count += 1
         except Exception as e:
@@ -3805,6 +3942,7 @@ def reportcard_download_all(request, class_id, session_str, term_str):
 
     response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
     response['Content-Disposition'] = f'attachment; filename="{zip_filename}"'
+    response.set_cookie('download_complete', 'true', max_age=60)
     return response
 
 
@@ -3862,7 +4000,11 @@ def reportcard_print_all(request, class_id, session_str, term_str):
 
     # Generate combined PDF
     pdf_buffer = BytesIO()
-    HTML(string=combined_html, base_url=request.build_absolute_uri('/')).write_pdf(pdf_buffer)
+    HTML(
+        string=combined_html, 
+        base_url=request.build_absolute_uri('/'),
+        url_fetcher=weasyprint_url_fetcher
+    ).write_pdf(pdf_buffer)
 
     safe_class = selected_class.name.replace(' ', '_')
     safe_session = decoded_session.replace('/', '_')
@@ -3943,7 +4085,11 @@ def send_reportcards_view(request):
                 html_string = render_to_string("score/reportcard.html", context)
 
                 pdf_buffer = BytesIO()
-                HTML(string=html_string, base_url=request.build_absolute_uri("/")).write_pdf(pdf_buffer)
+                HTML(
+                    string=html_string, 
+                    base_url=request.build_absolute_uri("/"),
+                    url_fetcher=weasyprint_url_fetcher
+                ).write_pdf(pdf_buffer)
 
                 html_body = render_to_string(
                     "score/email_reportcard_message.html",
@@ -4730,12 +4876,12 @@ def broadsheet(request):
     
     selected_term = (
         Term.objects.filter(name=term_name).first()
-        if term_name else Term.objects.filter(name="First Term").first()
+        if term_name else Term.objects.first()
     )
     
     selected_session = (
         AcademicSession.objects.filter(name=session_name).first()
-        if session_name else AcademicSession.objects.filter(name="2025/2026").first()
+        if session_name else AcademicSession.objects.first()
     )
     
     results_dict = {}
@@ -4783,7 +4929,6 @@ def broadsheet(request):
 
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
 from django.shortcuts import get_object_or_404, redirect
 from .models import (
     ClassGroup, Student, Subject, Score,
@@ -5563,7 +5708,6 @@ def check_published_students(request):
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render, redirect
 from django.template.loader import render_to_string
-from xhtml2pdf import pisa
 from io import BytesIO
 from .models import Payment, School
 
@@ -5603,7 +5747,7 @@ def download_receipt(request, reference):
         logger.exception("xhtml2pdf import failed: %s", e)
         return HttpResponse("PDF generation dependency missing on server.", status=500)
 
-    pisa_status = pisa.CreatePDF(BytesIO(html.encode("utf-8")), dest=response)
+    pisa_status = pisa.CreatePDF(BytesIO(html.encode("utf-8")), dest=response, link_callback=fetch_resources)
 
     if pisa_status.err:
         return HttpResponse("Error generating PDF", status=500)
@@ -5629,9 +5773,12 @@ from django.db.models import Q
 from io import BytesIO
 import base64
 
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+except ImportError:
+    pass
 
 from .models import (
     Exam, Question, CBTResult, QuestionResponse,
@@ -5642,9 +5789,12 @@ from django.utils import timezone
 from django.db.models import Q, Avg, Count
 from io import BytesIO
 import base64
-import matplotlib
-matplotlib.use('Agg')
-from matplotlib import pyplot as plt
+try:
+    import matplotlib
+    matplotlib.use('Agg')
+    from matplotlib import pyplot as plt
+except ImportError:
+    pass
 
 
 

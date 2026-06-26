@@ -153,10 +153,10 @@
             <!-- Action Buttons (Only for Admin and Teacher) -->
             {% if is_admin or is_teacher %}
             <div class="mt-6 flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'reportcard_download_all' selected_class.id session term %}" 
+                <a href="{% url 'reportcard_download_all' selected_class.id session term %}" id="downloadZipBtn"
                    class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i data-lucide="download" class="w-4 h-4"></i>
-                    Download All Report Cards (ZIP)
+                    <span id="downloadZipText">Download All Report Cards (ZIP)</span>
                 </a>
 
                 <a href="{% url 'reportcard_print_all' selected_class.id session|slugify term|slugify %}" 
@@ -221,5 +221,27 @@
             });
         }, 5000);
     });
+
+    // Handle ZIP Download Button state
+    const downloadBtn = document.getElementById('downloadZipBtn');
+    if (downloadBtn) {
+        downloadBtn.addEventListener('click', function(e) {
+            const textSpan = document.getElementById('downloadZipText');
+            if (textSpan) textSpan.innerText = 'Downloading .........';
+            
+            downloadBtn.style.pointerEvents = 'none';
+            downloadBtn.style.opacity = '0.7';
+
+            const checkCookie = setInterval(function() {
+                if (document.cookie.indexOf('download_complete=true') !== -1) {
+                    clearInterval(checkCookie);
+                    document.cookie = 'download_complete=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                    if (textSpan) textSpan.innerText = 'Download All Report Cards (ZIP)';
+                    downloadBtn.style.pointerEvents = 'auto';
+                    downloadBtn.style.opacity = '1';
+                }
+            }, 1000);
+        });
+    }
 </script>
 {% endblock %}
