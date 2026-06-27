@@ -6097,14 +6097,17 @@ def view_cbt_result(request, result_id):
         id=result_id
     )
     
-    # Get responses
-    responses = result.responses.select_related('question').all()
+    # Get all questions for the exam and map responses
+    questions = Question.objects.filter(exam=result.exam).order_by('order', 'id')
+    responses_map = {r.question_id: r for r in result.responses.select_related('question').all()}
+    
     responses_data = []
-    for r in responses:
-        plain_opts = r.question.options()
+    for q in questions:
+        plain_opts = q.options()
+        response = responses_map.get(q.id)
         responses_data.append({
-            'response': r,
-            'question': r.question,
+            'response': response,
+            'question': q,
             'options': [(chr(65+i), opt) for i, opt in enumerate(plain_opts)]
         })
     
@@ -6302,6 +6305,12 @@ def cbt_results_list(request):
     
     results = results.order_by('-submitted_at')
     
+    # Calculate stats
+    total_results = results.count()
+    passed_count = sum(1 for r in results if r.passed)
+    failed_count = total_results - passed_count
+    average_score = round(sum(r.percentage for r in results) / total_results, 1) if total_results > 0 else 0
+    
     context.update({
         'results': results,
         'sessions': sessions,
@@ -6316,6 +6325,10 @@ def cbt_results_list(request):
         'selected_exam': exam_id,
         'search_name': search_name,
         'school': school,
+        'total_results': total_results,
+        'passed_count': passed_count,
+        'failed_count': failed_count,
+        'average_score': average_score,
     })
     
     return render(request, 'score/cbt_results_list.html', context)
