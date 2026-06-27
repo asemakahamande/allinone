@@ -1,4 +1,8 @@
 import uuid
+import base64
+import matplotlib
+matplotlib.use('Agg')
+from matplotlib import pyplot as plt
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
@@ -743,6 +747,11 @@ def login(request):
         try:
             school = School.objects.get(email=email)
             if school.check_password(password):  # ✅ use model method
+                current_tier = getattr(request, 'tier_name', 'basic')
+                if school.tier_name != current_tier:
+                    messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
+                    return render(request, "score/login.html")
+                
                 # Save the school ID in session
                 request.session["school_id"] = school.id
                 messages.success(request, f"Welcome {school.name}!")
@@ -821,7 +830,9 @@ def register(request):
                 ]
         if form.is_valid():
             try:
-                school = form.save()
+                school = form.save(commit=False)
+                school.tier_name = getattr(request, 'tier_name', 'basic')
+                school.save()
             except IntegrityError:
                 # Duplicate email or registration number
                 messages.error(
@@ -5984,6 +5995,7 @@ def take_cbt_exam(request, exam_id):
             correct_option_text = f"{q.correct_answer}. {plain_options[correct_index]}"
         
         detail_rows.append({
+            'question_id': q.id,
             'question': q.question_text,
             'image': q.image,
             'options': [(chr(65+i), opt) for i, opt in enumerate(plain_options)],
@@ -6014,10 +6026,7 @@ def take_cbt_exam(request, exam_id):
         if detail['your_answer_key']:
             QuestionResponse.objects.create(
                 result=result,
-                question=Question.objects.get(
-                    exam=exam, 
-                    question_text=detail['question']
-                ),
+                question_id=detail['question_id'],
                 selected_answer=detail['your_answer_key'],
                 is_correct=detail['is_correct']
             )
@@ -6090,6 +6099,14 @@ def view_cbt_result(request, result_id):
     
     # Get responses
     responses = result.responses.select_related('question').all()
+    responses_data = []
+    for r in responses:
+        plain_opts = r.question.options()
+        responses_data.append({
+            'response': r,
+            'question': r.question,
+            'options': [(chr(65+i), opt) for i, opt in enumerate(plain_opts)]
+        })
     
     # Generate chart
     correct_percentage = round(result.percentage)
@@ -6120,7 +6137,7 @@ def view_cbt_result(request, result_id):
     context = {
         'school': result.exam.school,
         'result': result,
-        'responses': responses,
+        'responses_data': responses_data,
         'chart_base64': chart_base64,
         'correct_percentage': correct_percentage,
         'wrong_percentage': wrong_percentage,
@@ -6498,8 +6515,12 @@ def create_cbt_question(request, exam_id):
             image=image
         )
         
-        messages.success(request, 'Question added successfully!')
-        return redirect('cbt_question_list', exam_id=exam_id)
+        if 'save_and_add' in request.POST:
+            messages.success(request, 'Question added successfully! You can now add another.')
+            return redirect('create_cbt_question', exam_id=exam_id)
+        else:
+            messages.success(request, 'Question added successfully!')
+            return redirect('cbt_question_list', exam_id=exam_id)
     
     if user_ctx and user_ctx.get('is_teacher'):
         context = get_teacher_dashboard_context(user_ctx['class_group'])
@@ -6508,6 +6529,7 @@ def create_cbt_question(request, exam_id):
         context = {}
     context['exam'] = exam
     context['school'] = school
+    context['next_order'] = exam.cbt_questions.count() + 1
     
     return render(request, 'score/create_cbt_question.html', context)
 

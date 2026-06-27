@@ -4,8 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ exam.title }} - CBT Exam</title>
+    {% load static %}
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f9; display: flex; justify-content: center; }
+        body { 
+            margin: 0; 
+            font-family: Arial, sans-serif; 
+            background: #f4f6f9; 
+            display: flex; 
+            justify-content: center; 
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
         .container { width: 700px; max-width: 95%; margin: 40px 0; text-align: center; }
         .header { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 10px 15px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 15px; }
         .timer { font-size: 18px; font-weight: 700; color: #d9534f; }
@@ -203,6 +223,21 @@
 </div>
 
 <script>
+    // Anti-copy and anti-cheat measures
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('cut', e => e.preventDefault());
+    document.addEventListener('paste', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey || e.metaKey) {
+            if (['c', 'v', 'x', 'u', 'p', 's', 'a'].includes(e.key.toLowerCase())) {
+                e.preventDefault();
+            }
+        }
+    });
+
     let currentIndex = 0;
     let forceSubmit = false;
     let isSubmitting = false;
@@ -290,6 +325,33 @@
         startScreen.style.display = 'none';
         examPanel.classList.remove('exam-panel-hidden');
         showQuestion(0);
+    }
+
+    // Fullscreen Enforcer
+    document.addEventListener('fullscreenchange', () => {
+        if (examStarted && !document.fullscreenElement && !isSubmitting) {
+            // Hide the exam and show warning
+            examPanel.classList.add('exam-panel-hidden');
+            startScreen.innerHTML = `
+                <h3 style="color: #d9534f; font-size: 24px;">Warning: Fullscreen Exited!</h3>
+                <p style="color: #333; font-weight: bold; margin-bottom: 20px;">You have left fullscreen mode. To maintain exam integrity, you must return to fullscreen to continue.</p>
+                <button type="button" class="btn-start" onclick="returnToFullscreen()" style="background: #d9534f;">Return to Exam</button>
+            `;
+            startScreen.style.display = 'block';
+        }
+    });
+
+    async function returnToFullscreen() {
+        try {
+            const root = document.documentElement;
+            if (!document.fullscreenElement && root.requestFullscreen) {
+                await root.requestFullscreen();
+            }
+            startScreen.style.display = 'none';
+            examPanel.classList.remove('exam-panel-hidden');
+        } catch (error) {
+            alert('Unable to enter fullscreen. Please allow fullscreen to continue.');
+        }
     }
 
     function preventRefreshHandler(event) {

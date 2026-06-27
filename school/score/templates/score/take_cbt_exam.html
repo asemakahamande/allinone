@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ exam.title }} - CBT Exam</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
 
     <style>
         body { margin: 0; font-family: Arial, Helvetica, sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; }

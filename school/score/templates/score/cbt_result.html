@@ -42,17 +42,40 @@
             <img src="{{ question.image.url }}" alt="Question Image" class="mb-2 max-h-40 rounded">
             {% endif %}
 
-            <p><strong>Question:</strong> {{ question.question|safe }}</p>
-            <p>
-                <strong>Your Answer:</strong>
-                <span class="{% if question.is_correct %}text-green-600 font-semibold{% else %}text-red-600 font-semibold{% endif %}">
-                    {{ question.your_answer }}
-                </span>
-            </p>
-            <p><strong>Correct Answer:</strong> <span class="text-green-600 font-semibold">{{ question.correct_option_text }}</span></p>
+            <div class="text-base mb-4">{{ question.question|safe }}</div>
+            
+            <div class="mb-4 space-y-2">
+                {% for letter, option in question.options %}
+                <div class="p-3 border rounded-lg 
+                    {% if letter == question.correct_answer %}
+                        bg-green-50 border-green-400
+                    {% elif letter == question.your_answer_key and not question.is_correct %}
+                        bg-red-50 border-red-400
+                    {% else %}
+                        bg-gray-50 border-gray-200
+                    {% endif %}
+                ">
+                    <label class="flex items-center gap-3 w-full opacity-100">
+                        <input type="radio" disabled 
+                            {% if letter == question.your_answer_key %}checked{% endif %}
+                        >
+                        <span><strong>{{ letter }}.</strong> {{ option }}</span>
+                        
+                        {% if letter == question.correct_answer %}
+                            <span class="ml-auto text-green-700 font-bold text-xs bg-green-200 px-2 py-1 rounded">CORRECT ANSWER</span>
+                        {% elif letter == question.your_answer_key and not question.is_correct %}
+                            <span class="ml-auto text-red-700 font-bold text-xs bg-red-200 px-2 py-1 rounded">YOUR ANSWER</span>
+                        {% endif %}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
 
             {% if question.explanation %}
-            <p><strong>Explanation:</strong> {{ question.explanation|safe }}</p>
+            <div class="mt-6 p-4 bg-blue-50 text-blue-900 border border-blue-200 rounded-lg">
+                <p class="font-bold mb-2">Explanation:</p>
+                <div>{{ question.explanation|safe }}</div>
+            </div>
             {% endif %}
         </div>
     </div>
@@ -85,8 +108,17 @@
 
 </div>
 
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+    };
+</script>
 <script type="text/javascript" id="MathJax-script" async
-        src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
+  src="{% static 'js/es5/tex-mml-chtml.js' %}">
+</script>
 
 <script>
     let currentIndex = 0;

@@ -29,7 +29,16 @@ def school_required(view_func):
         
         try:
             # Attach school to request for easy access in views
-            request.school = School.objects.get(id=school_id)
+            school = School.objects.get(id=school_id)
+            
+            # Enforce tier match
+            current_tier = getattr(request, 'tier_name', 'basic')
+            if school.tier_name != current_tier:
+                request.session.flush()
+                messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
+                return redirect("login")
+                
+            request.school = school
         except School.DoesNotExist:
             request.session.flush()
             messages.error(request, "Invalid session. Please log in again.")
@@ -62,6 +71,14 @@ def get_school_from_session(request):
     
     try:
         school = School.objects.get(id=school_id)
+        
+        # Enforce tier match
+        current_tier = getattr(request, 'tier_name', 'basic')
+        if school.tier_name != current_tier:
+            request.session.flush()
+            messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
+            return None, redirect("login")
+            
         return school, None
     except School.DoesNotExist:
         request.session.flush()
@@ -87,7 +104,16 @@ def get_school_or_redirect(request):
         return redirect("login")
     
     try:
-        return School.objects.get(id=school_id)
+        school = School.objects.get(id=school_id)
+        
+        # Enforce tier match
+        current_tier = getattr(request, 'tier_name', 'basic')
+        if school.tier_name != current_tier:
+            request.session.flush()
+            messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
+            return redirect("login")
+            
+        return school
     except School.DoesNotExist:
         request.session.flush()
         messages.error(request, "Invalid session. Please log in again.")

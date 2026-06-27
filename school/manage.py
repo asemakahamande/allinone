@@ -3,6 +3,11 @@ import os
 import sys
 
 def main():
+    # Load .env file early so DJANGO_SETTINGS_MODULE can be overridden
+    from dotenv import load_dotenv
+    from pathlib import Path
+    load_dotenv(Path(__file__).resolve().parent / '.env')
+    
     # Read from environment — each Render service sets its own
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'school.settings.base')
     try:

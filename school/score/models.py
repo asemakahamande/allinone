@@ -48,6 +48,8 @@ class School(models.Model):
     # Payment: site admin can enable/disable payment per school
     payment_active = models.BooleanField(default=False)
 
+    tier_name = models.CharField(max_length=50, default='basic')
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def set_password(self, raw_password):

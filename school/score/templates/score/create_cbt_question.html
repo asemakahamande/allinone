@@ -216,7 +216,7 @@
                         </label>
                         <input type="number" 
                                name="order" 
-                               value="0" 
+                               value="{{ next_order|default:1 }}" 
                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all">
                         <p class="text-xs text-gray-500 mt-1">Question position in exam</p>
                     </div>
@@ -250,10 +250,15 @@
                     <i data-lucide="x" class="w-4 h-4"></i>
                     Cancel
                 </a>
-                <button type="submit" 
+                <button type="submit" name="save_and_add" value="true"
+                        class="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    Save & Add Another
+                </button>
+                <button type="submit" name="save_and_finish" value="true"
                         class="flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                    Add Question
+                    <i data-lucide="check" class="w-4 h-4"></i>
+                    Save & Finish
                 </button>
             </div>
         </form>
