@@ -1,13 +1,9 @@
+{% extends "score/base_dashboard.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{% block title %}Teacher Dashboard - {{ class_group.name }}{% endblock %}</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
-    <script src="https://unpkg.com/lucide@latest"></script>
+{% block title %}Teacher Dashboard - {{ class_group.name }}{% endblock %}
+
+{% block extra_head %}
     <script>
         window.MathJax = {
             tex: {
@@ -17,837 +13,447 @@
         };
     </script>
     <script id="MathJax-script" async src="{% static 'js/es5/tex-mml-chtml.js' %}"></script>
+{% endblock %}
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; overflow-x: hidden; }
-        html { overflow-x: hidden; }
-        .sidebar { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 280px; box-shadow: 2px 0 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; height: 100vh; border-radius: 0 0.75rem 0.75rem 0; }
-        .sidebar.collapsed { width: 80px; }
-        .sidebar.collapsed .menu-text,
-        .sidebar.collapsed .sidebar-title,
-        .sidebar.collapsed .user-info,
-        .sidebar.collapsed .logout-btn { opacity: 0; width: 0; height: 0; overflow: hidden; margin: 0; padding: 0; }
-        .sidebar.collapsed .menu-item { justify-content: center; padding: 0.75rem; }
-        .sidebar.collapsed .dropdown-icon { display: none; }
-        .sidebar.collapsed .submenu { display: none !important; }
-        .menu-item { transition: all 0.2s ease; border-radius: 0 0.5rem 0.5rem 0; min-height: 44px; }
-        .menu-item:hover:not(.active) { background-color: rgba(255,255,255,0.08); }
-        @media (max-width: 768px) { .menu-item:hover { transform: none; } }
-        .menu-item.active { background: #f1f5f9; color: #334155; box-shadow: none; }
-        .menu-item.active [data-lucide], .menu-item.active .menu-text { color: #334155; }
-        .sidebar-nav-bg { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
-        .submenu { transition: all 0.3s ease; max-height: 0; overflow: hidden; }
-        .submenu.open { max-height: 1000px; }
-        .submenu-item { transition: all 0.2s ease; border-radius: 0 0.375rem 0.375rem 0; }
-        .submenu-item:hover { background-color: rgba(255,255,255,0.08); }
-        .menu-item.group:hover { background-color: rgba(255,255,255,0.1); }
-        .chevron-icon { transition: transform 0.3s ease; }
-        .dropdown-btn.open .chevron-icon { transform: rotate(90deg); }
-        .main-content { transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1); display: flex; flex-direction: column; }
-        .header { backdrop-filter: blur(10px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .header.header-gradient { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
-        .header .header-brand-text { color: #ffffff; }
-        .header .header-brand-sub { color: rgba(255,255,255,0.9); }
-        .content-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; }
-        .content-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
-        .footer { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
-        .toggle-btn { transition: all 0.3s ease; }
-        .toggle-btn:hover { transform: scale(1.1); }
-        .collapse-arrow { transition: transform 0.3s ease; }
-        .sidebar.collapsed .collapse-arrow { transform: rotate(180deg); }
-        .icon-btn { transition: all 0.2s ease; }
-        .icon-btn:hover { transform: scale(1.1); background-color: rgba(0,0,0,0.05); }
-        @media (max-width: 1024px) {
-            .sidebar { position: fixed; left: -280px; z-index: 1000; height: 100vh; top: 0; }
-            .sidebar.mobile-open { left: 0; }
-            .main-content { margin-left: 0; width: 100%; height: 100vh; }
-            .header { padding: 1rem; }
-            .header h1 { font-size: 1.25rem; }
-            .content-card { padding: 1.5rem; }
-            .footer { padding: 1.5rem 1rem; }
-        }
-        @media (max-width: 640px) {
-            .header { padding: 0.75rem; }
-            .header h1 { font-size: 1.125rem; }
-            main { padding: 1rem; }
-            .content-card { padding: 1rem; }
-            .footer { padding: 1rem 0.75rem; }
-            .sidebar { width: 100%; max-width: 280px; }
-        }
-        .gradient-bg { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
-        .text-gradient { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    </style>
-</head>
-<body class="bg-gray-50 overflow-x-hidden h-screen">
-<div class="flex h-screen w-full overflow-x-hidden">
-
-    <!-- ═══════════════════════════════════════════
-         SIDEBAR
-    ═══════════════════════════════════════════ -->
-    <aside class="sidebar sidebar-nav-bg text-white flex flex-col flex-shrink-0 fixed lg:static h-screen z-50" id="sidebar">
-
-        <!-- Brand / Toggle -->
-        <div class="p-5 pt-6">
-            <div class="flex items-center gap-2 min-w-0">
-                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <svg viewBox="0 0 64 64" class="w-9 h-9 text-white" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M8 23L32 12L56 23L32 34L8 23Z" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-                        <path d="M16 28V38C16 43.5 23.2 48 32 48C40.8 48 48 43.5 48 38V28" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                        <circle cx="32" cy="38" r="8" stroke="currentColor" stroke-width="4"/>
-                        <path d="M20 54C22.5 49.5 27 46.5 32 46.5C37 46.5 41.5 49.5 44 54" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="user-info flex-1 min-w-0 truncate">
-                    <p class="sidebar-title text-sm sm:text-base font-semibold text-white truncate">{{ class_group.class_teacher }}</p>
-                    <p class="text-xs text-white/80 truncate">{{ class_group.name }}</p>
-                </div>
-                <button id="sidebar-toggle-btn" type="button"
-                        onclick="toggleSidebar(); if(window.innerWidth < 1024) toggleMobileSidebar();"
-                        class="toggle-btn icon-btn p-2 rounded-lg hover:bg-white/10 flex-shrink-0 text-white"
-                        title="Minimize" aria-label="Minimize sidebar">
-                    <i data-lucide="panel-left-close" class="w-5 h-5 sidebar-toggle-icon"></i>
-                </button>
-                <button class="toggle-btn icon-btn p-2 rounded-lg hover:bg-white/10 lg:hidden flex-shrink-0"
-                        onclick="toggleMobileSidebar()" aria-label="Close menu">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+{# ── Sidebar: user info ── #}
+{% block sidebar_user_info %}
+<div class="user-info w-full bg-white/10 backdrop-blur-sm rounded-2xl p-3.5 border border-white/20 shadow-inner">
+    <div class="flex items-center gap-3">
+        <!-- Role avatar -->
+        <div class="relative flex-shrink-0">
+            <div class="w-11 h-11 rounded-xl bg-cyan-400/20 border border-cyan-300/40 flex items-center justify-center">
+                <i data-lucide="presentation" class="w-6 h-6 text-cyan-300"></i>
             </div>
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white/30 rounded-full"></span>
         </div>
+        <!-- Name & role -->
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-cyan-300/90 uppercase tracking-widest leading-none mb-1">Class Teacher</p>
+            <p class="text-sm font-bold text-white truncate leading-tight">{{ class_group.class_teacher }}</p>
+            <p class="text-[11px] text-white/60 truncate leading-tight">{{ class_group.name }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        <!-- Navigation -->
-        <nav class="flex-1 overflow-y-auto py-4 px-4">
-            <ul class="space-y-2">
+{# ── Sidebar: nav items ── #}
+{% block sidebar_nav %}
 
-                <!-- Dashboard — show-dashboard, never navigates away -->
-                <li>
-                    <a href="{% url 'teacher_dashboard' %}"
-                       class="show-dashboard menu-item active flex items-center gap-3 p-3 rounded-lg rounded-l-none">
-                        <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
-                        <span class="menu-text font-medium">Dashboard</span>
-                    </a>
-                </li>
+    <!-- Dashboard + collapse toggle -->
+    <li>
+        <div class="menu-item active flex items-center p-3 rounded-lg rounded-l-none">
+            <a href="{% url 'teacher_dashboard' %}" class="show-dashboard flex items-center gap-3 flex-1 min-w-0">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Dashboard</span>
+            </a>
+            <button id="sidebar-toggle-btn" type="button"
+                    onclick="toggleSidebar();"
+                    class="sidebar-nav-toggle toggle-btn icon-btn p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white"
+                    title="Collapse sidebar" aria-label="Collapse sidebar">
+                <i data-lucide="panel-left-close" class="w-4 h-4 sidebar-toggle-icon"></i>
+            </button>
+        </div>
+    </li>
 
-                <!-- My Students -->
-                <li>
-                    <a href="{% url 'teacher_students' %}"
-                       class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
-                        <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
-                        <span class="menu-text font-medium">My Students</span>
-                    </a>
-                </li>
+    <!-- My Students -->
+    <li>
+        <a href="{% url 'teacher_students' %}"
+           class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="users" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">My Students</span>
+        </a>
+    </li>
 
-                <!-- Class Setup -->
-                <li>
-                    <button onclick="toggleDropdown('schoolDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="school" class="w-5 h-5 flex-shrink-0"></i>
-                            <span class="menu-text font-medium">Class Setup</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
-                    </button>
-                    <ul id="schoolDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li>
-                            <a href="{% url 'add_subject' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors">
-                                    <i data-lucide="book-open" class="w-3.5 h-3.5 text-cyan-300"></i>
-                                </div>
-                                <span class="flex-1">Add Subjects</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'add_student' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors">
-                                    <i data-lucide="user-plus" class="w-3.5 h-3.5 text-emerald-300"></i>
-                                </div>
-                                <span class="flex-1">Add Students</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'promote_students' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-teal-500/20 group-hover/item:bg-teal-500/30 transition-colors">
-                                    <i data-lucide="arrow-up-circle" class="w-3.5 h-3.5 text-teal-300"></i>
-                                </div>
-                                <span class="flex-1">Promote Students</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'class_view' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors">
-                                    <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-blue-300"></i>
-                                </div>
-                                <span class="flex-1">Class View</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'select_student_analytics' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-pink-500/20 group-hover/item:bg-pink-500/30 transition-colors">
-                                    <i data-lucide="trending-up" class="w-3.5 h-3.5 text-pink-300"></i>
-                                </div>
-                                <span class="flex-1">Students Analytics</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'view_credentials' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-red-500/20 group-hover/item:bg-red-500/30 transition-colors">
-                                    <i data-lucide="key" class="w-3.5 h-3.5 text-red-300"></i>
-                                </div>
-                                <span class="flex-1">Login Credentials</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+    <!-- Class Setup -->
+    <li>
+        <button onclick="toggleDropdown('schoolDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="school" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Class Setup</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="schoolDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li>
+                <a href="{% url 'add_subject' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors"><i data-lucide="book-open" class="w-3.5 h-3.5 text-cyan-300"></i></div>
+                    <span class="flex-1">Add Subjects</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'add_student' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors"><i data-lucide="user-plus" class="w-3.5 h-3.5 text-emerald-300"></i></div>
+                    <span class="flex-1">Add Students</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'promote_students' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-teal-500/20 group-hover/item:bg-teal-500/30 transition-colors"><i data-lucide="arrow-up-circle" class="w-3.5 h-3.5 text-teal-300"></i></div>
+                    <span class="flex-1">Promote Students</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'class_view' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors"><i data-lucide="layout-grid" class="w-3.5 h-3.5 text-blue-300"></i></div>
+                    <span class="flex-1">Class View</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'select_student_analytics' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-pink-500/20 group-hover/item:bg-pink-500/30 transition-colors"><i data-lucide="trending-up" class="w-3.5 h-3.5 text-pink-300"></i></div>
+                    <span class="flex-1">Students Analytics</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'view_credentials' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-red-500/20 group-hover/item:bg-red-500/30 transition-colors"><i data-lucide="key" class="w-3.5 h-3.5 text-red-300"></i></div>
+                    <span class="flex-1">Login Credentials</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
 
-                <!-- Routine -->
-                {% if available_features.routine %}
-                <li>
-                    <button type="button" onclick="toggleDropdown('routineDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                                <i data-lucide="calendar" class="w-4 h-4 flex-shrink-0"></i>
-                            </div>
-                            <span class="menu-text font-medium">Routine</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 transition-transform"></i>
-                    </button>
-                    <ul id="routineDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li>
-                            <a href="{% url 'timetable_list' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors">
-                                    <i data-lucide="calendar-days" class="w-3.5 h-3.5 text-blue-300"></i>
-                                </div>
-                                <span class="flex-1">View Timetable</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'add_timetable' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors">
-                                    <i data-lucide="plus" class="w-3.5 h-3.5 text-cyan-300"></i>
-                                </div>
-                                <span class="flex-1">Add Timetable Entry</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                {% endif %}
+    <!-- Routine -->
+    {% if available_features.routine %}
+    <li>
+        <button type="button" onclick="toggleDropdown('routineDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="calendar" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Routine</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="routineDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li>
+                <a href="{% url 'timetable_list' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors"><i data-lucide="calendar-days" class="w-3.5 h-3.5 text-blue-300"></i></div>
+                    <span class="flex-1">View Timetable</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'add_timetable' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors"><i data-lucide="plus" class="w-3.5 h-3.5 text-cyan-300"></i></div>
+                    <span class="flex-1">Add Timetable Entry</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
 
-                <!-- Attendance -->
-                {% if available_features.attendance %}
-                <li>
-                    <button type="button" onclick="toggleDropdown('registerDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                                <i data-lucide="clipboard-check" class="w-4 h-4 flex-shrink-0"></i>
-                            </div>
-                            <span class="menu-text font-medium">Attendance</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 transition-transform"></i>
-                    </button>
-                    <ul id="registerDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li>
-                            <a href="{% url 'mark_attendance' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-green-500/20 group-hover/item:bg-green-500/30 transition-colors">
-                                    <i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-green-300"></i>
-                                </div>
-                                <span class="flex-1">Mark Attendance</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'attendance_report' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors">
-                                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-300"></i>
-                                </div>
-                                <span class="flex-1">Attendance Records</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                {% endif %}
+    <!-- Attendance -->
+    {% if available_features.attendance %}
+    <li>
+        <button type="button" onclick="toggleDropdown('registerDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="clipboard-check" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Attendance</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="registerDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li>
+                <a href="{% url 'mark_attendance' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-green-500/20 group-hover/item:bg-green-500/30 transition-colors"><i data-lucide="clipboard-check" class="w-3.5 h-3.5 text-green-300"></i></div>
+                    <span class="flex-1">Mark Attendance</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'attendance_report' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors"><i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-300"></i></div>
+                    <span class="flex-1">Attendance Records</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
 
-                <!-- Marks Entry -->
-                <li>
-                    <button type="button" onclick="toggleDropdown('marksDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                                <i data-lucide="edit" class="w-4 h-4 flex-shrink-0"></i>
-                            </div>
-                            <span class="menu-text font-medium">Marks Entry</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 transition-transform"></i>
-                    </button>
-                    <ul id="marksDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li>
-                            <a href="{% url 'enterscore' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors">
-                                    <i data-lucide="edit" class="w-3.5 h-3.5 text-blue-300"></i>
-                                </div>
-                                <span class="flex-1">Input Score</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'affective' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors">
-                                    <i data-lucide="heart" class="w-3.5 h-3.5 text-purple-300"></i>
-                                </div>
-                                <span class="flex-1">Enter Affective</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'psychomotor' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-orange-500/20 group-hover/item:bg-orange-500/30 transition-colors">
-                                    <i data-lucide="activity" class="w-3.5 h-3.5 text-orange-300"></i>
-                                </div>
-                                <span class="flex-1">Enter Psychomotor</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+    <!-- Marks Entry -->
+    <li>
+        <button type="button" onclick="toggleDropdown('marksDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="edit" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Marks Entry</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="marksDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li>
+                <a href="{% url 'enterscore' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors"><i data-lucide="edit" class="w-3.5 h-3.5 text-blue-300"></i></div>
+                    <span class="flex-1">Input Score</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'affective' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors"><i data-lucide="heart" class="w-3.5 h-3.5 text-purple-300"></i></div>
+                    <span class="flex-1">Enter Affective</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'psychomotor' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-orange-500/20 group-hover/item:bg-orange-500/30 transition-colors"><i data-lucide="activity" class="w-3.5 h-3.5 text-orange-300"></i></div>
+                    <span class="flex-1">Enter Psychomotor</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
 
-                <!-- CBT Exams -->
-                {% if available_features.cbt_exams %}
-                <li>
-                    <button type="button" onclick="toggleDropdown('examsDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                                <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0"></i>
-                            </div>
-                            <span class="menu-text font-medium">CBT Exams</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 transition-transform"></i>
-                    </button>
-                    <ul id="examsDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li class="pt-2 pb-1">
-                            <span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Student</span>
-                        </li>
-                        <li>
-                            <a href="{% url 'cbt_login' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors">
-                                    <i data-lucide="log-in" class="w-3.5 h-3.5 text-cyan-300"></i>
-                                </div>
-                                <span class="flex-1">CBT Exam Login</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li class="pt-3 pb-1 border-t border-white/10 mt-2">
-                            <span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Teacher / Admin</span>
-                        </li>
-                        <li>
-                            <a href="{% url 'cbt_dashboard' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors">
-                                    <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-blue-300"></i>
-                                </div>
-                                <span class="flex-1">Dashboard</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'cbt_exam_list' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-green-500/20 group-hover/item:bg-green-500/30 transition-colors">
-                                    <i data-lucide="list" class="w-3.5 h-3.5 text-green-300"></i>
-                                </div>
-                                <span class="flex-1">Manage Exams</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'create_cbt_exam' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors">
-                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-emerald-300"></i>
-                                </div>
-                                <span class="flex-1">Create New Exam</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li class="pt-3 pb-1 border-t border-white/10 mt-2">
-                            <span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Questions &amp; Results</span>
-                        </li>
-                        <li>
-                            <a href="{% url 'cbt_results_list' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-indigo-500/20 group-hover/item:bg-indigo-500/30 transition-colors">
-                                    <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-300"></i>
-                                </div>
-                                <span class="flex-1">View Class Results</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'export_cbt_results' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors">
-                                    <i data-lucide="download" class="w-3.5 h-3.5 text-purple-300"></i>
-                                </div>
-                                <span class="flex-1">Export Results (CSV)</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-                {% endif %}
+    <!-- CBT Exams -->
+    {% if available_features.cbt_exams %}
+    <li>
+        <button type="button" onclick="toggleDropdown('examsDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">CBT Exams</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="examsDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li class="pt-2 pb-1"><span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Student</span></li>
+            <li>
+                <a href="{% url 'cbt_login' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-cyan-500/20 group-hover/item:bg-cyan-500/30 transition-colors"><i data-lucide="log-in" class="w-3.5 h-3.5 text-cyan-300"></i></div>
+                    <span class="flex-1">CBT Exam Login</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li class="pt-3 pb-1 border-t border-white/10 mt-2"><span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Teacher / Admin</span></li>
+            <li>
+                <a href="{% url 'cbt_dashboard' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-blue-500/20 group-hover/item:bg-blue-500/30 transition-colors"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-blue-300"></i></div>
+                    <span class="flex-1">Dashboard</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'cbt_exam_list' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-green-500/20 group-hover/item:bg-green-500/30 transition-colors"><i data-lucide="list" class="w-3.5 h-3.5 text-green-300"></i></div>
+                    <span class="flex-1">Manage Exams</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'create_cbt_exam' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-emerald-500/20 group-hover/item:bg-emerald-500/30 transition-colors"><i data-lucide="plus-circle" class="w-3.5 h-3.5 text-emerald-300"></i></div>
+                    <span class="flex-1">Create New Exam</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li class="pt-3 pb-1 border-t border-white/10 mt-2"><span class="text-xs font-semibold text-white/70 uppercase tracking-wider">Questions &amp; Results</span></li>
+            <li>
+                <a href="{% url 'cbt_results_list' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-indigo-500/20 group-hover/item:bg-indigo-500/30 transition-colors"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-indigo-300"></i></div>
+                    <span class="flex-1">View Class Results</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'export_cbt_results' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors"><i data-lucide="download" class="w-3.5 h-3.5 text-purple-300"></i></div>
+                    <span class="flex-1">Export Results (CSV)</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
+    {% endif %}
 
-                <!-- Reports -->
-                <li>
-                    <button type="button" onclick="toggleDropdown('reportsDropdown', this)"
-                            class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg group">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 rounded-lg bg-white/10 group-hover:bg-white/20 transition-colors">
-                                <i data-lucide="bar-chart" class="w-4 h-4 flex-shrink-0"></i>
-                            </div>
-                            <span class="menu-text font-medium">Reports</span>
-                        </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 transition-transform"></i>
-                    </button>
-                    <ul id="reportsDropdown" class="submenu pl-4 mt-2 space-y-1">
-                        <li>
-                            <a href="{% url 'reportcard_home' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-indigo-500/20 group-hover/item:bg-indigo-500/30 transition-colors">
-                                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-300"></i>
-                                </div>
-                                <span class="flex-1">View Report Card</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'broadsheet' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors">
-                                    <i data-lucide="table" class="w-3.5 h-3.5 text-purple-300"></i>
-                                </div>
-                                <span class="flex-1">Class Broadsheet</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="{% url 'send_reportcards' %}"
-                               class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
-                                <div class="p-1.5 rounded-md bg-pink-500/20 group-hover/item:bg-pink-500/30 transition-colors">
-                                    <i data-lucide="mail" class="w-3.5 h-3.5 text-pink-300"></i>
-                                </div>
-                                <span class="flex-1">Send Reportcards</span>
-                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+    <!-- Reports -->
+    <li>
+        <button type="button" onclick="toggleDropdown('reportsDropdown', this)"
+                class="dropdown-btn menu-item flex items-center justify-between w-full p-3 rounded-lg rounded-l-none group text-white">
+            <div class="flex items-center gap-3">
+                <i data-lucide="bar-chart" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Reports</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 chevron-icon flex-shrink-0 dropdown-icon transition-transform"></i>
+        </button>
+        <ul id="reportsDropdown" class="submenu pl-4 mt-2 space-y-1">
+            <li>
+                <a href="{% url 'reportcard_home' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-indigo-500/20 group-hover/item:bg-indigo-500/30 transition-colors"><i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-300"></i></div>
+                    <span class="flex-1">View Report Card</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'broadsheet' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-purple-500/20 group-hover/item:bg-purple-500/30 transition-colors"><i data-lucide="table" class="w-3.5 h-3.5 text-purple-300"></i></div>
+                    <span class="flex-1">Class Broadsheet</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'send_reportcards' %}" class="load-in-frame submenu-item flex items-center gap-3 py-2.5 px-3 rounded-lg text-sm group/item">
+                    <div class="p-1.5 rounded-md bg-pink-500/20 group-hover/item:bg-pink-500/30 transition-colors"><i data-lucide="mail" class="w-3.5 h-3.5 text-pink-300"></i></div>
+                    <span class="flex-1">Send Reportcards</span>
+                    <i data-lucide="arrow-right" class="w-3.5 h-3.5 opacity-0 group-hover/item:opacity-100 transition-opacity"></i>
+                </a>
+            </li>
+        </ul>
+    </li>
 
-            </ul>
-        </nav>
+{% endblock sidebar_nav %}
 
-        <!-- Logout — intentionally NOT load-in-frame -->
-        <div class="mt-auto p-4 pt-6">
-            <a href="{% url 'unified_logout' %}"
-               class="logout-btn flex items-center gap-3 w-full p-3 rounded-lg rounded-l-none text-white hover:bg-white/10 transition-all duration-200 font-medium">
-                <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0"></i>
-                <span class="menu-text">Logout</span>
+{# ── Sidebar: logout ── #}
+{% block sidebar_logout %}
+    <a href="{% url 'unified_logout' %}"
+       class="logout-btn flex items-center gap-3 w-full p-3 rounded-lg rounded-l-none text-white hover:bg-white/10 transition-all duration-200 font-medium">
+        <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0"></i>
+        <span class="menu-text">Logout</span>
+    </a>
+{% endblock %}
+
+{# ── Header ── #}
+{% block header_logo %}
+    {% if setting and setting.logo %}
+        <img src="{{ setting.logo.url }}" alt="{{ school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% elif school.logo %}
+        <img src="{{ school.logo.url }}" alt="{{ school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% else %}
+        <img src="{% static 'images/school-icon.png' %}" alt="{{ school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% endif %}
+{% endblock %}
+
+{% block header_school_name %}
+    <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ school.name }}">Welcome, {{ school.name }}</p>
+{% endblock %}
+
+{% block header_user_name %}
+    <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]"
+       title="{{ class_group.class_teacher }}">{{ class_group.class_teacher }}</p>
+{% endblock %}
+
+{# ── Dashboard content ── #}
+{% block content %}
+{% if messages %}
+    <div class="space-y-3 mb-6">
+        {% for message in messages %}
+        <div class="content-card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="content-card p-5 sm:p-6 mb-6 gradient-bg text-white">
+    <div class="flex flex-col gap-2">
+        <h2 class="text-2xl sm:text-3xl font-bold">Welcome, {{ class_group.class_teacher }}</h2>
+        <p class="text-white/90">Manage {{ class_group.name }} and track learner progress at a glance.</p>
+        <div class="flex flex-wrap gap-2 mt-4">
+            <a href="{% url 'teacher_students' %}" class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                <i data-lucide="users" class="w-4 h-4"></i><span>View Students</span>
+            </a>
+            <a href="{% url 'mark_attendance' %}" class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                <i data-lucide="clipboard-check" class="w-4 h-4"></i><span>Mark Attendance</span>
+            </a>
+            <a href="{% url 'enterscore' %}" class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
+                <i data-lucide="edit" class="w-4 h-4"></i><span>Enter Scores</span>
             </a>
         </div>
-    </aside>
-
-    <!-- ═══════════════════════════════════════════
-         MAIN CONTENT
-    ═══════════════════════════════════════════ -->
-    <div class="main-content flex-1 flex flex-col w-full lg:ml-0 h-screen overflow-hidden">
-
-        <!-- Header -->
-        <header class="header header-gradient p-4 sm:p-6 flex items-center justify-between flex-shrink-0">
-            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                <button class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white lg:hidden flex-shrink-0"
-                        onclick="toggleMobileSidebar()">
-                    <i data-lucide="menu" class="w-5 h-5 sm:w-6 sm:h-6"></i>
-                </button>
-                {% if setting and setting.logo %}
-                    <img src="{{ setting.logo.url }}" alt="{{ school.name }}"
-                         class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
-                {% elif school.logo %}
-                    <img src="{{ school.logo.url }}" alt="{{ school.name }}"
-                         class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
-                {% else %}
-                    <img src="{% static 'images/school-icon.png' %}" alt="{{ school.name }}"
-                         class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
-                {% endif %}
-                <div class="min-w-0">
-                    <p class="header-brand-sub text-lg sm:text-xl md:text-2xl truncate" title="Due Deligence">Due Deligence</p>
-                    <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ school.name }}">Welcome, {{ school.name }}</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]"
-                   title="{{ class_group.class_teacher }}">{{ class_group.class_teacher }}</p>
-                <button id="fullscreen-btn"
-                        class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white transition-all flex-shrink-0">
-                    <i data-lucide="maximize" class="w-4 h-4 sm:w-5 sm:h-5"></i>
-                </button>
-            </div>
-        </header>
-
-        <!-- Content area: iframe-aware -->
-        <main class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative min-h-0">
-
-            <!-- Iframe wrapper -->
-            <div id="content-frame-wrapper" class="hidden absolute inset-0 bg-white z-10 flex flex-col">
-                <iframe id="content-frame"
-                        class="w-full flex-1 border-0 bg-white min-h-0"
-                        title="Content"></iframe>
-            </div>
-
-            <!-- Default dashboard content -->
-            <div id="dashboard-content" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 min-h-0">
-            {% block content %}
-            {% if messages %}
-                <div class="space-y-3 mb-6">
-                    {% for message in messages %}
-                    <div class="content-card p-4 border {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
-                        {{ message }}
-                    </div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <div class="content-card p-5 sm:p-6 mb-6 gradient-bg text-white">
-                <div class="flex flex-col gap-2">
-                    <h2 class="text-2xl sm:text-3xl font-bold">Welcome, {{ class_group.class_teacher }}</h2>
-                    <p class="text-white/90">Manage {{ class_group.name }} and track learner progress at a glance.</p>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <a href="{% url 'teacher_students' %}"
-                           class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
-                            <i data-lucide="users" class="w-4 h-4"></i>
-                            <span>View Students</span>
-                        </a>
-                        <a href="{% url 'mark_attendance' %}"
-                           class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
-                            <i data-lucide="clipboard-check" class="w-4 h-4"></i>
-                            <span>Mark Attendance</span>
-                        </a>
-                        <a href="{% url 'enterscore' %}"
-                           class="load-in-frame inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition">
-                            <i data-lucide="edit" class="w-4 h-4"></i>
-                            <span>Enter Scores</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
-                <div class="content-card p-5">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Students</p>
-                            <p class="text-3xl font-bold text-slate-900 mt-2">{{ total_students }}</p>
-                            <p class="text-sm text-slate-500 mt-2">Male: <span class="font-semibold text-slate-700">{{ male_students }}</span> &bull; Female: <span class="font-semibold text-slate-700">{{ female_students }}</span></p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700">
-                            <i data-lucide="users" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="content-card p-5">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Subjects</p>
-                            <p class="text-3xl font-bold text-slate-900 mt-2">{{ subjects|length }}</p>
-                            <p class="text-sm text-slate-500 mt-2">Assigned in this class</p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
-                            <i data-lucide="book-open" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="content-card p-5">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Present Today</p>
-                            <p class="text-3xl font-bold text-slate-900 mt-2">{{ present_today }}</p>
-                            <p class="text-sm text-slate-500 mt-2">From today's register</p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-amber-50 text-amber-700">
-                            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="content-card p-5">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Active Students</p>
-                            <p class="text-3xl font-bold text-slate-900 mt-2">{{ total_students }}</p>
-                            <p class="text-sm text-slate-500 mt-2">Currently enrolled</p>
-                        </div>
-                        <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700">
-                            <i data-lucide="sparkles" class="w-5 h-5"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="content-card overflow-hidden">
-                <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-900">My Students</h3>
-                        <p class="text-sm text-slate-500">Quick overview of learners in {{ class_group.name }}.</p>
-                    </div>
-                    <a href="{% url 'teacher_students' %}"
-                       class="load-in-frame inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900">
-                        <span>View all</span>
-                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
-                    </a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-slate-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Exam No</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Gender</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-200 bg-white">
-                            {% for student in students %}
-                            <tr class="hover:bg-slate-50">
-                                <td class="px-6 py-4 text-sm text-slate-700">{{ forloop.counter }}</td>
-                                <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ student.full_name }}</td>
-                                <td class="px-6 py-4 text-sm text-slate-700">{{ student.exam_no|default:"—" }}</td>
-                                <td class="px-6 py-4 text-sm text-slate-700">{{ student.gender|default:"—" }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="4" class="px-6 py-10 text-center text-slate-500">No students in this class yet.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {% endblock %}
-            </div>{# end #dashboard-content #}
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer text-white p-4 sm:p-6 text-center flex-shrink-0">
-            <div class="max-w-4xl mx-auto px-2">
-                <p class="text-sm sm:text-base md:text-lg font-semibold mb-2 break-words">
-                    &copy; 2025 Due Deligence Educational Management Information Systems Ltd.
-                </p>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
-                    <i data-lucide="phone" class="w-4 h-4 flex-shrink-0"></i>
-                    <p class="text-xs sm:text-sm break-words">CONTACT US: 07057359429; 09039982165</p>
-                </div>
-            </div>
-        </footer>
     </div>
 </div>
 
-<!-- Mobile overlay -->
-<div class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden"
-     id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
-<script>
-    lucide.createIcons();
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6 mb-6">
+    <div class="content-card p-5">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total Students</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ total_students }}</p>
+                <p class="text-sm text-slate-500 mt-2">Male: <span class="font-semibold text-slate-700">{{ male_students }}</span> &bull; Female: <span class="font-semibold text-slate-700">{{ female_students }}</span></p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700"><i data-lucide="users" class="w-5 h-5"></i></div>
+        </div>
+    </div>
+    <div class="content-card p-5">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Subjects</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ subjects|length }}</p>
+                <p class="text-sm text-slate-500 mt-2">Assigned in this class</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-700"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+        </div>
+    </div>
+    <div class="content-card p-5">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Present Today</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ present_today }}</p>
+                <p class="text-sm text-slate-500 mt-2">From today's register</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-amber-50 text-amber-700"><i data-lucide="clipboard-check" class="w-5 h-5"></i></div>
+        </div>
+    </div>
+    <div class="content-card p-5">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Active Students</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ total_students }}</p>
+                <p class="text-sm text-slate-500 mt-2">Currently enrolled</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700"><i data-lucide="sparkles" class="w-5 h-5"></i></div>
+        </div>
+    </div>
+</div>
 
-    function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const btn = document.getElementById('sidebar-toggle-btn');
-        const iconEl = btn && btn.querySelector('.sidebar-toggle-icon');
-        sidebar.classList.toggle('collapsed');
-        if (btn && iconEl) {
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            btn.title = isCollapsed ? 'Maximize' : 'Minimize';
-            btn.setAttribute('aria-label', isCollapsed ? 'Maximize sidebar' : 'Minimize sidebar');
-            iconEl.setAttribute('data-lucide', isCollapsed ? 'panel-left' : 'panel-left-close');
-            lucide.createIcons();
-        }
-    }
-
-    function toggleMobileSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        const overlay = document.getElementById('mobile-overlay');
-        sidebar.classList.toggle('mobile-open');
-        overlay.classList.toggle('hidden');
-    }
-
-    function toggleDropdown(id, button) {
-        const menu = document.getElementById(id);
-        document.querySelectorAll('.submenu').forEach(submenu => {
-            if (submenu.id !== id) {
-                submenu.classList.remove('open');
-                submenu.previousElementSibling?.classList.remove('open');
-            }
-        });
-        menu.classList.toggle('open');
-        button.classList.toggle('open');
-    }
-
-    const fullscreenBtn = document.getElementById("fullscreen-btn");
-    if (fullscreenBtn) {
-        const fullscreenIcon = fullscreenBtn.querySelector("i");
-        fullscreenBtn.addEventListener("click", () => {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-            else document.exitFullscreen();
-        });
-        document.addEventListener("fullscreenchange", () => {
-            if (fullscreenIcon) {
-                fullscreenIcon.setAttribute("data-lucide", document.fullscreenElement ? "minimize" : "maximize");
-                lucide.createIcons();
-            }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const currentPath = window.location.pathname;
-        document.querySelectorAll('.menu-item').forEach(item => {
-            const link = item.closest('a');
-            if (link && link.getAttribute('href') === currentPath) {
-                item.classList.add('active');
-            }
-        });
-    });
-
-    /* ══════════════════════════════════════════════════════════
-       IFRAME SYSTEM — no views changes needed.
-       iframe stays invisible (opacity:0) while the page loads,
-       CSS strips the inner layout, THEN it fades in.
-       This prevents the brief flash of the inner navbar.
-    ══════════════════════════════════════════════════════════ */
-    (function () {
-        const contentFrameWrapper = document.getElementById('content-frame-wrapper');
-        const contentFrame        = document.getElementById('content-frame');
-        const dashboardContent    = document.getElementById('dashboard-content');
-
-        /* Keep iframe invisible until layout is stripped */
-        contentFrame.style.opacity   = '0';
-        contentFrame.style.transition = 'opacity 0.15s ease';
-
-        /* Normalise any href to a same-origin path string */
-        function toPath(href) {
-            if (!href) return href;
-            if (href.startsWith('/') && !href.startsWith('//')) return href;
-            try { return new URL(href, window.location.origin).pathname + new URL(href, window.location.origin).search; }
-            catch (_) { return href; }
-        }
-
-        /* Strip the inner page's layout via injected CSS, then reveal */
-        function stripInnerLayout(doc) {
-            try {
-                const style = doc.createElement('style');
-                style.textContent = `
-                    aside.sidebar,
-                    header.header,
-                    footer.footer,
-                    #mobile-overlay { display: none !important; }
-
-                    .main-content {
-                        margin-left: 0 !important;
-                        width: 100% !important;
-                        height: auto !important;
-                    }
-                    body, html {
-                        height: auto !important;
-                        overflow: auto !important;
-                    }
-                    main,
-                    #dashboard-content,
-                    .flex-1 {
-                        height: auto !important;
-                        overflow: visible !important;
-                        min-height: 0 !important;
-                    }
-                `;
-                doc.head.appendChild(style);
-            } catch (err) {
-                console.warn('iframe CSS injection skipped:', err);
-            }
-            /* Reveal only after layout is stripped */
-            contentFrame.style.opacity = '1';
-        }
-
-        function showFrame(url) {
-            if (!url) return;
-            url = toPath(url);
-            /* Hide before loading so the new page is invisible until stripped */
-            contentFrame.style.opacity = '0';
-            contentFrame.onload = function () {
-                const doc = contentFrame.contentDocument || contentFrame.contentWindow.document;
-                stripInnerLayout(doc);
-            };
-            contentFrame.src = url;
-            if (contentFrameWrapper) contentFrameWrapper.classList.remove('hidden');
-            if (dashboardContent)    dashboardContent.classList.add('hidden');
-        }
-
-        function showDashboard(opts) {
-            opts = opts || {};
-            contentFrame.onload    = null;
-            contentFrame.style.opacity = '0';
-            contentFrame.src       = 'about:blank';
-            if (contentFrameWrapper) contentFrameWrapper.classList.add('hidden');
-            if (dashboardContent)    dashboardContent.classList.remove('hidden');
-            if (opts.scrollToScores) {
-                var el = document.getElementById('scores');
-                if (el && dashboardContent) {
-                    requestAnimationFrame(function () {
-                        var top = el.getBoundingClientRect().top + dashboardContent.scrollTop - dashboardContent.getBoundingClientRect().top;
-                        dashboardContent.scrollTop = Math.max(0, top - 24);
-                    });
-                }
-            }
-        }
-
-        document.addEventListener('click', function (e) {
-            const frameLink     = e.target.closest('a.load-in-frame');
-            const dashboardLink = e.target.closest('a.show-dashboard');
-
-                if (frameLink) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
-                    // Close mobile sidebar if open
-                    if (window.innerWidth < 1024) toggleMobileSidebar();
-                    return;
-                }
-                if (dashboardLink) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showDashboard();
-                    // Close mobile sidebar if open
-                    if (window.innerWidth < 1024) toggleMobileSidebar();
-                }
-            }, true);
-    })();
-</script>
-</body>
-</html>
-
+<div class="content-card overflow-hidden">
+    <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
+        <div>
+            <h3 class="text-lg font-bold text-slate-900">My Students</h3>
+            <p class="text-sm text-slate-500">Quick overview of learners in {{ class_group.name }}.</p>
+        </div>
+        <a href="{% url 'teacher_students' %}" class="load-in-frame inline-flex items-center gap-2 text-sm font-semibold text-indigo-700 hover:text-indigo-900">
+            <span>View all</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">#</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Exam No</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Gender</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% for student in students %}
+                <tr class="hover:bg-slate-50">
+                    <td class="px-6 py-4 text-sm text-slate-700">{{ forloop.counter }}</td>
+                    <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ student.full_name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">{{ student.exam_no|default:"—" }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">{{ student.gender|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="px-6 py-10 text-center text-slate-500">No students in this class yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,456 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Dashboard - Due Deligence{% endblock %}</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    {% block extra_head %}{% endblock %}
+
+    <style>
+        /* ── Reset ── */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; overflow-x: hidden; }
+        html { overflow-x: hidden; }
+
+        /* ── Colour tokens ── */
+        :root {
+            --brand-gradient: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+        }
+
+        /* ── App wrapper ──
+           The wrapper background matches the sidebar so there is NO visible
+           dividing line between the sidebar and the main area. */
+        .app-wrapper {
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+        }
+
+        /* ── Sidebar ──
+           Explicit gradient matches header & footer exactly.
+           Using transparent would break on mobile where the sidebar is
+           position:fixed and no longer inside the wrapper. */
+        .sidebar {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 280px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            border-radius: 0;
+            box-shadow: none;
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+        }
+        .sidebar.collapsed { width: 80px; }
+        .sidebar.collapsed .menu-text,
+        .sidebar.collapsed .sidebar-title,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .logout-btn { opacity: 0; width: 0; height: 0; overflow: hidden; margin: 0; padding: 0; }
+        /* Hide profile card area when collapsed */
+        .sidebar.collapsed .px-4.pb-4 { padding: 0; overflow: hidden; }
+        .sidebar.collapsed .menu-item { justify-content: center; padding: 0.75rem; }
+        .sidebar.collapsed .dropdown-icon { display: none; }
+        .sidebar.collapsed .submenu { display: none !important; }
+        /* In-nav toggle: keep the toggle btn visible at all times */
+        .sidebar-nav-toggle { flex-shrink: 0; transition: all 0.2s ease; }
+        .sidebar.collapsed .sidebar-nav-toggle { display: flex; }
+
+        /* ── Menu items ── */
+        .menu-item { transition: all 0.2s ease; border-radius: 0 0.5rem 0.5rem 0; min-height: 44px; }
+        .menu-item:hover:not(.active) { background-color: rgba(255,255,255,0.08); }
+        @media (max-width: 768px) { .menu-item:hover { transform: none; } }
+        .menu-item.active { background: #f1f5f9; color: #334155; box-shadow: none; }
+        .menu-item.active [data-lucide],
+        .menu-item.active .menu-text { color: #334155; }
+
+        /* ── Submenu ── */
+        .submenu { transition: all 0.3s ease; max-height: 0; overflow: hidden; }
+        .submenu.open { max-height: 1000px; }
+        .submenu-item { transition: all 0.2s ease; border-radius: 0 0.375rem 0.375rem 0; }
+        .submenu-item:hover { background-color: rgba(255,255,255,0.08); }
+        .menu-item.group:hover { background-color: rgba(255,255,255,0.1); }
+        .chevron-icon { transition: transform 0.3s ease; }
+        .dropdown-btn.open .chevron-icon { transform: rotate(90deg); }
+
+        /* ── Main content area ──
+           Sits to the right of the sidebar; has its own background so only
+           the sidebar stays gradient-coloured. */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+            display: flex;
+            flex-direction: column;
+            background: #f8fafc; /* clean off-white — distinct from sidebar */
+            border-radius: 0;    /* no rounding needed — no gap to hide */
+        }
+
+        /* ── Header (top bar inside main-content) ── */
+        .header { backdrop-filter: blur(10px); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .header.header-gradient { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .header .header-brand-text { color: #ffffff; }
+        .header .header-brand-sub { color: rgba(255,255,255,0.9); }
+
+        /* ── Content cards ── */
+        .content-card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+        .content-card:hover { box-shadow: 0 10px 25px rgba(0,0,0,0.1); transform: translateY(-2px); }
+
+        /* ── Footer ── */
+        .footer { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+
+        /* ── Buttons / toggles ── */
+        .toggle-btn { transition: all 0.3s ease; }
+        .toggle-btn:hover { transform: scale(1.1); }
+        .collapse-arrow { transition: transform 0.3s ease; }
+        .sidebar.collapsed .collapse-arrow { transform: rotate(180deg); }
+        .icon-btn { transition: all 0.2s ease; }
+        .icon-btn:hover { transform: scale(1.1); background-color: rgba(0,0,0,0.05); }
+
+        /* ── Gradient utilities ── */
+        .gradient-bg { background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%); }
+        .text-gradient {
+            background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 45%, #db2777 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ── Sidebar scrollbar — always visible, styled to match the gradient ── */
+        .sidebar nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.35) transparent; }
+        .sidebar nav::-webkit-scrollbar { width: 5px; }
+        .sidebar nav::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .sidebar nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.35); border-radius: 10px; }
+        .sidebar nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.60); }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .sidebar { position: fixed; left: -280px; z-index: 1000; height: 100vh; top: 0; }
+            .sidebar.mobile-open { left: 0; }
+            .main-content { margin-left: 0; width: 100%; height: 100vh; }
+            .header { padding: 1rem; }
+            .header h1 { font-size: 1.25rem; }
+            .content-card { padding: 1.5rem; }
+            .content-card h2 { font-size: 1.5rem; }
+            .footer { padding: 1.5rem 1rem; }
+            .footer p { font-size: 0.875rem; }
+            .footer .flex { flex-direction: column; gap: 0.5rem; }
+        }
+        @media (max-width: 640px) {
+            .header { padding: 0.75rem; }
+            .header h1 { font-size: 1.125rem; }
+            main { padding: 1rem; }
+            .content-card { padding: 1rem; }
+            .content-card h2 { font-size: 1.25rem; }
+            .content-card p { font-size: 0.875rem; }
+            .content-card img { height: 4rem; width: 4rem; }
+            .footer { padding: 1rem 0.75rem; }
+            .footer p { font-size: 0.75rem; }
+            .sidebar { width: 100%; max-width: 280px; }
+            .sidebar .p-6 { padding: 1rem; }
+            .sidebar .p-4 { padding: 0.75rem; }
+            .submenu-item { font-size: 0.875rem; padding: 0.5rem 0.75rem; }
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden h-screen">
+
+{# ── Outer wrapper: gradient background so sidebar + wrapper are one colour ── #}
+<div class="app-wrapper flex h-screen w-full overflow-x-hidden">
+
+    <!-- ═══════════════════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════════════════ -->
+    <aside class="sidebar text-white flex flex-col flex-shrink-0 fixed lg:static h-screen z-50" id="sidebar">
+
+        <!-- Mobile close button (shown only on small screens) -->
+        <div class="px-4 pt-4 pb-1 flex justify-end lg:hidden">
+            <button class="toggle-btn icon-btn p-1.5 rounded-lg hover:bg-white/10 text-white"
+                    onclick="toggleMobileSidebar()" aria-label="Close menu">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Top spacer (desktop only) -->
+        <div class="hidden lg:block pt-6"></div>
+
+        <!-- Role / User profile card -->
+        <div class="px-4 pb-4">
+            {% block sidebar_user_info %}
+                {# Each dashboard overrides with its own role card #}
+            {% endblock %}
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-scroll py-4 px-4">
+            <ul class="space-y-2">
+                {% block sidebar_nav %}
+                    {# Each dashboard fills in its own nav items here #}
+                {% endblock %}
+            </ul>
+        </nav>
+
+        <!-- Logout -->
+        <div class="mt-auto p-4 pt-6">
+            {% block sidebar_logout %}
+                {# Each dashboard provides its own logout URL #}
+            {% endblock %}
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════
+         MAIN CONTENT
+    ═══════════════════════════════════════════ -->
+    <div class="main-content flex-1 flex flex-col w-full lg:ml-0 h-screen overflow-hidden">
+
+        <!-- Header -->
+        <header class="header header-gradient p-4 sm:p-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                <button class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white lg:hidden flex-shrink-0"
+                        onclick="toggleMobileSidebar()">
+                    <i data-lucide="menu" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+                </button>
+                {% block header_logo %}
+                    {# Each dashboard supplies its own logo/school image block #}
+                {% endblock %}
+                <div class="min-w-0">
+                    <p class="header-brand-sub text-lg sm:text-xl md:text-2xl truncate" title="Due Deligence">Due Deligence</p>
+                    {% block header_school_name %}{% endblock %}
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                <button id="fullscreen-btn"
+                        class="icon-btn p-2 rounded-lg hover:bg-white/20 text-white transition-all flex-shrink-0">
+                    <i data-lucide="maximize" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Content area: iframe-aware -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-gray-50 relative min-h-0">
+
+            <!-- Iframe wrapper: revealed when any load-in-frame link is clicked -->
+            <div id="content-frame-wrapper" class="hidden absolute inset-0 bg-white z-10 flex flex-col">
+                <iframe id="content-frame"
+                        class="w-full flex-1 border-0 bg-white min-h-0"
+                        title="Content"></iframe>
+            </div>
+
+            <!-- Default dashboard cards: visible on load, hidden when iframe is active -->
+            <div id="dashboard-content" class="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 min-h-0">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer text-white p-4 sm:p-6 text-center flex-shrink-0">
+            <div class="max-w-4xl mx-auto px-2">
+                <p class="text-sm sm:text-base md:text-lg font-semibold mb-2 break-words">
+                    &copy; 2025 Due Deligence Educational Management Information Systems Ltd.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-2 mt-3">
+                    <i data-lucide="phone" class="w-4 h-4 flex-shrink-0"></i>
+                    <p class="text-xs sm:text-sm break-words">CONTACT US: 07057359429; 09039982165</p>
+                </div>
+            </div>
+        </footer>
+    </div>{# end .main-content #}
+
+</div>{# end .app-wrapper #}
+
+<!-- Mobile overlay -->
+<div class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden"
+     id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+<script>
+    lucide.createIcons();
+
+    /* ── Sidebar collapse (desktop) ── */
+    function toggleSidebar() {
+        const sidebar = document.querySelector('.sidebar');
+        const btn     = document.getElementById('sidebar-toggle-btn');
+        const iconEl  = btn && btn.querySelector('.sidebar-toggle-icon');
+        sidebar.classList.toggle('collapsed');
+        if (btn && iconEl) {
+            const collapsed = sidebar.classList.contains('collapsed');
+            btn.title = collapsed ? 'Maximize' : 'Minimize';
+            btn.setAttribute('aria-label', collapsed ? 'Maximize sidebar' : 'Minimize sidebar');
+            iconEl.setAttribute('data-lucide', collapsed ? 'panel-left' : 'panel-left-close');
+            lucide.createIcons();
+        }
+    }
+
+    /* ── Mobile overlay toggle ── */
+    function toggleMobileSidebar() {
+        document.querySelector('.sidebar').classList.toggle('mobile-open');
+        document.getElementById('mobile-overlay').classList.toggle('hidden');
+    }
+
+    /* ── Dropdown accordion ── */
+    function toggleDropdown(id, button) {
+        const menu = document.getElementById(id);
+        document.querySelectorAll('.submenu').forEach(s => {
+            if (s.id !== id) { s.classList.remove('open'); s.previousElementSibling?.classList.remove('open'); }
+        });
+        menu.classList.toggle('open');
+        button.classList.toggle('open');
+    }
+
+    /* ── Fullscreen ── */
+    const fullscreenBtn = document.getElementById('fullscreen-btn');
+    if (fullscreenBtn) {
+        const fsIcon = fullscreenBtn.querySelector('i');
+        fullscreenBtn.addEventListener('click', () => {
+            document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        });
+        document.addEventListener('fullscreenchange', () => {
+            if (fsIcon) {
+                fsIcon.setAttribute('data-lucide', document.fullscreenElement ? 'minimize' : 'maximize');
+                lucide.createIcons();
+            }
+        });
+    }
+
+    /* ── Active menu item highlight ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.menu-item').forEach(item => {
+            const link = item.closest('a');
+            if (link && link.getAttribute('href') === currentPath) item.classList.add('active');
+        });
+
+        {% block extra_domready %}{% endblock %}
+    });
+
+    /* ══════════════════════════════════════════════════════════
+       IFRAME SYSTEM
+       iframe stays invisible (opacity:0) while loading,
+       CSS strips the inner layout, THEN it fades in.
+    ══════════════════════════════════════════════════════════ */
+    (function () {
+        const wrapper   = document.getElementById('content-frame-wrapper');
+        const frame     = document.getElementById('content-frame');
+        const dashboard = document.getElementById('dashboard-content');
+
+        frame.style.opacity   = '0';
+        frame.style.transition = 'opacity 0.15s ease';
+
+        function toPath(href) {
+            if (!href) return href;
+            if (href.startsWith('/') && !href.startsWith('//')) return href;
+            try { return new URL(href, window.location.origin).pathname + new URL(href, window.location.origin).search; }
+            catch (_) { return href; }
+        }
+
+        function stripInnerLayout(doc) {
+            try {
+                const style = doc.createElement('style');
+                style.textContent = `
+                    /* ── Hide all chrome ── */
+                    aside.sidebar,
+                    header.header,
+                    footer.footer,
+                    #mobile-overlay { display: none !important; }
+
+                    /* ── Kill the purple gradient wrapper ── */
+                    .app-wrapper {
+                        background: #f8fafc !important;
+                        display: block !important;
+                        height: auto !important;
+                        min-height: 100vh !important;
+                    }
+
+                    /* ── Reset body / html ── */
+                    html, body {
+                        background: #f8fafc !important;
+                        height: auto !important;
+                        overflow: auto !important;
+                    }
+
+                    /* ── Make main-content fill full width with no offset ── */
+                    .main-content {
+                        margin-left: 0 !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        min-height: 100vh !important;
+                        background: #f8fafc !important;
+                        display: block !important;
+                    }
+
+                    /* ── Flatten all height-locked containers ── */
+                    main,
+                    #dashboard-content,
+                    .flex-1 {
+                        height: auto !important;
+                        overflow: visible !important;
+                        min-height: 0 !important;
+                    }
+
+                    /* ── Ensure content cards keep their white bg, no purple bleed ── */
+                    .content-card {
+                        background: white !important;
+                    }
+                `;
+                doc.head.appendChild(style);
+            } catch (err) {
+                console.warn('iframe CSS injection skipped:', err);
+            }
+            frame.style.opacity = '1';
+        }
+
+        function showFrame(url) {
+            if (!url) return;
+            url = toPath(url);
+            frame.style.opacity = '0';
+            frame.onload = function () {
+                const doc = frame.contentDocument || frame.contentWindow.document;
+                stripInnerLayout(doc);
+            };
+            frame.src = url;
+            if (wrapper)   wrapper.classList.remove('hidden');
+            if (dashboard) dashboard.classList.add('hidden');
+        }
+
+        function showDashboard(opts) {
+            opts = opts || {};
+            frame.onload           = null;
+            frame.style.opacity    = '0';
+            frame.src              = 'about:blank';
+            if (wrapper)   wrapper.classList.add('hidden');
+            if (dashboard) dashboard.classList.remove('hidden');
+            if (opts.scrollToScores) {
+                var el = document.getElementById('scores');
+                if (el && dashboard) {
+                    requestAnimationFrame(function () {
+                        var top = el.getBoundingClientRect().top + dashboard.scrollTop - dashboard.getBoundingClientRect().top;
+                        dashboard.scrollTop = Math.max(0, top - 24);
+                    });
+                }
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            const frameLink     = e.target.closest('a.load-in-frame');
+            const dashboardLink = e.target.closest('a.show-dashboard');
+
+            if (frameLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                showFrame(toPath(frameLink.getAttribute('href') || frameLink.href));
+                if (window.innerWidth < 1024) toggleMobileSidebar();
+                return;
+            }
+            if (dashboardLink) {
+                e.preventDefault();
+                e.stopPropagation();
+                const scrollToScores = dashboardLink.classList.contains('scroll-to-scores');
+                showDashboard({ scrollToScores });
+                if (window.innerWidth < 1024) toggleMobileSidebar();
+            }
+        }, true);
+    })();
+</script>
+
+{% block extra_scripts %}{% endblock %}
+
+</body>
+</html>
