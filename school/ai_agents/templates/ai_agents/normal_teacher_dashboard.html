@@ -1,0 +1,208 @@
+{% extends "score/base_dashboard.html" %}
+
+{% block title %}Subject Teacher Portal - AI Agent{% endblock %}
+
+{# ── Sidebar: user info ── #}
+{% block sidebar_user_info %}
+<div class="user-info w-full bg-white/10 backdrop-blur-sm rounded-2xl p-3.5 border border-white/20 shadow-inner">
+    <div class="flex items-center gap-3">
+        <div class="relative flex-shrink-0">
+            <div class="w-11 h-11 rounded-xl bg-yellow-400/20 border border-yellow-300/40 flex items-center justify-center">
+                <span class="text-2xl">📚</span>
+            </div>
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-yellow-400 border-2 border-white/30 rounded-full"></span>
+        </div>
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-yellow-300/90 uppercase tracking-widest leading-none mb-1">Teacher</p>
+            <p class="text-sm font-bold text-white truncate leading-tight">Subject Teacher</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{# ── Sidebar: nav items ── #}
+{% block sidebar_nav %}
+    <li>
+        <div class="menu-item active flex items-center p-3 rounded-lg rounded-l-none" id="dashboard-menu-link">
+            <a href="{% url 'normal_teacher_dashboard' %}" class="show-dashboard flex items-center gap-3 flex-1 min-w-0">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Dashboard</span>
+            </a>
+            <button id="sidebar-toggle-btn" type="button"
+                    onclick="toggleSidebar();"
+                    class="sidebar-nav-toggle toggle-btn icon-btn p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white"
+                    title="Collapse sidebar" aria-label="Collapse sidebar">
+                <i data-lucide="panel-left-close" class="w-4 h-4 sidebar-toggle-icon"></i>
+            </button>
+        </div>
+    </li>
+{% endblock %}
+
+{# ── Sidebar: logout ── #}
+{% block sidebar_logout %}
+    <a href="{% url 'unified_logout' %}"
+       class="logout-btn flex items-center gap-3 w-full p-3 rounded-lg rounded-l-none text-white hover:bg-white/10 transition-all duration-200 font-medium">
+        <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0"></i>
+        <span class="menu-text">Logout</span>
+    </a>
+{% endblock %}
+
+{% block main_content %}
+<div class="container mt-4">
+    <h2>Subject Teacher Portal</h2>
+    <p>Welcome, Teacher.</p>
+    
+    <div class="card mt-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">Chat with Avese (Teaching Assistant)</h5>
+        </div>
+        <div class="card-body" id="chat-container" style="height: 400px; overflow-y: auto;">
+            <div class="alert alert-info d-flex gap-2">
+                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
+                <div class="flex-grow-1">
+                    <strong>Avese:</strong> Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?
+                </div>
+                <button onclick="speakText('Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <!-- Chat messages will be appended here -->
+        </div>
+        <div class="card-footer position-relative p-3 bg-white">
+            <div class="position-relative d-flex align-items-center">
+                <input type="text" id="chat-input" class="form-control rounded-pill pe-5 ps-4 py-2 bg-light border-0" placeholder="Ask about lesson plans or teaching tips..." onkeypress="if(event.key === 'Enter') sendMessage('teacher')" oninput="toggleInputButtons()">
+                
+                <!-- Mic Button -->
+                <button id="mic-btn" onclick="startDictation()" class="btn btn-link position-absolute text-secondary p-2 text-decoration-none shadow-none d-flex align-items-center justify-content-center transition-all" style="right: 50px;" title="Use Microphone">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+                
+                <!-- Send Button -->
+                <button id="send-btn" onclick="sendMessage('teacher')" class="btn btn-primary rounded-circle position-absolute p-1 shadow-sm d-flex align-items-center justify-content-center" style="right: 6px; width: 34px; height: 34px; opacity: 0; transform: scale(0); transition: all 0.2s; pointer-events: none;" title="Send Message">
+                    <i data-lucide="arrow-up" class="w-4 h-4 text-white"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleInputButtons() {
+        const input = document.getElementById('chat-input');
+        const micBtn = document.getElementById('mic-btn');
+        const sendBtn = document.getElementById('send-btn');
+        
+        if (input.value.trim().length > 0) {
+            micBtn.style.opacity = '0';
+            micBtn.style.transform = 'scale(0)';
+            micBtn.style.pointerEvents = 'none';
+            
+            sendBtn.style.opacity = '1';
+            sendBtn.style.transform = 'scale(1)';
+            sendBtn.style.pointerEvents = 'auto';
+        } else {
+            micBtn.style.opacity = '1';
+            micBtn.style.transform = 'scale(1)';
+            micBtn.style.pointerEvents = 'auto';
+            
+            sendBtn.style.opacity = '0';
+            sendBtn.style.transform = 'scale(0)';
+            sendBtn.style.pointerEvents = 'none';
+        }
+    }
+    
+    function startDictation() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const input = document.getElementById('chat-input');
+            const micBtn = document.getElementById('mic-btn');
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = function() {
+                micBtn.classList.add('text-danger');
+                micBtn.classList.remove('text-secondary');
+                input.placeholder = "Listening...";
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                input.value += (input.value ? " " : "") + transcript;
+                toggleInputButtons();
+            };
+            
+            recognition.onend = function() {
+                micBtn.classList.remove('text-danger');
+                micBtn.classList.add('text-secondary');
+                input.placeholder = "Ask about lesson plans or teaching tips...";
+            };
+            
+            recognition.start();
+        } else {
+            alert("Your browser does not support speech recognition. Please try Chrome or Safari.");
+        }
+    }
+
+    function sendMessage(role) {
+        const input = document.getElementById('chat-input');
+        const container = document.getElementById('chat-container');
+        const message = input.value;
+        if (!message.trim()) return;
+
+        // Display user message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'alert alert-secondary text-end';
+        userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+        container.appendChild(userDiv);
+        input.value = '';
+        container.scrollTop = container.scrollHeight;
+
+        // Send to API
+        fetch('/ai/api/chat/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message, role: role })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'alert alert-info d-flex gap-2';
+            if(data.status === 'success') {
+                let htmlContent = data.response.replace(/\n/g, '<br>');
+                const textForSpeech = data.response.replace(/<[^>]*>?/gm, '');
+                aiDiv.innerHTML = `<img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
+                <div class="flex-grow-1"><strong>Avese:</strong> ${htmlContent}</div>
+                <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>`;
+            } else {
+                aiDiv.innerHTML = `<span class="fs-4">⚠️</span><div><strong>System Error:</strong> ${data.message}</div>`;
+            }
+            container.appendChild(aiDiv);
+            container.scrollTop = container.scrollHeight;
+            lucide.createIcons();
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to send message.");
+        });
+    }
+    
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Zira'));
+            if (femaleVoice) utterance.voice = femaleVoice;
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Text-to-speech is not supported in this browser.");
+        }
+    }
+</script>
+{% endblock %}

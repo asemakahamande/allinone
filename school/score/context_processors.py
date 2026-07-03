@@ -32,6 +32,7 @@ def available_features(request):
             'billing_payment': True,
             'staff_matters': False,
             'register': False,
+            'ai_features': False,
         },
         'pro': {
             'class_setup': True,
@@ -43,6 +44,7 @@ def available_features(request):
             'billing_payment': True,
             'staff_matters': False,
             'register': False,
+            'ai_features': True,
         },
         'premium': {
             'class_setup': True,
@@ -54,6 +56,7 @@ def available_features(request):
             'billing_payment': True,
             'staff_matters': True,
             'register': True,
+            'ai_features': True,
         },
     }
 

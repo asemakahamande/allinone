@@ -24,6 +24,7 @@ urlpatterns = [
     path('', include('score.urls')),  # <- This is OK if your app is named 'score'
     path('', include('teachersmatters.urls')),
     path('', include('exams.urls')),
+    path('ai/', include('ai_agents.urls')),
 ]
 
 if settings.DEBUG:

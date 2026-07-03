@@ -349,7 +349,8 @@
                     aside.sidebar,
                     header.header,
                     footer.footer,
-                    #mobile-overlay { display: none !important; }
+                    #mobile-overlay,
+                    #ai-chat-widget { display: none !important; }
 
                     /* ── Kill the purple gradient wrapper ── */
                     .app-wrapper {
@@ -451,6 +452,236 @@
 </script>
 
 {% block extra_scripts %}{% endblock %}
+
+<!-- AI AGENT FLOATING WIDGET -->
+{% if request.session.user_type %}
+<div id="ai-chat-widget" class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+    <!-- Chat Window (Hidden by default) -->
+    <div id="ai-chat-window" class="hidden w-80 h-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col mb-4 overflow-hidden transition-all duration-300">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-purple-600 to-pink-500 p-3 text-white flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-full border border-white/50 object-cover shadow-sm">
+                <span class="font-bold text-sm">
+                    Avese 
+                    <span class="text-xs font-normal opacity-75">
+                    {% if request.session.user_type == 'student' %}(Tutor)
+                    {% elif request.session.user_type == 'teacher' %}(Assistant)
+                    {% elif request.session.user_type == 'admin' %}(Admin AI)
+                    {% else %}(AI Assistant){% endif %}
+                    </span>
+                </span>
+            </div>
+            <button onclick="toggleChat()" class="text-white hover:text-gray-200">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+        
+        <!-- Chat Body -->
+        <div id="ai-chat-body" class="flex-1 p-3 overflow-y-auto bg-gray-50 flex flex-col gap-2 text-sm">
+            <div class="bg-purple-100 text-purple-800 p-2 rounded-lg self-start max-w-[85%] border border-purple-200 shadow-sm flex gap-2 items-start">
+                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-6 h-6 rounded-full mt-0.5 object-cover flex-shrink-0">
+                <div class="flex-1">
+                    <strong>Avese:</strong> Hello! I am Avese, your AI assistant. How can I help you today?
+                </div>
+                <button onclick="speakText('Hello! I am Avese, your AI assistant. How can I help you today?')" class="text-purple-400 hover:text-purple-700 p-1 flex-shrink-0 focus:outline-none transition-colors" title="Read aloud">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Chat Input -->
+        <div class="p-2 bg-white border-t border-gray-100 relative flex items-center">
+            <input type="text" id="ai-chat-input" class="w-full bg-gray-100 border-none rounded-full pl-4 pr-20 py-2.5 text-sm focus:ring-2 focus:ring-purple-400 outline-none transition-all" placeholder="Message Avese..." onkeypress="if(event.key === 'Enter') sendChatMessage()" oninput="toggleAiInputButtons()">
+            
+            <div class="absolute right-3 flex items-center gap-1">
+                <!-- Mic Button -->
+                <button id="ai-mic-btn" onclick="startAiDictation()" class="text-gray-400 hover:text-purple-600 p-1.5 transition-colors rounded-full focus:outline-none flex items-center justify-center" title="Use Microphone">
+                    <i data-lucide="mic" class="w-4 h-4"></i>
+                </button>
+                
+                <!-- Send Button (Hidden by default) -->
+                <button id="ai-send-btn" onclick="sendChatMessage()" class="bg-purple-600 text-white rounded-full p-1.5 hover:bg-purple-700 transition-all transform scale-0 opacity-0 absolute right-0 flex items-center justify-center focus:outline-none shadow-sm disabled:opacity-50" title="Send Message">
+                    <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Floating Toggle Button -->
+    <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full shadow-lg flex items-center justify-center text-white hover:scale-110 transition-transform duration-200 hover:shadow-xl relative overflow-hidden border-2 border-white">
+        <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-full h-full object-cover">
+        <!-- Ping indicator -->
+        <span class="absolute top-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></span>
+    </button>
+</div>
+
+<script>
+    const userRole = "{{ request.session.user_type|default:'student' }}";
+    
+    function scrollChatToBottom() {
+        const chatBody = document.getElementById('ai-chat-body');
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    function toggleChat() {
+        const chatWindow = document.getElementById('ai-chat-window');
+        chatWindow.classList.toggle('hidden');
+        if(!chatWindow.classList.contains('hidden')){
+            document.getElementById('ai-chat-input').focus();
+        }
+    }
+    
+    function toggleAiInputButtons() {
+        const input = document.getElementById('ai-chat-input');
+        const micBtn = document.getElementById('ai-mic-btn');
+        const sendBtn = document.getElementById('ai-send-btn');
+        
+        if (input.value.trim().length > 0) {
+            micBtn.style.opacity = '0';
+            micBtn.style.transform = 'scale(0)';
+            micBtn.style.pointerEvents = 'none';
+            
+            sendBtn.style.opacity = '1';
+            sendBtn.style.transform = 'scale(1)';
+            sendBtn.style.pointerEvents = 'auto';
+        } else {
+            micBtn.style.opacity = '1';
+            micBtn.style.transform = 'scale(1)';
+            micBtn.style.pointerEvents = 'auto';
+            
+            sendBtn.style.opacity = '0';
+            sendBtn.style.transform = 'scale(0)';
+            sendBtn.style.pointerEvents = 'none';
+        }
+    }
+    
+    function startAiDictation() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            const input = document.getElementById('ai-chat-input');
+            const micBtn = document.getElementById('ai-mic-btn');
+            
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = function() {
+                micBtn.classList.add('text-red-500', 'animate-pulse');
+                micBtn.classList.remove('text-gray-400');
+                input.placeholder = "Listening...";
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                input.value += (input.value ? " " : "") + transcript;
+                toggleAiInputButtons();
+            };
+            
+            recognition.onerror = function(event) {
+                console.error("Speech recognition error", event.error);
+                input.placeholder = "Message Avese...";
+            };
+            
+            recognition.onend = function() {
+                micBtn.classList.remove('text-red-500', 'animate-pulse');
+                micBtn.classList.add('text-gray-400');
+                input.placeholder = "Message Avese...";
+            };
+            
+            recognition.start();
+        } else {
+            alert("Your browser does not support speech recognition. Please try Chrome or Safari.");
+        }
+    }
+    
+    function speakText(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // Stop any current speech
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Try to find a female voice
+            const voices = window.speechSynthesis.getVoices();
+            const femaleVoice = voices.find(voice => voice.name.includes('Female') || voice.name.includes('Samantha') || voice.name.includes('Google UK English Female') || voice.name.includes('Zira'));
+            if (femaleVoice) {
+                utterance.voice = femaleVoice;
+            }
+            
+            window.speechSynthesis.speak(utterance);
+        } else {
+            alert("Text-to-speech is not supported in this browser.");
+        }
+    }
+
+    function sendChatMessage() {
+        const input = document.getElementById('ai-chat-input');
+        const message = input.value.trim();
+        if(!message) return;
+        
+        const chatBody = document.getElementById('ai-chat-body');
+        
+        // Add User Message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'bg-blue-500 text-white p-2 rounded-lg self-end max-w-[85%] shadow-sm ml-auto';
+        userDiv.textContent = message;
+        chatBody.appendChild(userDiv);
+        input.value = '';
+        toggleAiInputButtons();
+        scrollChatToBottom();
+        
+        // Add loading indicator
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'bg-purple-100 text-purple-800 p-2 rounded-lg self-start max-w-[85%] border border-purple-200 shadow-sm opacity-70 flex gap-2 items-start';
+        loadingDiv.id = 'ai-loading';
+        loadingDiv.innerHTML = `<img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-6 h-6 rounded-full mt-0.5 object-cover flex-shrink-0"><div class="flex gap-1 items-center h-full"><div class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce"></div><div class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div><div class="w-1.5 h-1.5 bg-purple-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div></div>`;
+        chatBody.appendChild(loadingDiv);
+        scrollChatToBottom();
+        
+        fetch('/ai/api/chat/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message, role: userRole })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const loading = document.getElementById('ai-loading');
+            if (loading) loading.remove();
+            
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'bg-purple-100 text-purple-800 p-2 rounded-lg self-start max-w-[85%] border border-purple-200 shadow-sm flex gap-2 items-start';
+            
+            if(data.status === 'success') {
+                // simple markdown-ish bolding parsing
+                let htmlContent = data.response.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                htmlContent = htmlContent.replace(/\n/g, '<br>');
+                
+                // Strip HTML for speech
+                const textForSpeech = data.response.replace(/<[^>]*>?/gm, '');
+                
+                aiDiv.innerHTML = `
+                    <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-6 h-6 rounded-full mt-0.5 object-cover flex-shrink-0">
+                    <div class="flex-1">${htmlContent}</div>
+                    <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="text-purple-400 hover:text-purple-700 p-1 flex-shrink-0 focus:outline-none transition-colors" title="Read aloud">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    </button>
+                `;
+                lucide.createIcons();
+            } else {
+                aiDiv.innerHTML = `<span class="text-lg leading-none mt-0.5">⚠️</span><div><strong class="text-red-600">Error:</strong> ${data.message}</div>`;
+            }
+            chatBody.appendChild(aiDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        })
+        .catch(err => {
+            const loading = document.getElementById('ai-loading');
+            if (loading) loading.remove();
+            console.error(err);
+            alert("Failed to send message.");
+        });
+    }
+</script>
+{% endif %}
+
 
 </body>
 </html>

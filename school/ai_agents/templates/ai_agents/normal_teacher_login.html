@@ -1,0 +1,28 @@
+{% extends "score/base_login.html" %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card shadow" style="width: 400px;">
+        <div class="card-body">
+            <h4 class="card-title text-center mb-4">Subject Teacher Login</h4>
+            
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            
+            <form method="POST" action="{% url 'normal_teacher_login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">School PIN / Access Code</label>
+                    <input type="password" name="pin" class="form-control" required placeholder="Enter provided PIN">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Login to Teacher Portal</button>
+            </form>
+            
+            <div class="text-center mt-3">
+                <a href="{% url 'unified_login' %}">Back to Main Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

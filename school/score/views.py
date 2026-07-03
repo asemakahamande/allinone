@@ -318,6 +318,26 @@ def unified_login(request):
                     messages.error(request, "Student account not found")
             else:
                 messages.error(request, "Invalid username or password")
+                
+        # SUBJECT TEACHER LOGIN (AI Portal)
+        elif login_type == "subject_teacher":
+            if identifier == "TEACHER2026":
+                request.session['is_normal_teacher'] = True
+                return redirect('normal_teacher_dashboard')
+            else:
+                messages.error(request, "Invalid PIN")
+                
+        # PARENT LOGIN (AI Portal)
+        elif login_type == "parent":
+            try:
+                student = Student.objects.get(exam_no=identifier)
+                if student.user and student.user.check_password(password):
+                    request.session['parent_student_id'] = student.id
+                    return redirect('parent_dashboard')
+                else:
+                    messages.error(request, "Invalid Admission Number or Password")
+            except Student.DoesNotExist:
+                messages.error(request, "Invalid Admission Number or Password")
     
     return render(request, "score/unified_login.html")
 

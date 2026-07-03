@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'score',
     'teachersmatters',
     'exams',
+    'ai_agents',
 ]
 
 

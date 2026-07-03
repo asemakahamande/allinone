@@ -77,6 +77,18 @@
             background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%) !important;
             border-width: 3px;
         }
+
+        .role-card.subject_teacher.active {
+            border-color: #eab308 !important;
+            background: linear-gradient(135deg, #fef08a 0%, #fde047 100%) !important;
+            border-width: 3px;
+        }
+
+        .role-card.parent.active {
+            border-color: #ec4899 !important;
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%) !important;
+            border-width: 3px;
+        }
         
         /* Left panel enhancements */
         .left-panel {
@@ -197,38 +209,57 @@
                         <form method="POST" id="loginForm">
                             {% csrf_token %}
                             
-                            <!-- Role Selection -->
-                            <div class="mb-6">
-                                <label class="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Login As:</label>
-                                <div class="grid grid-cols-3 gap-3">
-                                    <!-- Admin -->
-                                    <label class="role-card admin cursor-pointer">
-                                        <input type="radio" name="login_type" value="admin" class="hidden" required>
-                                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-blue-400 hover:shadow-md">
-                                            <div class="text-3xl mb-2">🏫</div>
-                                            <span class="text-sm font-semibold text-gray-700">Admin</span>
-                                        </div>
-                                    </label>
-                                    
-                                    <!-- Teacher -->
-                                    <label class="role-card teacher cursor-pointer">
-                                        <input type="radio" name="login_type" value="teacher" class="hidden">
-                                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-green-400 hover:shadow-md">
-                                            <div class="text-3xl mb-2">👨‍🏫</div>
-                                            <span class="text-sm font-semibold text-gray-700">Teacher</span>
-                                        </div>
-                                    </label>
-                                    
-                                    <!-- Student -->
-                                    <label class="role-card student cursor-pointer">
-                                        <input type="radio" name="login_type" value="student" class="hidden">
-                                        <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-purple-400 hover:shadow-md">
-                                            <div class="text-3xl mb-2">👨‍🎓</div>
-                                            <span class="text-sm font-semibold text-gray-700">Student</span>
-                                        </div>
-                                    </label>
+                                <!-- Role Selection -->
+                                <div class="mb-6">
+                                    <label class="block text-gray-700 font-semibold mb-3 text-sm uppercase tracking-wide">Login As:</label>
+                                    <div class="grid grid-cols-3 gap-3 mb-3">
+                                        <!-- Admin -->
+                                        <label class="role-card admin cursor-pointer">
+                                            <input type="radio" name="login_type" value="admin" class="hidden" required>
+                                            <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-blue-400 hover:shadow-md">
+                                                <div class="text-3xl mb-2">🏫</div>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">Admin</span>
+                                            </div>
+                                        </label>
+                                        
+                                        <!-- Class Teacher -->
+                                        <label class="role-card teacher cursor-pointer">
+                                            <input type="radio" name="login_type" value="teacher" class="hidden">
+                                            <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-green-400 hover:shadow-md">
+                                                <div class="text-3xl mb-2">👨‍🏫</div>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">Class Teacher</span>
+                                            </div>
+                                        </label>
+                                        
+                                        <!-- Student -->
+                                        <label class="role-card student cursor-pointer">
+                                            <input type="radio" name="login_type" value="student" class="hidden">
+                                            <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-purple-400 hover:shadow-md">
+                                                <div class="text-3xl mb-2">👨‍🎓</div>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">Student</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 max-w-[66.66%] mx-auto">
+                                        <!-- Subject Teacher -->
+                                        <label class="role-card subject_teacher cursor-pointer">
+                                            <input type="radio" name="login_type" value="subject_teacher" class="hidden">
+                                            <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-yellow-400 hover:shadow-md">
+                                                <div class="text-3xl mb-2">📚</div>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">Subj. Teacher</span>
+                                            </div>
+                                        </label>
+                                        
+                                        <!-- Parent -->
+                                        <label class="role-card parent cursor-pointer">
+                                            <input type="radio" name="login_type" value="parent" class="hidden">
+                                            <div class="border-2 border-gray-200 rounded-xl p-4 text-center transition-all hover:border-pink-400 hover:shadow-md">
+                                                <div class="text-3xl mb-2">👨‍👩‍👧</div>
+                                                <span class="text-xs sm:text-sm font-semibold text-gray-700">Parent</span>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
                             
                             <!-- Identifier Field -->
                             <div class="mb-4">
@@ -236,6 +267,8 @@
                                     <span id="adminLabel">School Email</span>
                                     <span id="teacherLabel" class="hidden">Username</span>
                                     <span id="studentLabel" class="hidden">Username</span>
+                                    <span id="subjectTeacherLabel" class="hidden">Teacher PIN</span>
+                                    <span id="parentLabel" class="hidden">Student Admission Number</span>
                                 </label>
                                 <input 
                                     type="text" 
@@ -246,8 +279,8 @@
                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
                             </div>
                             
-                            <!-- Password Field -->
-                            <div class="mb-6">
+                            <!-- Password Field (hidden for some roles) -->
+                            <div class="mb-6" id="passwordContainer">
                                 <label class="block text-gray-700 font-semibold mb-2 text-sm">Password</label>
                                 <div class="relative flex items-stretch">
                                     <input 
@@ -336,10 +369,20 @@
                 const adminLabel = document.getElementById('adminLabel');
                 const teacherLabel = document.getElementById('teacherLabel');
                 const studentLabel = document.getElementById('studentLabel');
+                const subjectTeacherLabel = document.getElementById('subjectTeacherLabel');
+                const parentLabel = document.getElementById('parentLabel');
+                
+                const passwordContainer = document.getElementById('passwordContainer');
+                const passwordInput = document.getElementById('passwordInput');
                 
                 adminLabel.classList.add('hidden');
                 teacherLabel.classList.add('hidden');
                 studentLabel.classList.add('hidden');
+                subjectTeacherLabel.classList.add('hidden');
+                parentLabel.classList.add('hidden');
+                
+                passwordContainer.classList.remove('hidden');
+                passwordInput.required = true;
                 
                 if (this.value === 'admin') {
                     adminLabel.classList.remove('hidden');
@@ -353,6 +396,19 @@
                     studentLabel.classList.remove('hidden');
                     identifier.placeholder = 'Enter your username';
                     identifier.type = 'text';
+                } else if (this.value === 'subject_teacher') {
+                    subjectTeacherLabel.classList.remove('hidden');
+                    identifier.placeholder = 'Enter your teacher PIN (e.g. TEACHER2026)';
+                    identifier.type = 'text';
+                    passwordContainer.classList.add('hidden');
+                    passwordInput.required = false;
+                } else if (this.value === 'parent') {
+                    parentLabel.classList.remove('hidden');
+                    identifier.placeholder = 'Enter student admission number';
+                    identifier.type = 'text';
+                    passwordContainer.classList.remove('hidden');
+                    passwordInput.required = true;
+                    passwordInput.placeholder = "Enter student password";
                 }
             });
         });

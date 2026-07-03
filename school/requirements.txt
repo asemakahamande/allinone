@@ -39,3 +39,8 @@ weasyprint==62.3
 pydyf==0.11.0
 # Email
 django-anymail[brevo]
+
+# AI Agents
+anthropic
+langchain
+langchain-anthropic
