@@ -1,4 +1,4 @@
-{% extends "score/dashboard.html" %}
+{% extends base_template|default:"score/dashboard.html" %}
 {% load custom_filters %}
 {% load static %}
 
@@ -39,7 +39,7 @@
                     <i data-lucide="layers" class="w-4 h-4 text-orange-600"></i>
                     Class
                 </label>
-                {% if is_admin %}
+                {% if is_admin or is_subject_teacher %}
                     <select name="class_id" 
                             id="class_id" 
                             onchange="this.form.submit()"
@@ -159,12 +159,14 @@
             </div>
 
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <a href="{% url 'dashboard' %}">
+                {% if not is_subject_teacher %}
+                <a href="{% if is_teacher %}{% url 'teacher_dashboard' %}{% else %}{% url 'dashboard' %}{% endif %}">
                     <button type="button" class="flex items-center gap-2 px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i>
                         Back to Dashboard
                     </button>
                 </a>
+                {% endif %}
                 <button type="submit"
                         class="flex items-center gap-2 px-8 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl"
                         style="background-color: #ea580c; color: #ffffff; border: 1px solid #c2410c;">

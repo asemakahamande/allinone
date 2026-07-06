@@ -1,6 +1,7 @@
 {% extends "score/base_dashboard.html" %}
+{% load static %}
 
-{% block title %}Parent Portal - AI Agent{% endblock %}
+{% block title %}Parent Portal - {{ student.full_name }}{% endblock %}
 
 {# ── Sidebar: user info ── #}
 {% block sidebar_user_info %}
@@ -15,6 +16,7 @@
         <div class="min-w-0 flex-1">
             <p class="text-[10px] font-bold text-pink-300/90 uppercase tracking-widest leading-none mb-1">Parent</p>
             <p class="text-sm font-bold text-white truncate leading-tight">{{ student.full_name }}'s Parent</p>
+            <p class="text-[11px] text-white/60 truncate leading-tight">Class: {{ student.class_group.name }}</p>
         </div>
     </div>
 </div>
@@ -22,6 +24,7 @@
 
 {# ── Sidebar: nav items ── #}
 {% block sidebar_nav %}
+    <!-- Dashboard + collapse toggle -->
     <li>
         <div class="menu-item active flex items-center p-3 rounded-lg rounded-l-none" id="dashboard-menu-link">
             <a href="{% url 'parent_dashboard' %}" class="show-dashboard flex items-center gap-3 flex-1 min-w-0">
@@ -36,6 +39,42 @@
             </button>
         </div>
     </li>
+
+    <!-- Performance Analytics -->
+    <li>
+        <a href="#" onclick="openModal('analyticsModal')"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="trending-up" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Child's Analytics</span>
+        </a>
+    </li>
+
+    <!-- Print Report Card -->
+    <li>
+        <a href="#" onclick="openModal('reportCardModal')"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="printer" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Print Report Card</span>
+        </a>
+    </li>
+
+    <!-- My Scores -->
+    <li>
+        <a href="#scores"
+           class="show-dashboard scroll-to-scores menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Child's Scores</span>
+        </a>
+    </li>
+
+    <!-- Parent AI -->
+    <li>
+        <a href="#ai-assistant"
+           class="show-dashboard menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none text-pink-300">
+            <i data-lucide="bot" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Chat with Avese</span>
+        </a>
+    </li>
 {% endblock %}
 
 {# ── Sidebar: logout ── #}
@@ -47,44 +86,183 @@
     </a>
 {% endblock %}
 
-{% block main_content %}
-<div class="container mt-4">
-    <h2>Parent Portal</h2>
-    <p>Welcome, Parent of {{ student.full_name }} ({{ student.exam_no }})</p>
-    
-    <div class="card mt-4">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">Chat with Avese (Parent AI)</h5>
+{# ── Header ── #}
+{% block header_logo %}
+    {% if setting and setting.logo %}
+        <img src="{{ setting.logo.url }}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% elif student.school.logo %}
+        <img src="{{ student.school.logo.url }}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% else %}
+        <img src="{% static 'images/school-icon.png' %}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% endif %}
+{% endblock %}
+
+{% block header_school_name %}
+    <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ student.school.name }}">Welcome, {{ student.school.name }}</p>
+{% endblock %}
+
+{% block header_user_name %}
+    <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]"
+       title="{{ student.full_name }}'s Parent">{{ student.full_name }}'s Parent</p>
+{% endblock %}
+
+{# ── Dashboard content ── #}
+{% block content %}
+<section id="dashboard" class="content-card p-5 sm:p-6 mb-6 gradient-bg text-white rounded-2xl">
+    <div class="relative z-10">
+        <h2 class="text-2xl sm:text-3xl font-bold">Parent Portal</h2>
+        <p class="text-white/90 mt-2">
+            Term: <span class="font-semibold">{{ current_term.name }}</span> | 
+            Class Teacher: <span class="font-semibold">
+                {% if student.class_group.teacher_user %}
+                    {{ student.class_group.teacher_user.get_full_name|default:student.class_group.teacher_user.username }}
+                {% else %}
+                    Not Assigned
+                {% endif %}
+            </span>
+        </p>
+        <div class="flex flex-wrap gap-2 mt-5">
+            <a href="#" onclick="openModal('analyticsModal')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition text-white">
+                <i data-lucide="trending-up" class="w-4 h-4"></i><span>Child's Analytics</span>
+            </a>
+            <a href="#" onclick="openModal('reportCardModal')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition text-white">
+                <i data-lucide="printer" class="w-4 h-4"></i><span>Report Card</span>
+            </a>
+            <a href="#ai-assistant" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition text-white">
+                <i data-lucide="bot" class="w-4 h-4"></i><span>Talk to AI</span>
+            </a>
         </div>
-        <div class="card-body" id="chat-container" style="height: 400px; overflow-y: auto;">
-            <div class="alert alert-info d-flex gap-2">
-                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
-                <div class="flex-grow-1">
-                    <strong>Avese:</strong> Hello! I am Avese, your AI assistant. I can help you understand your child's progress, check their attendance, and give you tips for home study. How can I help you today?
-                </div>
-                <button onclick="speakText('Hello! I am Avese, your AI assistant. I can help you understand your child\'s progress, check their attendance, and give you tips for home study. How can I help you today?')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                </button>
+    </div>
+</section>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
+    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Child's Avg Score</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ average_score }}%</p>
+                <p class="text-sm text-slate-500 mt-2">Across recorded subjects</p>
             </div>
-            <!-- Chat messages will be appended here -->
+            <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700">
+                <i data-lucide="percent" class="w-5 h-5"></i>
+            </div>
         </div>
-        <div class="card-footer position-relative p-3 bg-white">
-            <div class="position-relative d-flex align-items-center">
-                <input type="text" id="chat-input" class="form-control rounded-pill pe-5 ps-4 py-2 bg-light border-0" placeholder="Ask about your child's performance..." onkeypress="if(event.key === 'Enter') sendMessage('parent')" oninput="toggleInputButtons()">
-                
-                <!-- Mic Button -->
-                <button id="mic-btn" onclick="startDictation()" class="btn btn-link position-absolute text-secondary p-2 text-decoration-none shadow-none d-flex align-items-center justify-content-center transition-all" style="right: 50px;" title="Use Microphone">
-                    <i data-lucide="mic" class="w-4 h-4"></i>
-                </button>
-                
-                <!-- Send Button -->
-                <button id="send-btn" onclick="sendMessage('parent')" class="btn btn-primary rounded-circle position-absolute p-1 shadow-sm d-flex align-items-center justify-content-center" style="right: 6px; width: 34px; height: 34px; opacity: 0; transform: scale(0); transition: all 0.2s; pointer-events: none;" title="Send Message">
-                    <i data-lucide="arrow-up" class="w-4 h-4 text-white"></i>
-                </button>
+    </div>
+
+    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Child's Attendance</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ attendance_percentage }}%</p>
+                <p class="text-sm text-slate-500 mt-2">This session</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
+                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+        <div class="flex items-start justify-between">
+            <div>
+                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Subjects</p>
+                <p class="text-3xl font-bold text-slate-900 mt-2">{{ num_subjects }}</p>
+                <p class="text-sm text-slate-500 mt-2">Registered for this class</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700">
+                <i data-lucide="book-open" class="w-5 h-5"></i>
             </div>
         </div>
     </div>
 </div>
+
+<section id="scores" class="content-card overflow-hidden mb-6 shadow-sm border border-slate-100 rounded-2xl bg-white">
+    <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
+        <div>
+            <h3 class="text-lg font-bold text-slate-900">Child's Scores</h3>
+            <p class="text-sm text-slate-500">{{ current_term.name }}</p>
+        </div>
+        <a href="#" onclick="openModal('reportCardModal')" class="inline-flex items-center gap-2 text-sm font-semibold text-pink-600 hover:text-pink-800 transition">
+            <span>Print report card</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="min-w-full">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Subject</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</th>
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Grade</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+                {% for score in scores %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 text-sm font-semibold text-slate-900">{{ score.subject.name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-700">{{ score.total }}</td>
+                    <td class="px-6 py-4 text-sm">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {{ score.grade }}
+                        </span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="px-6 py-10 text-center text-slate-500">No scores recorded yet for this term.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- AI Assistant Section for Parents -->
+<section id="ai-assistant" class="content-card overflow-hidden shadow-md border border-slate-200 mb-8 rounded-2xl bg-white">
+    <div class="p-5 sm:p-6 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
+        <div class="p-3 bg-pink-100 text-pink-600 rounded-xl">
+            <i data-lucide="bot" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <h3 class="text-lg font-bold text-slate-900">Chat with Avese (Parent AI)</h3>
+            <p class="text-sm text-slate-500">Get insights, tips, and ask questions about your child's progress.</p>
+        </div>
+    </div>
+    
+    <div class="p-5 sm:p-6" id="chat-container" style="height: 400px; overflow-y: auto; background-color: #f8fafc;">
+        <div class="flex gap-4 mb-4">
+            <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm border border-slate-200">
+            <div class="flex-grow bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-sm text-slate-700">
+                <strong>Avese:</strong> Hello! I am Avese, your AI assistant. I can help you understand your child's progress, check their attendance, and give you tips for home study. How can I help you today?
+                <button onclick="speakText('Hello! I am Avese, your AI assistant. I can help you understand your child\'s progress, check their attendance, and give you tips for home study. How can I help you today?')" class="block mt-2 text-pink-600 hover:text-pink-800 transition" title="Read aloud">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Chat messages will be appended here -->
+    </div>
+    
+    <div class="p-4 bg-white border-t border-slate-200 relative">
+        <div class="relative flex items-center">
+            <input type="text" id="chat-input" class="w-full pl-5 pr-24 py-3 bg-slate-100 border-transparent focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-full text-sm transition-all shadow-inner" placeholder="Ask about your child's performance..." onkeypress="if(event.key === 'Enter') sendMessage('parent')" oninput="toggleInputButtons()">
+            
+            <div class="absolute right-2 flex items-center gap-1">
+                <!-- Mic Button -->
+                <button id="mic-btn" onclick="startDictation()" class="p-2 text-slate-400 hover:text-pink-600 transition-colors rounded-full hover:bg-pink-50" title="Use Microphone">
+                    <i data-lucide="mic" class="w-5 h-5"></i>
+                </button>
+                
+                <!-- Send Button -->
+                <button id="send-btn" onclick="sendMessage('parent')" class="p-2 bg-pink-600 text-white rounded-full hover:bg-pink-700 transition-all shadow-md transform scale-0 opacity-0 pointer-events-none" title="Send Message">
+                    <i data-lucide="send" class="w-4 h-4 ml-0.5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
 
 <script>
     function toggleInputButtons() {
@@ -96,18 +274,22 @@
             micBtn.style.opacity = '0';
             micBtn.style.transform = 'scale(0)';
             micBtn.style.pointerEvents = 'none';
+            micBtn.style.position = 'absolute';
             
             sendBtn.style.opacity = '1';
             sendBtn.style.transform = 'scale(1)';
             sendBtn.style.pointerEvents = 'auto';
+            sendBtn.style.position = 'relative';
         } else {
             micBtn.style.opacity = '1';
             micBtn.style.transform = 'scale(1)';
             micBtn.style.pointerEvents = 'auto';
+            micBtn.style.position = 'relative';
             
             sendBtn.style.opacity = '0';
             sendBtn.style.transform = 'scale(0)';
             sendBtn.style.pointerEvents = 'none';
+            sendBtn.style.position = 'absolute';
         }
     }
     
@@ -122,8 +304,8 @@
             recognition.interimResults = false;
             
             recognition.onstart = function() {
-                micBtn.classList.add('text-danger');
-                micBtn.classList.remove('text-secondary');
+                micBtn.classList.add('text-red-500');
+                micBtn.classList.remove('text-slate-400');
                 input.placeholder = "Listening...";
             };
             
@@ -134,8 +316,8 @@
             };
             
             recognition.onend = function() {
-                micBtn.classList.remove('text-danger');
-                micBtn.classList.add('text-secondary');
+                micBtn.classList.remove('text-red-500');
+                micBtn.classList.add('text-slate-400');
                 input.placeholder = "Ask about your child's performance...";
             };
             
@@ -153,10 +335,18 @@
 
         // Display user message
         const userDiv = document.createElement('div');
-        userDiv.className = 'alert alert-secondary text-end';
-        userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+        userDiv.className = 'flex gap-4 mb-4 justify-end';
+        userDiv.innerHTML = `
+            <div class="bg-pink-600 text-white p-4 rounded-2xl rounded-tr-none shadow-sm text-sm">
+                <strong>You:</strong> ${message}
+            </div>
+            <div class="w-10 h-10 rounded-full bg-pink-200 flex items-center justify-center text-pink-700 font-bold flex-shrink-0 shadow-sm border border-pink-300">
+                P
+            </div>
+        `;
         container.appendChild(userDiv);
         input.value = '';
+        toggleInputButtons();
         container.scrollTop = container.scrollHeight;
 
         // Send to API
@@ -170,21 +360,30 @@
         .then(response => response.json())
         .then(data => {
             const aiDiv = document.createElement('div');
-            aiDiv.className = 'alert alert-info d-flex gap-2';
+            aiDiv.className = 'flex gap-4 mb-4';
             if(data.status === 'success') {
                 let htmlContent = data.response.replace(/\n/g, '<br>');
                 const textForSpeech = data.response.replace(/<[^>]*>?/gm, '');
-                aiDiv.innerHTML = `<img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
-                <div class="flex-grow-1"><strong>Avese:</strong> ${htmlContent}</div>
-                <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                </button>`;
+                aiDiv.innerHTML = `
+                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-10 h-10 rounded-full object-cover flex-shrink-0 shadow-sm border border-slate-200">
+                <div class="flex-grow bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 text-sm text-slate-700">
+                    <strong>Avese:</strong> ${htmlContent}
+                    <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="block mt-2 text-pink-600 hover:text-pink-800 transition" title="Read aloud">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    </button>
+                </div>`;
             } else {
-                aiDiv.innerHTML = `<span class="fs-4">⚠️</span><div><strong>System Error:</strong> ${data.message}</div>`;
+                aiDiv.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0">⚠️</div>
+                <div class="bg-white p-4 rounded-2xl rounded-tl-none shadow-sm border border-red-200 text-sm text-slate-700">
+                    <strong>System Error:</strong> ${data.message}
+                </div>`;
             }
             container.appendChild(aiDiv);
             container.scrollTop = container.scrollHeight;
-            lucide.createIcons();
+            if (window.lucide) {
+                lucide.createIcons();
+            }
         })
         .catch(err => {
             console.error(err);
@@ -202,6 +401,145 @@
             window.speechSynthesis.speak(utterance);
         } else {
             alert("Text-to-speech is not supported in this browser.");
+        }
+    }
+</script>
+
+<!-- Modals for Selecting Session and Term -->
+<!-- Analytics Modal -->
+<div id="analyticsModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-slate-900">View Child's Analytics</h3>
+            <button onclick="closeModal('analyticsModal')" class="text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Academic Session</label>
+                <select id="analytics_session" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for session in sessions %}
+                    <option value="{{ session.id }}">{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Term</label>
+                <select id="analytics_term" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for term in terms %}
+                    <option value="{{ term.id }}">{{ term.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Class</label>
+                <select id="analytics_class" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}" {% if student.class_group.id == cls.id %}selected{% endif %}>{{ cls.name }}</option>
+                    {% empty %}
+                    <option value="{{ student.class_group.id }}" selected>{{ student.class_group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button onclick="gotoAnalytics()" class="w-full py-2.5 mt-2 bg-pink-600 text-white font-bold rounded-lg hover:bg-pink-700 transition">
+                View Analytics
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Report Card Modal -->
+<div id="reportCardModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl border border-slate-100">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-slate-900">View Child's Report Card</h3>
+            <button onclick="closeModal('reportCardModal')" class="text-slate-400 hover:text-slate-600">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Academic Session</label>
+                <select id="rc_session" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for session in sessions %}
+                    <option value="{{ session.name|urlencode }}">{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Term</label>
+                <select id="rc_term" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for term in terms %}
+                    <option value="{{ term.name|urlencode }}">{{ term.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Class</label>
+                <select id="rc_class" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-pink-500 focus:border-pink-500 text-sm bg-white">
+                    {% for cls in classes %}
+                    <option value="{{ cls.id }}" {% if student.class_group.id == cls.id %}selected{% endif %}>{{ cls.name }}</option>
+                    {% empty %}
+                    <option value="{{ student.class_group.id }}" selected>{{ student.class_group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex gap-2 mt-2">
+                <button onclick="gotoReportCard('print')" class="flex-1 py-2.5 bg-pink-600 text-white font-bold rounded-lg hover:bg-pink-700 transition flex items-center justify-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i> Print
+                </button>
+                <button onclick="gotoReportCard('download')" class="flex-1 py-2.5 bg-pink-600 text-white font-bold rounded-lg hover:bg-pink-700 transition flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal(id) {
+        document.getElementById(id).style.display = 'flex';
+    }
+    function closeModal(id) {
+        document.getElementById(id).style.display = 'none';
+    }
+    function loadUrlInFrame(url) {
+        // We create a hidden link with class load-in-frame, so the main dashboard intercepts it
+        const a = document.createElement('a');
+        a.className = 'load-in-frame';
+        a.href = url;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+    function gotoAnalytics() {
+        const session = document.getElementById('analytics_session').value;
+        const term = document.getElementById('analytics_term').value;
+        const cls = document.getElementById('analytics_class').value;
+        const url = "{% url 'student_analytics' student.id %}?session=" + session + "&term=" + term + "&class=" + cls;
+        closeModal('analyticsModal');
+        loadUrlInFrame(url);
+    }
+    function gotoReportCard(action) {
+        const session = document.getElementById('rc_session').value;
+        const term = document.getElementById('rc_term').value;
+        const cls = document.getElementById('rc_class').value;
+        let url = "/reportcard/{{ student.id }}/" + session + "/" + term + "/?class=" + cls;
+        
+        if (action === 'print') {
+            url += "&print=1";
+        } else if (action === 'download') {
+            url += "&download=1";
+        }
+        
+        closeModal('reportCardModal');
+        
+        if (action === 'download' || action === 'print') {
+            window.open(url, '_blank');
+        } else {
+            loadUrlInFrame(url);
         }
     }
 </script>

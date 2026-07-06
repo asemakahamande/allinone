@@ -1,20 +1,45 @@
 {% extends "score/base_dashboard.html" %}
-
+{% load static %}
 {% block title %}Subject Teacher Portal - AI Agent{% endblock %}
+
+{# ── Header: school logo ── #}
+{% block header_logo %}
+    {% if setting and setting.logo %}
+        <img src="{{ setting.logo.url }}" alt="{{ school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% elif school and school.logo %}
+        <img src="{{ school.logo.url }}" alt="{{ school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% else %}
+        <img src="{% static 'images/school-icon.png' %}" alt="School Logo"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% endif %}
+{% endblock %}
+
+{% block header_school_name %}
+    {% if school %}
+        <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ school.name }}">Welcome, {{ school.name }}</p>
+    {% endif %}
+{% endblock %}
+
+{% block header_user_name %}
+    <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]"
+       title="Subject Teacher">Subject Teacher</p>
+{% endblock %}
 
 {# ── Sidebar: user info ── #}
 {% block sidebar_user_info %}
 <div class="user-info w-full bg-white/10 backdrop-blur-sm rounded-2xl p-3.5 border border-white/20 shadow-inner">
     <div class="flex items-center gap-3">
         <div class="relative flex-shrink-0">
-            <div class="w-11 h-11 rounded-xl bg-yellow-400/20 border border-yellow-300/40 flex items-center justify-center">
-                <span class="text-2xl">📚</span>
+            <div class="w-11 h-11 rounded-xl bg-purple-400/20 border border-purple-300/40 flex items-center justify-center">
+                <i data-lucide="book-open" class="w-6 h-6 text-purple-300"></i>
             </div>
-            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-yellow-400 border-2 border-white/30 rounded-full"></span>
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white/30 rounded-full"></span>
         </div>
         <div class="min-w-0 flex-1">
-            <p class="text-[10px] font-bold text-yellow-300/90 uppercase tracking-widest leading-none mb-1">Teacher</p>
-            <p class="text-sm font-bold text-white truncate leading-tight">Subject Teacher</p>
+            <p class="text-[10px] font-bold text-purple-300/90 uppercase tracking-widest leading-none mb-1">Subject Teacher</p>
+            <p class="text-sm font-bold text-white truncate leading-tight">Staff Member</p>
         </div>
     </div>
 </div>
@@ -24,7 +49,7 @@
 {% block sidebar_nav %}
     <li>
         <div class="menu-item active flex items-center p-3 rounded-lg rounded-l-none" id="dashboard-menu-link">
-            <a href="{% url 'normal_teacher_dashboard' %}" class="show-dashboard flex items-center gap-3 flex-1 min-w-0">
+            <a href="{% url 'normal_teacher_dashboard' %}" class="flex items-center gap-3 flex-1 min-w-0">
                 <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
                 <span class="menu-text font-medium">Dashboard</span>
             </a>
@@ -47,46 +72,274 @@
     </a>
 {% endblock %}
 
-{% block main_content %}
-<div class="container mt-4">
-    <h2>Subject Teacher Portal</h2>
-    <p>Welcome, Teacher.</p>
+{% block content %}
+<div class="w-full">
     
-    <div class="card mt-4">
-        <div class="card-header bg-success text-white">
-            <h5 class="mb-0">Chat with Avese (Teaching Assistant)</h5>
+    <!-- Top Filter Bar -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-gray-100">
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Subject Teacher Portal</h2>
+            <p class="text-sm text-gray-500">Manage your classes, students, and interact with Avese.</p>
         </div>
-        <div class="card-body" id="chat-container" style="height: 400px; overflow-y: auto;">
-            <div class="alert alert-info d-flex gap-2">
-                <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
-                <div class="flex-grow-1">
-                    <strong>Avese:</strong> Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?
+        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Session</label>
+                <select id="session-filter" class="form-select rounded-lg border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 py-2 pl-3 pr-8 text-sm bg-gray-50 min-w-[120px]">
+                    <option value="">Select Session</option>
+                    {% for session in sessions %}
+                        <option value="{{ session.id }}">{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Class</label>
+                <select id="class-filter" class="form-select rounded-lg border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 py-2 pl-3 pr-8 text-sm bg-gray-50 min-w-[120px]" disabled>
+                    <option value="">Select Class</option>
+                    {% for cls in classes %}
+                        <option value="{{ cls.id }}">{{ cls.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">Subject</label>
+                <select id="subject-filter" class="form-select rounded-lg border-gray-300 focus:border-purple-500 focus:ring focus:ring-purple-200 py-2 pl-3 pr-8 text-sm bg-gray-50 min-w-[150px]" disabled>
+                    <option value="">Select Subject</option>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.id }}" data-class-id="{{ subject.class_group.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <!-- Main Panel (Left 2 columns) -->
+        <div class="xl:col-span-2 flex flex-col gap-6">
+            
+            <!-- Analytics Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group transition-transform hover:-translate-y-1">
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium uppercase tracking-wider mb-1">Total Subjects Taught</p>
+                            <h3 class="text-3xl font-bold">{{ subjects.count|default:"0" }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="book-open" class="w-6 h-6 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
                 </div>
-                <button onclick="speakText('Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                </button>
+
+                <div class="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group transition-transform hover:-translate-y-1">
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-purple-100 text-sm font-medium uppercase tracking-wider mb-1">Total Students</p>
+                            <h3 class="text-3xl font-bold">{{ total_students|default:"0" }}</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                        </div>
+                    </div>
+                    <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500"></div>
+                </div>
             </div>
-            <!-- Chat messages will be appended here -->
+
+            <!-- AI Teaching Assistant -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[500px] overflow-hidden">
+                <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="relative">
+                            <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-10 h-10 rounded-full object-cover shadow-sm border-2 border-white">
+                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 leading-tight">Chat with Avese</h3>
+                            <p class="text-xs text-gray-500">Your AI Teaching Assistant</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex-1 p-4 overflow-y-auto bg-gray-50" id="chat-container">
+                    <div class="flex gap-3 mb-4">
+                        <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm mt-1">
+                        <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
+                            <p class="text-sm text-gray-800">Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?</p>
+                        </div>
+                        <button onclick="speakText('Hello! I am Avese, your teaching assistant. I can help you brainstorm lesson plans, draft report card comments, and give you ideas for classroom activities. How can I help you today?')" class="text-gray-400 hover:text-purple-600 transition-colors mt-1" title="Read aloud">
+                            <i data-lucide="volume-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Prompts -->
+                <div class="px-4 py-2 bg-white border-t border-gray-50 flex gap-2 overflow-x-auto hide-scrollbar">
+                    <button onclick="document.getElementById('chat-input').value = 'Generate a 45-minute lesson plan for...'; toggleInputButtons(); document.getElementById('chat-input').focus();" class="whitespace-nowrap px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-medium rounded-full transition-colors border border-purple-100">✨ Generate Lesson Plan</button>
+                    <button onclick="document.getElementById('chat-input').value = 'Create 5 multiple choice questions about...'; toggleInputButtons(); document.getElementById('chat-input').focus();" class="whitespace-nowrap px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium rounded-full transition-colors border border-blue-100">📝 Create Quiz Questions</button>
+                    <button onclick="document.getElementById('chat-input').value = 'Suggest report card comments for a student who...'; toggleInputButtons(); document.getElementById('chat-input').focus();" class="whitespace-nowrap px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full transition-colors border border-emerald-100">🗣️ Draft Comments</button>
+                </div>
+                
+                <div class="p-4 bg-white border-t border-gray-100">
+                    <div class="relative flex items-center">
+                        <input type="text" id="chat-input" class="w-full bg-gray-100 border-transparent focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-full py-3 pl-4 pr-24 text-sm transition-all" placeholder="Ask Avese something..." onkeypress="if(event.key === 'Enter') sendMessage('teacher')" oninput="toggleInputButtons()">
+                        
+                        <div class="absolute right-2 flex items-center gap-1">
+                            <button id="mic-btn" onclick="startDictation()" class="p-2 text-gray-400 hover:text-purple-600 transition-colors rounded-full hover:bg-purple-50" title="Use Microphone">
+                                <i data-lucide="mic" class="w-5 h-5"></i>
+                            </button>
+                            <button id="send-btn" onclick="sendMessage('teacher')" class="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full shadow-md hover:shadow-lg transform transition-all duration-200 opacity-0 scale-0 pointer-events-none" title="Send Message">
+                                <i data-lucide="send" class="w-4 h-4 ml-0.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
-        <div class="card-footer position-relative p-3 bg-white">
-            <div class="position-relative d-flex align-items-center">
-                <input type="text" id="chat-input" class="form-control rounded-pill pe-5 ps-4 py-2 bg-light border-0" placeholder="Ask about lesson plans or teaching tips..." onkeypress="if(event.key === 'Enter') sendMessage('teacher')" oninput="toggleInputButtons()">
-                
-                <!-- Mic Button -->
-                <button id="mic-btn" onclick="startDictation()" class="btn btn-link position-absolute text-secondary p-2 text-decoration-none shadow-none d-flex align-items-center justify-content-center transition-all" style="right: 50px;" title="Use Microphone">
-                    <i data-lucide="mic" class="w-4 h-4"></i>
-                </button>
-                
-                <!-- Send Button -->
-                <button id="send-btn" onclick="sendMessage('teacher')" class="btn btn-primary rounded-circle position-absolute p-1 shadow-sm d-flex align-items-center justify-content-center" style="right: 6px; width: 34px; height: 34px; opacity: 0; transform: scale(0); transition: all 0.2s; pointer-events: none;" title="Send Message">
-                    <i data-lucide="arrow-up" class="w-4 h-4 text-white"></i>
-                </button>
+
+        <!-- Sidebar Panel (Right Column) -->
+        <div class="xl:col-span-1 flex flex-col gap-6">
+            
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-gray-800">Quick Actions</h3>
+                    <i data-lucide="zap" class="w-5 h-5 text-amber-500"></i>
+                </div>
+                <div class="space-y-3">
+                    <a href="{% url 'enterscore' %}" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-purple-200 hover:bg-purple-50/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                            <i data-lucide="check-square" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">Enter Scores</p>
+                            <p class="text-xs text-gray-500">Grade your assigned subjects</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'affective' %}" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <i data-lucide="heart" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">Affective Domain</p>
+                            <p class="text-xs text-gray-500">Record behavioral traits</p>
+                        </div>
+                    </a>
+                    
+                    <a href="{% url 'psychomotor' %}" class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all group">
+                        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800 text-sm">Psychomotor Domain</p>
+                            <p class="text-xs text-gray-500">Record physical skills</p>
+                        </div>
+                    </a>
+                </div>
             </div>
+
+            <!-- Subject Overview List -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex-1 max-h-[400px] flex flex-col">
+                <div class="flex items-center justify-between mb-4 flex-shrink-0">
+                    <h3 class="font-bold text-gray-800">My Subjects</h3>
+                    <span class="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-1 rounded-full">{{ subjects.count|default:"0" }} Total</span>
+                </div>
+                <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1" id="subject-list-container">
+                    {% for subject in subjects %}
+                    <div class="subject-list-item flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100 hover:bg-white hover:border-purple-200 transition-colors" data-class-id="{{ subject.class_group.id }}">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-bold">
+                                {{ subject.name|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800 text-sm">{{ subject.name }}</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-6 text-gray-500 text-sm">
+                        No subjects available for this school.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
+<style>
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+</style>
+
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const sessionFilter = document.getElementById("session-filter");
+        const classFilter = document.getElementById("class-filter");
+        const subjectFilter = document.getElementById("subject-filter");
+        
+        // Initialize disabled states
+        classFilter.disabled = !sessionFilter.value;
+        subjectFilter.disabled = true;
+        
+        sessionFilter.addEventListener("change", function() {
+            if (this.value) {
+                classFilter.disabled = false;
+            } else {
+                classFilter.disabled = true;
+                classFilter.value = "";
+                subjectFilter.disabled = true;
+                subjectFilter.value = "";
+            }
+        });
+        
+        classFilter.addEventListener("change", function() {
+            const classId = this.value;
+            const subjectListItems = document.querySelectorAll('.subject-list-item');
+            
+            if (classId) {
+                subjectFilter.disabled = false;
+                // Filter subjects dropdown
+                Array.from(subjectFilter.options).forEach(option => {
+                    if (option.value === "") {
+                        option.style.display = "block"; // Keep placeholder
+                    } else if (option.dataset.classId === classId) {
+                        option.style.display = "block";
+                    } else {
+                        option.style.display = "none";
+                    }
+                });
+                subjectFilter.value = ""; // Reset subject selection
+                
+                // Filter subject list in panel
+                subjectListItems.forEach(item => {
+                    if (item.dataset.classId === classId) {
+                        item.style.display = "flex";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            } else {
+                subjectFilter.disabled = true;
+                subjectFilter.value = "";
+                
+                // Show all subject list items in panel if no class is selected (or we could hide them all. Let's show all)
+                subjectListItems.forEach(item => {
+                    item.style.display = "flex";
+                });
+            }
+        });
+    });
+
     function toggleInputButtons() {
         const input = document.getElementById('chat-input');
         const micBtn = document.getElementById('mic-btn');
@@ -122,8 +375,8 @@
             recognition.interimResults = false;
             
             recognition.onstart = function() {
-                micBtn.classList.add('text-danger');
-                micBtn.classList.remove('text-secondary');
+                micBtn.classList.add('text-red-500');
+                micBtn.classList.remove('text-gray-400');
                 input.placeholder = "Listening...";
             };
             
@@ -134,9 +387,9 @@
             };
             
             recognition.onend = function() {
-                micBtn.classList.remove('text-danger');
-                micBtn.classList.add('text-secondary');
-                input.placeholder = "Ask about lesson plans or teaching tips...";
+                micBtn.classList.remove('text-red-500');
+                micBtn.classList.add('text-gray-400');
+                input.placeholder = "Ask Avese something...";
             };
             
             recognition.start();
@@ -153,10 +406,15 @@
 
         // Display user message
         const userDiv = document.createElement('div');
-        userDiv.className = 'alert alert-secondary text-end';
-        userDiv.innerHTML = `<strong>You:</strong> ${message}`;
+        userDiv.className = 'flex gap-3 mb-4 justify-end';
+        userDiv.innerHTML = `
+            <div class="bg-purple-600 text-white rounded-2xl rounded-tr-sm p-3 shadow-sm max-w-[85%]">
+                <p class="text-sm">${message}</p>
+            </div>
+        `;
         container.appendChild(userDiv);
         input.value = '';
+        toggleInputButtons();
         container.scrollTop = container.scrollHeight;
 
         // Send to API
@@ -170,17 +428,21 @@
         .then(response => response.json())
         .then(data => {
             const aiDiv = document.createElement('div');
-            aiDiv.className = 'alert alert-info d-flex gap-2';
+            aiDiv.className = 'flex gap-3 mb-4';
             if(data.status === 'success') {
                 let htmlContent = data.response.replace(/\n/g, '<br>');
                 const textForSpeech = data.response.replace(/<[^>]*>?/gm, '');
-                aiDiv.innerHTML = `<img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-circle object-cover flex-shrink-0" style="width: 32px; height: 32px;">
-                <div class="flex-grow-1"><strong>Avese:</strong> ${htmlContent}</div>
-                <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="btn btn-link text-primary p-0 ms-2 text-decoration-none shadow-none align-self-start" title="Read aloud">
-                    <i data-lucide="volume-2" class="w-4 h-4"></i>
-                </button>`;
+                aiDiv.innerHTML = `
+                    <img src="{% static 'images/avese.jpg' %}" alt="Avese" class="w-8 h-8 rounded-full object-cover flex-shrink-0 shadow-sm mt-1">
+                    <div class="bg-white rounded-2xl rounded-tl-sm p-3 shadow-sm border border-gray-100 max-w-[85%]">
+                        <div class="text-sm text-gray-800 prose prose-sm max-w-none">${htmlContent}</div>
+                    </div>
+                    <button onclick="speakText('${textForSpeech.replace(/'/g, "\\'")}')" class="text-gray-400 hover:text-purple-600 transition-colors mt-1" title="Read aloud">
+                        <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    </button>
+                `;
             } else {
-                aiDiv.innerHTML = `<span class="fs-4">⚠️</span><div><strong>System Error:</strong> ${data.message}</div>`;
+                aiDiv.innerHTML = `<span class="text-2xl">⚠️</span><div class="bg-red-50 text-red-600 rounded-xl p-3 shadow-sm border border-red-100 text-sm"><strong>System Error:</strong> ${data.message}</div>`;
             }
             container.appendChild(aiDiv);
             container.scrollTop = container.scrollHeight;

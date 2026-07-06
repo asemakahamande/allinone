@@ -91,6 +91,25 @@ def get_user_context(request):
             'classes': ClassGroup.objects.filter(school=school).order_by('name')
         }
     
+    elif user_type == 'subject_teacher':
+        # Subject Teacher access (AI Portal)
+        school_id = request.session.get('school_id')
+        if not school_id:
+            return None
+            
+        school = School.objects.filter(id=school_id).first()
+        if not school:
+            return None
+            
+        return {
+            'is_admin': False,
+            'is_teacher': False,
+            'is_subject_teacher': True,
+            'school': school,
+            'class_group': None,
+            'classes': ClassGroup.objects.filter(school=school).order_by('name')
+        }
+    
     elif user_type == 'teacher':
         # Teacher access - get from Django auth
         if not request.user.is_authenticated:
@@ -321,10 +340,14 @@ def unified_login(request):
                 
         # SUBJECT TEACHER LOGIN (AI Portal)
         elif login_type == "subject_teacher":
-            if identifier == "TEACHER2026":
+            try:
+                setting = SchoolSetting.objects.get(subject_teacher_pin=identifier)
+                request.session['school_id'] = setting.school_id
                 request.session['is_normal_teacher'] = True
+                request.session['user_type'] = 'subject_teacher'
+                messages.success(request, "Welcome to the AI Portal!")
                 return redirect('normal_teacher_dashboard')
-            else:
+            except SchoolSetting.DoesNotExist:
                 messages.error(request, "Invalid PIN")
                 
         # PARENT LOGIN (AI Portal)
@@ -716,6 +739,16 @@ def settings_view(request):
         
         setting.term_closes_on = term_closes if term_closes else None
         setting.next_term_begins = next_term if next_term else None
+
+        # Subject Teacher PIN
+        subject_teacher_pin = request.POST.get("subject_teacher_pin", "").strip()
+        subject_teacher_pin = subject_teacher_pin if subject_teacher_pin else None
+        
+        if subject_teacher_pin and SchoolSetting.objects.exclude(pk=setting.pk).filter(subject_teacher_pin=subject_teacher_pin).exists():
+            messages.error(request, "The Subject Teacher PIN you entered is already in use by another school. Please choose a different PIN.")
+            return redirect("settings_view")
+            
+        setting.subject_teacher_pin = subject_teacher_pin
 
         # 2. Handle Image Files (Crucial for Cloudinary)
         if "logo" in request.FILES:
@@ -2280,11 +2313,15 @@ def enterscore(request):
         messages.error(request, "Access denied.")
         return redirect("unified_login")
     
-    is_admin = context['is_admin']
-    is_teacher = context['is_teacher']
+    is_admin = context.get('is_admin', False)
+    is_teacher = context.get('is_teacher', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
     
     # --- Get available classes based on user type ---
     classes = context['classes']
+    
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
+    
     if not classes.exists():
         return render(request, "score/enterscore.html", {
             "classes": [], 
@@ -2296,19 +2333,30 @@ def enterscore(request):
             "custom_components": None,
             "is_admin": is_admin,
             "is_teacher": is_teacher,
+            "is_subject_teacher": is_subject_teacher,
             "school": school,
+            "base_template": base_template,
         })
     
     # --- Selected class ---
-    if is_admin:
-        selected_class_id = request.GET.get("class", classes.first().id)
-        selected_class = get_object_or_404(ClassGroup, id=selected_class_id, school=school)
+    if is_admin or is_subject_teacher:
+        selected_class_id = request.GET.get("class")
+        if not selected_class_id and classes.exists():
+            selected_class_id = classes.first().id
+        if selected_class_id:
+            selected_class = get_object_or_404(ClassGroup, id=selected_class_id, school=school)
+        else:
+            selected_class = None
     else:
         # Teacher - auto-select their class
         selected_class = context['class_group']
     
     # --- Get subjects for selected class ---
-    subjects = Subject.objects.filter(class_group=selected_class).order_by("name")
+    if selected_class:
+        subjects = Subject.objects.filter(class_group=selected_class).order_by("name")
+    else:
+        subjects = Subject.objects.none()
+        
     if not subjects.exists():
         render_ctx = {
             "classes": classes,
@@ -2321,9 +2369,11 @@ def enterscore(request):
             "custom_components": None,
             "is_admin": is_admin,
             "is_teacher": is_teacher,
+            "is_subject_teacher": is_subject_teacher,
             "school": school,
+            "base_template": base_template,
         }
-        if not is_admin and selected_class:
+        if is_teacher and selected_class:
             teacher_ctx = get_teacher_dashboard_context(selected_class)
             teacher_ctx.update(render_ctx)
             return render(request, "score/enterscore_teacher.html", teacher_ctx)
@@ -2582,13 +2632,16 @@ def enterscore(request):
         "scoring_percentages": scoring_percentages,
         "is_admin": is_admin,
         "is_teacher": is_teacher,
+        "is_subject_teacher": is_subject_teacher,
         "school": school,
+        "base_template": base_template,
     }
-    if not is_admin and selected_class:
+    if is_teacher and selected_class:
         teacher_ctx = get_teacher_dashboard_context(selected_class)
         teacher_ctx.update(render_ctx)
         return render(request, "score/enterscore_teacher.html", teacher_ctx)
     return render(request, "score/enterscore.html", render_ctx)
+
 
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count
@@ -2607,8 +2660,12 @@ def affective_view(request):
         messages.error(request, "Access denied.")
         return redirect("unified_login")
     
-    is_admin = context['is_admin']
+    is_admin = context.get('is_admin', False)
+    is_teacher = context.get('is_teacher', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
     classes = context['classes']
+    
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
     
     terms = Term.objects.all()
     sessions = AcademicSession.objects.all()
@@ -2616,14 +2673,14 @@ def affective_view(request):
     # --- Get selected class ---
     class_id = request.GET.get("class_id") or request.POST.get("class_id")
     
-    if is_admin:
+    if is_admin or is_subject_teacher:
         if class_id:
             selected_class = get_object_or_404(ClassGroup, id=class_id, school=school)
         else:
             selected_class = None
     else:
         selected_class = context['class_group']
-        class_id = selected_class.id
+        class_id = selected_class.id if selected_class else None
     
     # --- Get term and session ---
     term_id = request.GET.get("term") or request.POST.get("term")
@@ -2687,10 +2744,12 @@ def affective_view(request):
         "traits": traits,
         "grades": grades,
         "is_admin": is_admin,
-        "is_teacher": not is_admin,
+        "is_teacher": is_teacher,
+        "is_subject_teacher": is_subject_teacher,
         "school": school,
+        "base_template": base_template,
     }
-    if not is_admin and selected_class:
+    if is_teacher and selected_class:
         teacher_ctx = get_teacher_dashboard_context(selected_class)
         teacher_ctx.update(render_ctx)
         return render(request, "score/affective_teacher.html", teacher_ctx)
@@ -2813,8 +2872,12 @@ def psychomotor_view(request):
         messages.error(request, "Access denied.")
         return redirect("unified_login")
     
-    is_admin = context['is_admin']
+    is_admin = context.get('is_admin', False)
+    is_teacher = context.get('is_teacher', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
     classes = context['classes']
+    
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
     
     terms = Term.objects.all()
     sessions = AcademicSession.objects.all()
@@ -2822,13 +2885,14 @@ def psychomotor_view(request):
     # --- Get selected class ---
     class_id = request.GET.get("class_id") or request.POST.get("class_id")
     
-    if is_admin:
+    if is_admin or is_subject_teacher:
         if class_id:
             selected_class = get_object_or_404(ClassGroup, id=class_id, school=school)
         else:
             selected_class = None
     else:
         selected_class = context['class_group']
+        class_id = selected_class.id if selected_class else None
     
     # --- Get term and session ---
     term_id = request.GET.get("term") or request.POST.get("term")
@@ -2873,10 +2937,12 @@ def psychomotor_view(request):
         "skills": skills,
         "grades": grades,
         "is_admin": is_admin,
-        "is_teacher": not is_admin,
+        "is_teacher": is_teacher,
+        "is_subject_teacher": is_subject_teacher,
         "school": school,
+        "base_template": base_template,
     }
-    if not is_admin and selected_class:
+    if is_teacher and selected_class:
         teacher_ctx = get_teacher_dashboard_context(selected_class)
         teacher_ctx.update(render_ctx)
         return render(request, "score/psychomotor_teacher.html", teacher_ctx)
@@ -3535,6 +3601,20 @@ def reportcard_view(request, student_id, session, term):
         "chart_data": chart_data,
         "chart_colors": chart_colors,
     }
+
+    if request.GET.get("download"):
+        from django.template.loader import render_to_string
+        from django.http import HttpResponse
+        html_string = render_to_string("score/reportcard.html", context)
+        try:
+            from weasyprint import HTML
+            pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri(), url_fetcher=weasyprint_url_fetcher).write_pdf()
+            response = HttpResponse(pdf_file, content_type='application/pdf')
+            filename = f"reportcard_{student.exam_no or student.id}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+        except ImportError:
+            pass
 
     return render(request, "score/reportcard.html", context)
 
@@ -7459,6 +7539,27 @@ def get_user_context(request):
             }
         except Student.DoesNotExist:
             return None
+    
+    elif user_type == 'subject_teacher':
+        # Subject Teacher access (AI Portal) — PIN-based, no Django auth user
+        school_id = request.session.get('school_id')
+        if not school_id:
+            return None
+        
+        school = School.objects.filter(id=school_id).first()
+        if not school:
+            return None
+        
+        return {
+            'is_admin': False,
+            'is_teacher': False,
+            'is_subject_teacher': True,
+            'is_student': False,
+            'school': school,
+            'class_group': None,
+            'student': None,
+            'classes': ClassGroup.objects.filter(school=school).order_by('name')
+        }
     
     return None
 

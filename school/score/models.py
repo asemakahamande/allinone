@@ -424,6 +424,8 @@ class SchoolSetting(models.Model):
     logo = models.ImageField(upload_to="school_logos/", blank=True, null=True)
     stamp_sign = models.ImageField(upload_to="school_logos/", blank=True, null=True)
 
+    subject_teacher_pin = models.CharField(max_length=20, unique=True, blank=True, null=True, help_text="Unique PIN for Subject Teachers to log in")
+
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

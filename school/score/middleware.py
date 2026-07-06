@@ -14,7 +14,7 @@ from .models import School
 def _session_cookie_name_for_user_type(user_type):
     """Return the session cookie name to use for this user type (teacher/student get isolated cookies)."""
     base = getattr(settings, 'SESSION_COOKIE_NAME', 'sessionid')
-    if user_type == 'teacher':
+    if user_type in ('teacher', 'subject_teacher'):
         return f'{base}_teacher'
     if user_type == 'student':
         return f'{base}_student'
@@ -113,6 +113,7 @@ class SchoolAuthenticationMiddleware:
             '/api/get-local-governments/',  # registration form only
             '/teacher/',   # All teachers URLs
             '/employer/',  # All employer URLs
+            '/ai/',        # AI agents portal
         ]
 
     def __call__(self, request):

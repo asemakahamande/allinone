@@ -39,7 +39,7 @@
                     <i data-lucide="layers" class="w-4 h-4 text-purple-600"></i>
                     Class
                 </label>
-                {% if is_admin %}
+                {% if is_admin or is_subject_teacher %}
                     <select name="class_id" 
                             id="class_id" 
                             onchange="this.form.submit()"

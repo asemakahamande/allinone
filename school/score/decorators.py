@@ -31,9 +31,10 @@ def school_required(view_func):
             # Attach school to request for easy access in views
             school = School.objects.get(id=school_id)
             
-            # Enforce tier match
+            # Enforce tier match (bypass during local development)
+            from django.conf import settings
             current_tier = getattr(request, 'tier_name', 'basic')
-            if school.tier_name != current_tier:
+            if school.tier_name != current_tier and not getattr(settings, 'DEBUG', False):
                 request.session.flush()
                 messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
                 return redirect("login")
@@ -72,9 +73,10 @@ def get_school_from_session(request):
     try:
         school = School.objects.get(id=school_id)
         
-        # Enforce tier match
+        # Enforce tier match (bypass during local development)
+        from django.conf import settings
         current_tier = getattr(request, 'tier_name', 'basic')
-        if school.tier_name != current_tier:
+        if school.tier_name != current_tier and not getattr(settings, 'DEBUG', False):
             request.session.flush()
             messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
             return None, redirect("login")
@@ -106,9 +108,10 @@ def get_school_or_redirect(request):
     try:
         school = School.objects.get(id=school_id)
         
-        # Enforce tier match
+        # Enforce tier match (bypass during local development)
+        from django.conf import settings
         current_tier = getattr(request, 'tier_name', 'basic')
-        if school.tier_name != current_tier:
+        if school.tier_name != current_tier and not getattr(settings, 'DEBUG', False):
             request.session.flush()
             messages.error(request, f"This account is registered on the {school.tier_name.title()} plan. Please log in from the correct portal.")
             return redirect("login")
