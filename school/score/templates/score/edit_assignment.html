@@ -1,0 +1,259 @@
+{% extends base_template %}
+{% load static %}
+{% block title %}Edit Assignment{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-3xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{% url 'assignment_list' %}" class="text-slate-400 hover:text-slate-600 transition">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Edit Assignment</h2>
+            <p class="text-slate-500 text-sm mt-0.5">Modify questions, marks, and deadline</p>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" id="assignment-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" name="questions_json" id="questions_json">
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-5 mb-6">
+            <h3 class="text-sm font-bold text-slate-600 uppercase tracking-wider border-b pb-3">Assignment Details</h3>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Title <span class="text-red-500">*</span></label>
+                <input type="text" name="title" required value="{{ assignment.title }}"
+                       class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition"
+                       placeholder="e.g. Mid-term Mathematics Test">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Description / Instructions</label>
+                <textarea name="description" rows="3"
+                          class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition resize-none"
+                          placeholder="Any additional instructions for students...">{{ assignment.description }}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Class <span class="text-red-500">*</span></label>
+                    <select name="class_group" id="class_group" required
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition"
+                            onchange="loadSubjects(this.value)">
+                        <option value="">Select class...</option>
+                        {% for cls in classes %}
+                        <option value="{{ cls.id }}" {% if assignment.class_group_id == cls.id %}selected{% endif %}>{{ cls.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Subject <span class="text-red-500">*</span></label>
+                    <select name="subject" id="subject_select" required
+                            class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition">
+                        <option value="{{ assignment.subject.id }}">{{ assignment.subject.name }}</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Term <span class="text-red-500">*</span></label>
+                    <select name="term" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition">
+                        <option value="">Select Term</option>
+                        {% for term in terms %}
+                        <option value="{{ term.id }}" {% if assignment.term_id == term.id %}selected{% endif %}>{{ term.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Session <span class="text-red-500">*</span></label>
+                    <select name="session" required class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition">
+                        <option value="">Select Session</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if assignment.session_id == session.id %}selected{% endif %}>{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Deadline <span class="text-red-500">*</span></label>
+                    <input type="datetime-local" name="deadline" required value="{{ assignment.deadline_formatted }}"
+                           class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-purple-400 focus:border-purple-400 outline-none transition">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-6">
+            <div class="flex items-center justify-between mb-4 border-b pb-3">
+                <h3 class="text-sm font-bold text-slate-600 uppercase tracking-wider">Questions (<span id="total-marks-display" class="text-purple-600">0</span> Marks)</h3>
+                <button type="button" onclick="addQuestion()" 
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold rounded-lg transition">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Question
+                </button>
+            </div>
+            
+            <div id="no-questions-hint" class="text-center py-8 text-slate-400 text-sm hidden">
+                No questions added yet. Click "Add Question" to begin.
+            </div>
+
+            <div id="questions-container" class="space-y-4">
+                <!-- Dynamically added questions go here -->
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button type="submit" 
+                    class="flex-1 bg-purple-600 text-white font-semibold py-3 rounded-xl hover:bg-purple-700 shadow-sm hover:shadow transition">
+                Save Changes
+            </button>
+            <a href="{% url 'assignment_list' %}"
+               class="px-6 py-3 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition text-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+let questions = {{ assignment.questions|safe|default:"[]" }};
+let questionCounter = 0;
+
+// Initialize missing IDs for legacy questions and set max counter
+questions.forEach((q, i) => {
+    if (q.id === undefined) q.id = i;
+    questionCounter = Math.max(questionCounter, q.id + 1);
+});
+
+function addQuestion() {
+    const qId = questionCounter++;
+    questions.push({ id: qId, text: '', marks: 1 });
+    renderSingleQuestion(qId, '', 1);
+}
+
+function renderSingleQuestion(qId, text, marks) {
+    const container = document.getElementById('questions-container');
+    const hint = document.getElementById('no-questions-hint');
+    hint.style.display = 'none';
+
+    const div = document.createElement('div');
+    div.className = 'flex gap-3 items-start bg-purple-50 rounded-xl p-4 border border-purple-100 question-row';
+    div.id = `question-row-${qId}`;
+    
+    // Find if this question already has a file_url
+    const q = questions.find(q => q.id === qId);
+    const attachmentHtml = q && q.file_url 
+        ? `<div class="mt-1 text-xs text-blue-600 font-semibold"><a href="${q.file_url}" target="_blank">Current Attachment</a></div>`
+        : '';
+
+    div.innerHTML = `
+        <span class="w-7 h-7 flex-shrink-0 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-1 question-number"></span>
+        <div class="flex-1 space-y-2">
+            <textarea
+                placeholder="Question text..."
+                rows="2"
+                class="w-full px-3 py-2 border border-purple-200 rounded-lg text-sm resize-none outline-none focus:ring-purple-400 focus:border-purple-400 bg-white"
+                oninput="updateQuestion(${qId}, 'text', this.value)"
+            >${text || ''}</textarea>
+            <div class="flex items-center gap-4 mt-2">
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-semibold text-slate-600">Marks:</label>
+                    <input type="number" min="0.5" step="0.5" value="${marks || 1}"
+                           class="w-24 px-2 py-1.5 border border-purple-200 rounded-lg text-sm outline-none focus:ring-purple-400 focus:border-purple-400 bg-white"
+                           oninput="updateQuestion(${qId}, 'marks', parseFloat(this.value) || 0)">
+                </div>
+                <div class="flex items-center gap-2 flex-1">
+                    <label class="text-xs font-semibold text-slate-600">Attachment (replaces existing):</label>
+                    <input type="file" name="question_file_${qId}" 
+                           class="text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 transition">
+                    ${attachmentHtml}
+                </div>
+            </div>
+        </div>
+        <button type="button" onclick="removeQuestion(${qId})" class="text-red-400 hover:text-red-600 mt-1 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+    `;
+    container.appendChild(div);
+    updateQuestionNumbers();
+    updateTotalMarks();
+}
+
+function removeQuestion(qId) {
+    const idx = questions.findIndex(q => q.id === qId);
+    if (idx !== -1) {
+        questions.splice(idx, 1);
+        const row = document.getElementById(`question-row-${qId}`);
+        if (row) row.remove();
+        updateQuestionNumbers();
+        updateTotalMarks();
+        
+        const hint = document.getElementById('no-questions-hint');
+        hint.style.display = questions.length ? 'none' : 'block';
+    }
+}
+
+function updateQuestion(qId, key, value) {
+    const idx = questions.findIndex(q => q.id === qId);
+    if (idx !== -1) {
+        questions[idx][key] = value;
+        updateTotalMarks();
+    }
+}
+
+function updateQuestionNumbers() {
+    const rows = document.querySelectorAll('.question-row .question-number');
+    rows.forEach((el, index) => {
+        el.textContent = index + 1;
+    });
+}
+
+function updateTotalMarks() {
+    const total = questions.reduce((sum, q) => sum + (parseFloat(q.marks) || 0), 0);
+    document.getElementById('total-marks-display').textContent = total;
+}
+
+async function loadSubjects(classId) {
+    const select = document.getElementById('subject_select');
+    select.innerHTML = '<option value="">Loading...</option>';
+    if (!classId) { select.innerHTML = '<option value="">Select class first...</option>'; return; }
+    try {
+        const resp = await fetch(`/api/subjects/?class_id=${classId}&_t=${new Date().getTime()}`, {
+            cache: 'no-store'
+        });
+        const data = await resp.json();
+        select.innerHTML = '<option value="">Select subject...</option>';
+        (data.subjects || []).forEach(s => {
+            const o = document.createElement('option');
+            o.value = s.id; o.textContent = s.name;
+            select.appendChild(o);
+        });
+    } catch {
+        select.innerHTML = '<option value="">Could not load subjects</option>';
+    }
+}
+
+// Handle form submission — pack questions into hidden field
+document.getElementById('assignment-form').addEventListener('submit', function(e) {
+    if (questions.length === 0) {
+        e.preventDefault();
+        alert('Please add at least one question.');
+        return;
+    }
+    document.getElementById('questions_json').value = JSON.stringify(questions);
+});
+
+// Initial render
+if (questions.length > 0) {
+    questions.forEach(q => {
+        renderSingleQuestion(q.id, q.text, q.marks);
+    });
+} else {
+    addQuestion();
+}
+</script>
+{% endblock %}

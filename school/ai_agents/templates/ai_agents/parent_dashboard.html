@@ -67,6 +67,15 @@
         </a>
     </li>
 
+    <!-- Assignments -->
+    <li>
+        <a href="#assignments"
+           class="show-dashboard menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="clipboard-list" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Assignments</span>
+        </a>
+    </li>
+
     <!-- Parent AI -->
     <li>
         <a href="#ai-assistant"
@@ -115,6 +124,7 @@
     <div class="relative z-10">
         <h2 class="text-2xl sm:text-3xl font-bold">Parent Portal</h2>
         <p class="text-white/90 mt-2">
+            Class: <span class="font-semibold">{{ student.class_group.name }}</span> | 
             Term: <span class="font-semibold">{{ current_term.name }}</span> | 
             Class Teacher: <span class="font-semibold">
                 {% if student.class_group.teacher_user %}
@@ -139,41 +149,50 @@
 </section>
 
 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-6">
-    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+    <div class="content-card p-5 shadow-sm border border-purple-100 hover:shadow-md hover:border-purple-200 transition rounded-2xl bg-gradient-to-br from-white to-purple-50">
         <div class="flex items-start justify-between">
             <div>
-                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Child's Avg Score</p>
-                <p class="text-3xl font-bold text-slate-900 mt-2">{{ average_score }}%</p>
-                <p class="text-sm text-slate-500 mt-2">Across recorded subjects</p>
+                <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Child's Avg Score</p>
+                <p class="text-4xl font-extrabold text-purple-900 mt-2">{{ average_score }}%</p>
+                <p class="text-sm font-medium text-purple-600 mt-2">Across recorded subjects</p>
             </div>
-            <div class="p-2.5 rounded-xl bg-purple-50 text-purple-700">
-                <i data-lucide="percent" class="w-5 h-5"></i>
+            <div class="p-3 rounded-2xl bg-purple-100 text-purple-700 shadow-inner">
+                <i data-lucide="percent" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 
-    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+    <div class="content-card p-5 shadow-sm border border-purple-100 hover:shadow-md hover:border-purple-200 transition rounded-2xl bg-gradient-to-br from-white to-purple-50">
         <div class="flex items-start justify-between">
             <div>
-                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Child's Attendance</p>
-                <p class="text-3xl font-bold text-slate-900 mt-2">{{ attendance_percentage }}%</p>
-                <p class="text-sm text-slate-500 mt-2">This session</p>
+                <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Child's Attendance</p>
+                <p class="text-4xl font-extrabold text-purple-900 mt-2">{{ present_count }} <span class="text-lg font-bold text-purple-700/70">days present</span></p>
+                <p class="text-sm font-medium text-purple-600 mt-2 flex items-center gap-1.5">
+                    Today's status: 
+                    {% if today_status == 'Present' %}
+                        <span class="text-purple-700 font-bold bg-purple-200/60 px-2 py-0.5 rounded-md">{{ today_status }}</span>
+                    {% elif today_status == 'Absent' %}
+                        <span class="text-purple-700 font-bold bg-purple-200/60 px-2 py-0.5 rounded-md">{{ today_status }}</span>
+                    {% else %}
+                        <span class="text-purple-600 font-semibold">{{ today_status }}</span>
+                    {% endif %}
+                </p>
             </div>
-            <div class="p-2.5 rounded-xl bg-emerald-50 text-emerald-700">
-                <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+            <div class="p-3 rounded-2xl bg-purple-100 text-purple-700 shadow-inner">
+                <i data-lucide="clipboard-check" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
 
-    <div class="content-card p-5 shadow-sm border border-slate-100 hover:shadow-md transition rounded-2xl bg-white">
+    <div class="content-card p-5 shadow-sm border border-purple-100 hover:shadow-md hover:border-purple-200 transition rounded-2xl bg-gradient-to-br from-white to-purple-50">
         <div class="flex items-start justify-between">
             <div>
-                <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Subjects</p>
-                <p class="text-3xl font-bold text-slate-900 mt-2">{{ num_subjects }}</p>
-                <p class="text-sm text-slate-500 mt-2">Registered for this class</p>
+                <p class="text-xs font-bold text-purple-600 uppercase tracking-wider">Subjects</p>
+                <p class="text-4xl font-extrabold text-purple-900 mt-2">{{ num_subjects }}</p>
+                <p class="text-sm font-medium text-purple-600 mt-2">Registered for this class</p>
             </div>
-            <div class="p-2.5 rounded-xl bg-indigo-50 text-indigo-700">
-                <i data-lucide="book-open" class="w-5 h-5"></i>
+            <div class="p-3 rounded-2xl bg-purple-100 text-purple-700 shadow-inner">
+                <i data-lucide="book-open" class="w-6 h-6"></i>
             </div>
         </div>
     </div>
@@ -217,6 +236,67 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</section>
+
+<!-- Assignments Section for Parents -->
+<section id="assignments" class="content-card overflow-hidden mb-6 shadow-sm border border-slate-100 rounded-2xl bg-white">
+    <div class="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
+        <div>
+            <h3 class="text-lg font-bold text-slate-900">Child's Assignments</h3>
+            <p class="text-sm text-slate-500">{{ current_term.name }}</p>
+        </div>
+    </div>
+    <div class="overflow-x-auto">
+        {% if assignments %}
+        <table class="min-w-full">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Assignment</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Deadline</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Total Marks</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Score</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+                {% for a in assignments %}
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-6 py-4">
+                        <p class="font-semibold text-slate-800 text-sm">{{ a.title }}</p>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ a.subject.name }}</td>
+                    <td class="px-6 py-4 text-sm text-slate-600">{{ a.deadline|date:"d M Y, H:i" }}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-purple-700">{{ a.total_marks }}</td>
+                    <td class="px-6 py-4">
+                        {% if a.my_submission %}
+                            {% if a.my_submission.status == 'graded' %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Graded</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">Submitted</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-600 border border-amber-200">Not Submitted</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-sm font-bold">
+                        {% if a.my_submission and a.my_submission.status == 'graded' %}
+                            <span class="text-emerald-700">{{ a.my_submission.score }} / {{ a.total_marks }}</span>
+                        {% else %}
+                            <span class="text-slate-300">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-12 text-slate-400">
+            <i data-lucide="clipboard-list" class="w-10 h-10 mb-3 text-slate-200"></i>
+            <p class="font-semibold">No assignments yet</p>
+        </div>
+        {% endif %}
     </div>
 </section>
 

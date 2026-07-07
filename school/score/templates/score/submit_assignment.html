@@ -1,0 +1,225 @@
+{% extends "score/base_dashboard.html" %}
+{% load static %}
+{% block title %}Submit — {{ assignment.title }}{% endblock %}
+
+{% block sidebar_user_info %}
+<div class="user-info w-full bg-white/10 backdrop-blur-sm rounded-2xl p-3.5 border border-white/20 shadow-inner">
+    <div class="flex items-center gap-3">
+        <!-- Role avatar -->
+        <div class="relative flex-shrink-0">
+            <div class="w-11 h-11 rounded-xl bg-emerald-400/20 border border-emerald-300/40 flex items-center justify-center">
+                <i data-lucide="graduation-cap" class="w-6 h-6 text-emerald-300"></i>
+            </div>
+            <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white/30 rounded-full"></span>
+        </div>
+        <!-- Name & role -->
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-emerald-300/90 uppercase tracking-widest leading-none mb-1">Student</p>
+            <p class="text-sm font-bold text-white truncate leading-tight">{{ student.full_name }}</p>
+            <p class="text-[11px] text-white/60 truncate leading-tight">{{ student.class_group.name }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block sidebar_nav %}
+    <!-- Dashboard + collapse toggle -->
+    <li>
+        <div class="menu-item flex items-center p-3 rounded-lg rounded-l-none" id="dashboard-menu-link">
+            <a href="{% url 'student_dashboard' %}" class="flex items-center gap-3 flex-1 min-w-0">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 flex-shrink-0"></i>
+                <span class="menu-text font-medium">Dashboard</span>
+            </a>
+            <button id="sidebar-toggle-btn" type="button"
+                    onclick="toggleSidebar();"
+                    class="sidebar-nav-toggle toggle-btn icon-btn p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white"
+                    title="Collapse sidebar" aria-label="Collapse sidebar">
+                <i data-lucide="panel-left-close" class="w-4 h-4 sidebar-toggle-icon"></i>
+            </button>
+        </div>
+    </li>
+
+    <!-- Performance Analytics -->
+    <li>
+        <a href="{% url 'select_student_analytics' %}"
+           class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="trending-up" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Performance Analytics</span>
+        </a>
+    </li>
+
+    <!-- CBT Exam Login -->
+    {% if available_features.cbt_exams %}
+    <li>
+        <a href="{% url 'cbt_login' %}"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="log-in" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">CBT Exam Login</span>
+        </a>
+    </li>
+    {% endif %}
+
+    <!-- Print Report Card -->
+    <li>
+        <a href="{% url 'reportcard_home' %}"
+           class="load-in-frame menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="printer" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Print Report Card</span>
+        </a>
+    </li>
+
+    <!-- My Scores -->
+    <li>
+        <a href="{% url 'student_dashboard' %}#scores"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="file-text" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">My Scores</span>
+        </a>
+    </li>
+
+    <!-- Assignments -->
+    <li>
+        <a href="{% url 'student_assignments' %}"
+           class="menu-item active flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="clipboard-list" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">Assignments</span>
+        </a>
+    </li>
+{% endblock sidebar_nav %}
+
+{% block sidebar_logout %}
+    <a href="{% url 'unified_logout' %}"
+       class="logout-btn flex items-center gap-3 w-full p-3 rounded-lg rounded-l-none text-white hover:bg-white/10 transition-all duration-200 font-medium">
+        <i data-lucide="log-out" class="w-5 h-5 flex-shrink-0"></i>
+        <span class="menu-text">Logout</span>
+    </a>
+{% endblock %}
+
+{% block header_logo %}
+    {% if setting and setting.logo %}
+        <img src="{{ setting.logo.url }}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% elif student.school.logo %}
+        <img src="{{ student.school.logo.url }}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% else %}
+        <img src="{% static 'images/school-icon.png' %}" alt="{{ student.school.name }}"
+             class="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-contain rounded-lg flex-shrink-0 shadow-md" />
+    {% endif %}
+{% endblock %}
+
+{% block header_school_name %}
+    <p class="header-brand-sub text-sm sm:text-base md:text-lg truncate" title="{{ student.school.name }}">Welcome, {{ student.school.name }}</p>
+{% endblock %}
+
+{% block header_user_name %}
+    <p class="header-brand-sub text-sm sm:text-base font-semibold truncate max-w-[120px] sm:max-w-[200px]"
+       title="{{ student.full_name }}">{{ student.full_name }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-3xl mx-auto">
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{% url 'student_assignments' %}" class="text-slate-400 hover:text-slate-600 transition">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </a>
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">{{ assignment.title }}</h2>
+            <p class="text-slate-500 text-sm mt-0.5">
+                {{ assignment.subject.name }} · Deadline: {{ assignment.deadline|date:"d M Y, H:i" }} · Total: {{ assignment.total_marks }} marks
+            </p>
+        </div>
+    </div>
+
+    {% if assignment.description %}
+    <div class="bg-purple-50 border border-purple-100 rounded-2xl p-5 mb-6 text-sm text-slate-700">
+        <p class="font-semibold text-purple-700 mb-1">Instructions:</p>
+        {{ assignment.description }}
+    </div>
+    {% endif %}
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-emerald-50 text-emerald-700{% endif %}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="submit-form">
+        {% csrf_token %}
+        <input type="hidden" name="answers_json" id="answers_json">
+
+        <!-- Questions -->
+        <div class="space-y-5 mb-6">
+            {% for q in assignment.questions %}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+                <div class="flex gap-3 mb-4">
+                    <span class="w-7 h-7 flex-shrink-0 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">{{ forloop.counter }}</span>
+                    <div>
+                        <p class="font-semibold text-slate-800 text-sm whitespace-pre-wrap">{{ q.text }}</p>
+                        {% if q.file_url %}
+                        <a href="{{ q.file_url }}" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 mt-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">
+                            <i data-lucide="paperclip" class="w-3 h-3"></i> View Attachment
+                        </a>
+                        {% endif %}
+                        <p class="text-xs text-purple-600 font-semibold mt-1">{{ q.marks }} mark{{ q.marks|pluralize }}</p>
+                    </div>
+                </div>
+                <textarea
+                    id="answer_{{ forloop.counter0 }}"
+                    name="answer_{{ forloop.counter0 }}"
+                    rows="4"
+                    placeholder="Type your answer here..."
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm outline-none focus:ring-purple-400 focus:border-purple-400 transition resize-none mb-3"
+                ></textarea>
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-semibold text-slate-600">Attachment (Optional):</label>
+                    <input type="file" name="answer_file_{{ forloop.counter0 }}" 
+                           class="text-sm text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-700 hover:file:bg-purple-200 transition">
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- File Upload -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 mb-6">
+            <h3 class="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">Upload File (Optional)</h3>
+            <p class="text-xs text-slate-400 mb-3">You can also upload a document, image, or PDF as your submission.</p>
+            <label class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50 transition group">
+                <i data-lucide="upload-cloud" class="w-8 h-8 text-slate-300 group-hover:text-purple-400 mb-2 transition"></i>
+                <span class="text-sm text-slate-400 group-hover:text-purple-500 font-medium" id="file-label">Click to upload or drag & drop</span>
+                <input type="file" name="submission_file" class="hidden" id="submission_file" onchange="updateFileLabel(this)">
+            </label>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="submit"
+                    class="flex-1 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow transition flex items-center justify-center gap-2">
+                <i data-lucide="send" class="w-4 h-4"></i> Submit Assignment
+            </button>
+            <a href="{% url 'student_assignments' %}"
+               class="px-6 py-3 border border-slate-200 text-slate-600 font-semibold rounded-xl hover:bg-slate-50 transition text-center">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+<script>
+function updateFileLabel(input) {
+    const label = document.getElementById('file-label');
+    if (input.files && input.files[0]) {
+        label.textContent = input.files[0].name;
+    }
+}
+
+document.getElementById('submit-form').addEventListener('submit', function(e) {
+    const numQuestions = {{ assignment.questions|length }};
+    const answers = [];
+    for (let i = 0; i < numQuestions; i++) {
+        const el = document.getElementById('answer_' + i);
+        answers.push({ text: el ? el.value.trim() : '' });
+    }
+    document.getElementById('answers_json').value = JSON.stringify(answers);
+});
+</script>
+{% endblock %}

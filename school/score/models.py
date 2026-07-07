@@ -944,3 +944,68 @@ class QuestionResponse(models.Model):
     
     def __str__(self):
         return f"{self.result.student.full_name} - Q{self.question.order}"
+
+
+# ===========================
+# ASSIGNMENT MODELS
+# ===========================
+
+class Assignment(models.Model):
+    """Assignment created by a Subject Teacher for a specific class and subject."""
+    school      = models.ForeignKey(School, on_delete=models.CASCADE, related_name='assignments')
+    class_group = models.ForeignKey(ClassGroup, on_delete=models.CASCADE, related_name='assignments')
+    subject     = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='assignments')
+    term        = models.ForeignKey(Term, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
+    session     = models.ForeignKey(AcademicSession, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
+
+    title       = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    # questions stored as [{"text": "...", "marks": 5}, ...]
+    questions   = models.JSONField(default=list)
+    total_marks = models.FloatField(default=0)
+
+    deadline    = models.DateTimeField()
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} — {self.subject.name} ({self.class_group.name})"
+
+    def save(self, *args, **kwargs):
+        # Auto-compute total_marks from questions list
+        if self.questions and isinstance(self.questions, list):
+            self.total_marks = sum(float(q.get('marks', 0)) for q in self.questions)
+        super().save(*args, **kwargs)
+
+
+class AssignmentSubmission(models.Model):
+    """A student's submission for an assignment."""
+    STATUS_CHOICES = [
+        ('pending',   'Pending'),
+        ('submitted', 'Submitted'),
+        ('graded',    'Graded'),
+    ]
+
+    assignment   = models.ForeignKey(Assignment, on_delete=models.CASCADE, related_name='submissions')
+    student      = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='assignment_submissions')
+
+    # answers stored as ["answer to q1", "answer to q2", ...]
+    answers      = models.JSONField(default=list)
+    file         = models.FileField(upload_to='assignments/submissions/', blank=True, null=True)
+
+    status       = models.CharField(max_length=10, choices=STATUS_CHOICES, default='submitted')
+    score        = models.FloatField(null=True, blank=True, help_text='Score given by subject teacher after grading')
+
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    graded_at    = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('assignment', 'student')
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.student.full_name} → {self.assignment.title} [{self.status}]"

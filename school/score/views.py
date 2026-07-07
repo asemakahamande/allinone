@@ -508,6 +508,29 @@ def student_dashboard(request):
     total_attendance = Attendance.objects.filter(student=student).count()
     present_count = Attendance.objects.filter(student=student, status="present").count()
     attendance_percentage = round((present_count / total_attendance * 100), 2) if total_attendance else 0
+
+    # Get recent assignments (top 5 per subject)
+    all_assignments = Assignment.objects.filter(
+        class_group=student.class_group
+    ).select_related('subject', 'term').order_by('-deadline')
+    
+    subject_counts = {}
+    assignments = []
+    for a in all_assignments:
+        if subject_counts.get(a.subject_id, 0) < 5:
+            assignments.append(a)
+            subject_counts[a.subject_id] = subject_counts.get(a.subject_id, 0) + 1
+            
+    # Optional: re-sort by deadline ascending if you want upcoming first
+    # assignments.sort(key=lambda x: x.deadline)
+
+    # Annotate each assignment with this student's submission
+    submission_map = {
+        sub.assignment_id: sub
+        for sub in AssignmentSubmission.objects.filter(student=student)
+    }
+    for a in assignments:
+        a.my_submission = submission_map.get(a.id)
     
     from .models import SchoolSetting
     setting = SchoolSetting.objects.filter(school=student.school).first()
@@ -522,6 +545,7 @@ def student_dashboard(request):
         'present_count': present_count,
         'total_attendance': total_attendance,
         'current_term': current_term,
+        'assignments': assignments,
     }
     
     return render(request, "score/student_dashboard.html", context)
@@ -588,6 +612,10 @@ def view_all_credentials(request):
     if not context:
         messages.error(request, "Access denied.")
         return redirect("unified_login")
+        
+    if context.get('is_subject_teacher'):
+        messages.error(request, "Subject teachers do not have access to view class credentials.")
+        return redirect("normal_teacher_dashboard")
 
     is_admin = context['is_admin']
 
@@ -8142,3 +8170,586 @@ def student_performance_analytics(request, student_id):
     if request.GET.get("embed"):
         response["X-Frame-Options"] = "SAMEORIGIN"
     return response
+
+
+# =============================================================
+# ASSIGNMENT VIEWS
+# =============================================================
+from .models import Assignment, AssignmentSubmission
+from django.http import JsonResponse as _JsonResponse
+
+
+# ── API: subjects for a class (for dynamic dropdown) ─────────
+def get_subjects_for_class(request):
+    class_id = request.GET.get('class_id')
+    if not class_id:
+        return _JsonResponse({'subjects': []})
+    subjects = Subject.objects.filter(class_group_id=class_id).order_by('name')
+    return _JsonResponse({'subjects': [{'id': s.id, 'name': s.name} for s in subjects]})
+
+
+# ── SUBJECT TEACHER: list all assignments ─────────────────────
+def assignment_list(request):
+    """Subject teacher views all assignments they can manage."""
+    context = get_user_context(request)
+    if not context:
+        return redirect('unified_login')
+
+    user_type = request.session.get('user_type', '')
+    is_admin = context.get('is_admin', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
+
+    if not (is_admin or is_subject_teacher):
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    school = context['school']
+    class_filter = request.GET.get('class_id')
+    subject_filter = request.GET.get('subject_id')
+    term_filter = request.GET.get('term_id')
+    session_filter = request.GET.get('session_id')
+    any_filter = class_filter or subject_filter or term_filter or session_filter
+
+    all_assignments = Assignment.objects.filter(school=school).select_related(
+        'class_group', 'subject', 'term', 'session'
+    ).prefetch_related('submissions').order_by('-deadline')
+
+    if class_filter:
+        all_assignments = all_assignments.filter(class_group_id=class_filter)
+    if subject_filter:
+        all_assignments = all_assignments.filter(subject_id=subject_filter)
+    if term_filter:
+        all_assignments = all_assignments.filter(term_id=term_filter)
+    if session_filter:
+        all_assignments = all_assignments.filter(session_id=session_filter)
+
+    if any_filter:
+        assignments = list(all_assignments)
+    else:
+        # Default: 5 most recent per subject
+        subject_counts = {}
+        assignments = []
+        for a in all_assignments:
+            if subject_counts.get(a.subject_id, 0) < 5:
+                assignments.append(a)
+                subject_counts[a.subject_id] = subject_counts.get(a.subject_id, 0) + 1
+
+    classes = ClassGroup.objects.filter(school=school).order_by('name')
+    terms = Term.objects.all()
+    sessions = AcademicSession.objects.all().order_by('-name')
+    # If a class is selected filter subjects to that class, else show all school subjects
+    if class_filter:
+        subjects = Subject.objects.filter(class_group_id=class_filter).order_by('name')
+    else:
+        subjects = Subject.objects.filter(class_group__school=school).order_by('name')
+
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
+    return render(request, "score/assignment_list.html", {
+        **context,
+        'assignments': assignments,
+        'classes': classes,
+        'subjects': subjects,
+        'terms': terms,
+        'sessions': sessions,
+        'base_template': base_template,
+        'is_subject_teacher': is_subject_teacher,
+        'any_filter': any_filter,
+    })
+
+
+# ── SUBJECT TEACHER: create assignment ────────────────────────
+def create_assignment(request):
+    """Subject teacher creates a new assignment."""
+    context = get_user_context(request)
+    if not context:
+        return redirect('unified_login')
+
+    is_admin = context.get('is_admin', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
+
+    if not (is_admin or is_subject_teacher):
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    school = context['school']
+    classes = ClassGroup.objects.filter(school=school).order_by('name')
+    terms = Term.objects.all()
+    sessions = AcademicSession.objects.all().order_by('-name')
+
+    if request.method == 'POST':
+        import json as _json
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        class_id = request.POST.get('class_group')
+        subject_id = request.POST.get('subject')
+        term_id = request.POST.get('term')
+        session_id = request.POST.get('session')
+        deadline = request.POST.get('deadline')
+        questions_json = request.POST.get('questions_json', '[]')
+
+        try:
+            questions = _json.loads(questions_json)
+        except Exception:
+            questions = []
+
+        if not title or not class_id or not subject_id or not term_id or not session_id or not deadline or not questions:
+            messages.error(request, "Please fill all required fields (including Term and Session) and add at least one question.")
+        else:
+            try:
+                from django.core.files.storage import default_storage
+                import os
+
+                for idx, q in enumerate(questions):
+                    file_key = f'question_file_{idx}'
+                    if file_key in request.FILES:
+                        uploaded_file = request.FILES[file_key]
+                        file_path = os.path.join('assignments/questions', uploaded_file.name)
+                        filename = default_storage.save(file_path, uploaded_file)
+                        q['file_url'] = default_storage.url(filename)
+
+                class_group = ClassGroup.objects.get(id=class_id, school=school)
+                subject = Subject.objects.get(id=subject_id, class_group=class_group)
+                term = Term.objects.get(id=term_id)
+                session = AcademicSession.objects.get(id=session_id)
+
+                assignment = Assignment.objects.create(
+                    school=school,
+                    class_group=class_group,
+                    subject=subject,
+                    term=term,
+                    session=session,
+                    title=title,
+                    description=description,
+                    questions=questions,
+                    deadline=deadline,
+                )
+                messages.success(request, f"Assignment '{assignment.title}' created successfully!")
+                return redirect('assignment_list')
+            except Exception as e:
+                messages.error(request, f"Error creating assignment: {e}")
+
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
+    return render(request, "score/create_assignment.html", {
+        **context,
+        'classes': classes,
+        'terms': terms,
+        'sessions': sessions,
+        'base_template': base_template,
+        'is_subject_teacher': is_subject_teacher,
+    })
+
+# ── SUBJECT TEACHER: edit assignment ────────────────────────
+def edit_assignment(request, assignment_id):
+    """Subject teacher edits an existing assignment."""
+    context = get_user_context(request)
+    if not context:
+        return redirect('unified_login')
+
+    is_admin = context.get('is_admin', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
+
+    if not (is_admin or is_subject_teacher):
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    school = context['school']
+    
+    from django.shortcuts import get_object_or_404
+    assignment = get_object_or_404(Assignment, id=assignment_id, school=school)
+
+    classes = ClassGroup.objects.filter(school=school).order_by('name')
+    terms = Term.objects.all()
+    sessions = AcademicSession.objects.all().order_by('-name')
+
+    if request.method == 'POST':
+        import json as _json
+        title = request.POST.get('title', '').strip()
+        description = request.POST.get('description', '').strip()
+        class_id = request.POST.get('class_group')
+        subject_id = request.POST.get('subject')
+        term_id = request.POST.get('term')
+        session_id = request.POST.get('session')
+        deadline = request.POST.get('deadline')
+        questions_json = request.POST.get('questions_json', '[]')
+
+        try:
+            questions = _json.loads(questions_json)
+        except Exception:
+            questions = []
+
+        if not title or not class_id or not subject_id or not term_id or not session_id or not deadline or not questions:
+            messages.error(request, "Please fill all required fields (including Term and Session) and add at least one question.")
+        else:
+            try:
+                from django.core.files.storage import default_storage
+                import os
+
+                for idx, q in enumerate(questions):
+                    q_id = q.get('id', idx)
+                    file_key = f'question_file_{q_id}'
+                    if file_key in request.FILES:
+                        uploaded_file = request.FILES[file_key]
+                        file_path = os.path.join('assignments/questions', uploaded_file.name)
+                        filename = default_storage.save(file_path, uploaded_file)
+                        q['file_url'] = default_storage.url(filename)
+
+                class_group = ClassGroup.objects.get(id=class_id, school=school)
+                subject = Subject.objects.get(id=subject_id, class_group=class_group)
+                term = Term.objects.get(id=term_id)
+                session = AcademicSession.objects.get(id=session_id)
+
+                assignment.title = title
+                assignment.description = description
+                assignment.class_group = class_group
+                assignment.subject = subject
+                assignment.term = term
+                assignment.session = session
+                assignment.deadline = deadline
+                assignment.questions = questions
+                assignment.save()
+
+                messages.success(request, f"Assignment '{assignment.title}' updated successfully!")
+                return redirect('assignment_list')
+            except Exception as e:
+                messages.error(request, f"Error updating assignment: {e}")
+
+    # Format deadline for datetime-local input
+    if assignment.deadline:
+        assignment.deadline_formatted = assignment.deadline.strftime('%Y-%m-%dT%H:%M')
+
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
+    return render(request, "score/edit_assignment.html", {
+        **context,
+        'assignment': assignment,
+        'classes': classes,
+        'terms': terms,
+        'sessions': sessions,
+        'base_template': base_template,
+        'is_subject_teacher': is_subject_teacher,
+    })
+
+
+# ── SUBJECT TEACHER: delete assignment ────────────────────────
+def delete_assignment(request, assignment_id):
+    context = get_user_context(request)
+    if not context:
+        return redirect('unified_login')
+    is_admin = context.get('is_admin', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
+    if not (is_admin or is_subject_teacher):
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+    school = context['school']
+    assignment = get_object_or_404(Assignment, id=assignment_id, school=school)
+    if request.method == 'POST':
+        assignment.delete()
+        messages.success(request, "Assignment deleted.")
+    return redirect('assignment_list')
+
+
+# ── SUBJECT TEACHER: view & grade submissions ─────────────────
+def view_submissions(request, assignment_id):
+    """Subject teacher views all student submissions and can grade them."""
+    context = get_user_context(request)
+    if not context:
+        return redirect('unified_login')
+    is_admin = context.get('is_admin', False)
+    is_subject_teacher = context.get('is_subject_teacher', False)
+    if not (is_admin or is_subject_teacher):
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    school = context['school']
+    assignment = get_object_or_404(Assignment, id=assignment_id, school=school)
+
+    if request.method == 'POST':
+        # Grade a submission
+        sub_id = request.POST.get('submission_id')
+        score_val = request.POST.get('score')
+        if sub_id and score_val is not None:
+            try:
+                sub = AssignmentSubmission.objects.get(id=sub_id, assignment=assignment)
+                sub.score = float(score_val)
+                sub.status = 'graded'
+                sub.graded_at = timezone.now()
+                sub.save()
+                messages.success(request, f"Score saved for {sub.student.full_name}.")
+            except Exception as e:
+                messages.error(request, f"Error saving score: {e}")
+        return redirect('view_submissions', assignment_id=assignment_id)
+
+    submissions = list(assignment.submissions.select_related('student').all())
+    for sub in submissions:
+        formatted_answers = []
+        for a in sub.answers:
+            if isinstance(a, str):
+                formatted_answers.append({'text': a})
+            else:
+                formatted_answers.append(a)
+        sub.answers = formatted_answers
+
+    total_students = Student.objects.filter(class_group=assignment.class_group, is_active=True).count()
+    submitted_count = len(submissions)
+
+    is_subject_teacher = context.get('is_subject_teacher', False)
+    base_template = "ai_agents/normal_teacher_dashboard.html" if is_subject_teacher else "score/dashboard.html"
+    return render(request, "score/view_submissions.html", {
+        **context,
+        'assignment': assignment,
+        'submissions': submissions,
+        'total_students': total_students,
+        'submitted_count': submitted_count,
+        'base_template': base_template,
+        'is_subject_teacher': is_subject_teacher,
+    })
+
+
+# ── CLASS TEACHER: see assignments for their class ────────────
+@login_required
+def class_teacher_assignments(request):
+    """Class teacher sees all assignments for their class and submission stats."""
+    if request.session.get('user_type') != 'teacher':
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    try:
+        class_group = ClassGroup.objects.get(teacher_user=request.user)
+    except ClassGroup.DoesNotExist:
+        messages.error(request, "You are not assigned to any class.")
+        return redirect('unified_login')
+
+    subject_filter = request.GET.get('subject_id')
+    term_filter = request.GET.get('term_id')
+    session_filter = request.GET.get('session_id')
+    any_filter = subject_filter or term_filter or session_filter
+
+    all_assignments = Assignment.objects.filter(
+        class_group=class_group
+    ).select_related('subject', 'term', 'session').prefetch_related('submissions').order_by('-deadline')
+
+    if subject_filter:
+        all_assignments = all_assignments.filter(subject_id=subject_filter)
+    if term_filter:
+        all_assignments = all_assignments.filter(term_id=term_filter)
+    if session_filter:
+        all_assignments = all_assignments.filter(session_id=session_filter)
+
+    if any_filter:
+        # When a filter is active show all matching results
+        assignments = list(all_assignments)
+    else:
+        # Default: show only 5 most recent per subject
+        subject_counts = {}
+        assignments = []
+        for a in all_assignments:
+            if subject_counts.get(a.subject_id, 0) < 5:
+                assignments.append(a)
+                subject_counts[a.subject_id] = subject_counts.get(a.subject_id, 0) + 1
+
+    total_students = Student.objects.filter(class_group=class_group, is_active=True).count()
+    setting = SchoolSetting.objects.filter(school=class_group.school).first()
+
+    subjects = Subject.objects.filter(class_group=class_group).order_by('name')
+    terms = Term.objects.all()
+    sessions = AcademicSession.objects.all().order_by('-name')
+
+    return render(request, "score/class_assignment_list.html", {
+        'class_group': class_group,
+        'school': class_group.school,
+        'setting': setting,
+        'assignments': assignments,
+        'total_students': total_students,
+        'subjects': subjects,
+        'terms': terms,
+        'sessions': sessions,
+        'any_filter': any_filter,
+    })
+
+
+# ── CLASS TEACHER: view submissions for a specific assignment ─────────────────
+@login_required
+def class_teacher_view_submissions(request, assignment_id):
+    """Class teacher views full student roster with submission + grade status."""
+    if request.session.get('user_type') != 'teacher':
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    try:
+        class_group = ClassGroup.objects.select_related('school').get(teacher_user=request.user)
+    except ClassGroup.DoesNotExist:
+        messages.error(request, "You are not assigned to any class.")
+        return redirect('unified_login')
+
+    assignment = get_object_or_404(Assignment, id=assignment_id, class_group=class_group)
+
+    # All active students in this class
+    all_students = Student.objects.filter(
+        class_group=class_group, is_active=True
+    ).order_by('surname', 'first_name')
+
+    # All submissions for this assignment
+    submissions_map = {
+        sub.student_id: sub
+        for sub in AssignmentSubmission.objects.filter(assignment=assignment).select_related('student')
+    }
+
+    # Build a combined roster
+    roster = []
+    for student in all_students:
+        sub = submissions_map.get(student.id)
+        roster.append({
+            'student': student,
+            'submitted': sub is not None,
+            'status': sub.status if sub else None,
+            'score': sub.score if sub else None,
+            'submission': sub,
+        })
+
+    submitted_count = sum(1 for r in roster if r['submitted'])
+    graded_count = sum(1 for r in roster if r['status'] == 'graded')
+    setting = SchoolSetting.objects.filter(school=class_group.school).first()
+
+    return render(request, "score/class_teacher_submissions.html", {
+        'class_group': class_group,
+        'school': class_group.school,
+        'setting': setting,
+        'assignment': assignment,
+        'roster': roster,
+        'total_students': all_students.count(),
+        'submitted_count': submitted_count,
+        'graded_count': graded_count,
+    })
+
+
+# ── STUDENT: view and submit assignments ──────────────────────
+@login_required
+def student_assignments(request):
+    """Student views their pending assignments and can submit."""
+    if request.session.get('user_type') != 'student':
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    try:
+        student = Student.objects.select_related('school', 'class_group', 'session').get(user=request.user)
+    except Student.DoesNotExist:
+        messages.error(request, "Student profile not found.")
+        return redirect('unified_login')
+
+    subject_filter = request.GET.get('subject_id')
+    term_filter = request.GET.get('term_id')
+    session_filter = request.GET.get('session_id')
+    any_filter = subject_filter or term_filter or session_filter
+
+    all_assignments_qs = Assignment.objects.filter(
+        class_group=student.class_group
+    ).select_related('subject', 'term', 'session').order_by('-deadline')
+
+    if subject_filter:
+        all_assignments_qs = all_assignments_qs.filter(subject_id=subject_filter)
+    if term_filter:
+        all_assignments_qs = all_assignments_qs.filter(term_id=term_filter)
+    if session_filter:
+        all_assignments_qs = all_assignments_qs.filter(session_id=session_filter)
+
+    if any_filter:
+        # When a filter is active show all matching results
+        assignments = list(all_assignments_qs)
+    else:
+        # Default: 5 most recent per subject
+        subject_counts = {}
+        assignments = []
+        for a in all_assignments_qs:
+            if subject_counts.get(a.subject_id, 0) < 5:
+                assignments.append(a)
+                subject_counts[a.subject_id] = subject_counts.get(a.subject_id, 0) + 1
+
+    # Annotate each assignment with this student's submission
+    submission_map = {
+        sub.assignment_id: sub
+        for sub in AssignmentSubmission.objects.filter(student=student)
+    }
+    for a in assignments:
+        a.my_submission = submission_map.get(a.id)
+
+    setting = SchoolSetting.objects.filter(school=student.school).first()
+
+    subjects = Subject.objects.filter(class_group=student.class_group).order_by('name')
+    terms = Term.objects.all()
+    sessions = AcademicSession.objects.all().order_by('-name')
+
+    return render(request, "score/student_assignments.html", {
+        'student': student,
+        'setting': setting,
+        'assignments': assignments,
+        'current_term': Term.objects.first(),
+        'subjects': subjects,
+        'terms': terms,
+        'sessions': sessions,
+        'any_filter': any_filter,
+    })
+
+
+# ── STUDENT: submit an assignment ─────────────────────────────
+@login_required
+def submit_assignment(request, assignment_id):
+    """Student submits answers for an assignment."""
+    if request.session.get('user_type') != 'student':
+        messages.error(request, "Access denied.")
+        return redirect('unified_login')
+
+    try:
+        student = Student.objects.select_related('class_group').get(user=request.user)
+    except Student.DoesNotExist:
+        return redirect('unified_login')
+
+    assignment = get_object_or_404(Assignment, id=assignment_id, class_group=student.class_group)
+
+    # Check deadline
+    if timezone.now() > assignment.deadline:
+        messages.error(request, "The deadline for this assignment has passed.")
+        return redirect('student_assignments')
+
+    # Check if already submitted
+    if AssignmentSubmission.objects.filter(assignment=assignment, student=student).exists():
+        messages.info(request, "You have already submitted this assignment.")
+        return redirect('student_assignments')
+
+    if request.method == 'POST':
+        import json as _json
+        answers_json = request.POST.get('answers_json', '[]')
+        try:
+            answers = _json.loads(answers_json)
+            # Ensure answers are dicts
+            answers = [{"text": a} if isinstance(a, str) else a for a in answers]
+        except Exception:
+            answers = []
+
+        from django.core.files.storage import default_storage
+        import os
+
+        for idx, ans in enumerate(answers):
+            file_key = f'answer_file_{idx}'
+            if file_key in request.FILES:
+                uploaded_file = request.FILES[file_key]
+                file_path = os.path.join('assignments/submissions/questions', uploaded_file.name)
+                filename = default_storage.save(file_path, uploaded_file)
+                ans['file_url'] = default_storage.url(filename)
+
+        uploaded_file = request.FILES.get('submission_file')
+
+        AssignmentSubmission.objects.create(
+            assignment=assignment,
+            student=student,
+            answers=answers,
+            file=uploaded_file,
+            status='submitted',
+        )
+        messages.success(request, f"Assignment '{assignment.title}' submitted successfully!")
+        return redirect('student_assignments')
+
+    return render(request, "score/submit_assignment.html", {
+        'assignment': assignment,
+        'student': student,
+        'setting': SchoolSetting.objects.filter(school=student.school).first(),
+        'current_term': Term.objects.first(),
+    })

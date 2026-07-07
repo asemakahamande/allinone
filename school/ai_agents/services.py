@@ -1,10 +1,19 @@
 import os
 import json
-from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import SystemMessage, HumanMessage
+try:
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.messages import SystemMessage, HumanMessage
+    _LANGCHAIN_AVAILABLE = True
+except ImportError:
+    _LANGCHAIN_AVAILABLE = False
+    ChatAnthropic = None
+    SystemMessage = None
+    HumanMessage = None
 from .tools import TOOLS_MAP
 
 def get_llm():
+    if not _LANGCHAIN_AVAILABLE:
+        return None
     return ChatAnthropic(
         model_name="claude-3-haiku-20240307", 
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", "dummy-key-for-now"),
@@ -31,14 +40,15 @@ def process_chat_message(user, role, message, history=None, context_data=None):
     """
     Process a chat message using LangChain and Claude.
     """
+    if not _LANGCHAIN_AVAILABLE:
+        return "AI chat is currently unavailable (langchain_anthropic not installed)."
+    
     llm = get_llm()
     system_prompt = get_system_prompt_for_role(role, context_data)
     
     messages = [SystemMessage(content=system_prompt)]
     if history:
         for msg in history:
-            # Assuming history is a list of dicts: [{'role': 'user', 'content': 'hi'}]
-            # In a real app, we'd map this to HumanMessage/AIMessage
             pass
             
     messages.append(HumanMessage(content=message))

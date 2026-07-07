@@ -192,5 +192,22 @@ urlpatterns = [
         name="student_analytics"
     ),
 
+    # ── ASSIGNMENT URLS ──────────────────────────────────────
+    # Subject teacher
+    path('assignments/', views.assignment_list, name='assignment_list'),
+    path('assignments/create/', views.create_assignment, name='create_assignment'),
+    path('assignments/<int:assignment_id>/edit/', views.edit_assignment, name='edit_assignment'),
+    path('assignments/<int:assignment_id>/delete/', views.delete_assignment, name='delete_assignment'),
+    path('assignments/<int:assignment_id>/submissions/', views.view_submissions, name='view_submissions'),
 
+    # Class teacher
+    path('teacher/assignments/', views.class_teacher_assignments, name='class_teacher_assignments'),
+    path('teacher/assignments/<int:assignment_id>/submissions/', views.class_teacher_view_submissions, name='class_teacher_view_submissions'),
+
+    # Student
+    path('student/assignments/', views.student_assignments, name='student_assignments'),
+    path('student/assignments/<int:assignment_id>/submit/', views.submit_assignment, name='submit_assignment'),
+
+    # Subjects API (for assignment form dynamic subject dropdown)
+    path('api/subjects/', views.get_subjects_for_class, name='get_subjects_for_class'),
 ]

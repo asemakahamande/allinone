@@ -1,0 +1,205 @@
+{% extends base_template %}
+{% load static %}
+{% block title %}Assignments{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">Assignments</h2>
+            <p class="text-slate-500 text-sm mt-1">Manage all assignments across classes and subjects</p>
+        </div>
+        <a href="{% url 'create_assignment' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow transition">
+            <i data-lucide="plus" class="w-4 h-4"></i> New Assignment
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" id="filterForm" class="bg-white rounded-xl shadow-sm border border-slate-100 p-4 mb-6 flex flex-wrap gap-3 items-end">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Session</label>
+            <select name="session_id" class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:ring-purple-400 focus:border-purple-400">
+                <option value="">All Sessions</option>
+                {% for session in sessions %}
+                    <option value="{{ session.id }}" {% if request.GET.session_id == session.id|stringformat:"s" %}selected{% endif %}>{{ session.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Term</label>
+            <select name="term_id" class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:ring-purple-400 focus:border-purple-400">
+                <option value="">All Terms</option>
+                {% for term in terms %}
+                    <option value="{{ term.id }}" {% if request.GET.term_id == term.id|stringformat:"s" %}selected{% endif %}>{{ term.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Class</label>
+            <select name="class_id" id="classSelect" class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:ring-purple-400 focus:border-purple-400">
+                <option value="">All Classes</option>
+                {% for cls in classes %}
+                    <option value="{{ cls.id }}" {% if request.GET.class_id == cls.id|stringformat:"s" %}selected{% endif %}>{{ cls.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">Subject</label>
+            <select name="subject_id" id="subjectSelect" class="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:ring-purple-400 focus:border-purple-400">
+                <option value="">All Subjects</option>
+                {# Subjects are loaded dynamically based on class selection #}
+                {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if request.GET.subject_id == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="px-4 py-2 bg-slate-700 text-black rounded-lg text-sm font-medium hover:bg-slate-800 transition">Filter</button>
+        <a href="{% url 'assignment_list' %}" class="px-4 py-2 text-slate-500 text-sm hover:underline">Clear</a>
+    </form>
+
+    <script>
+    (function() {
+        const classSelect   = document.getElementById('classSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const savedSubject  = "{{ request.GET.subject_id|default:'' }}";
+
+        function loadSubjects(classId, restoreValue) {
+            // Reset dropdown
+            subjectSelect.innerHTML = '<option value="">All Subjects</option>';
+
+            if (!classId) {
+                // No class selected - show all subjects for the school
+                {% for subject in subjects %}
+                const opt_{{ subject.id }} = document.createElement('option');
+                opt_{{ subject.id }}.value = '{{ subject.id }}';
+                opt_{{ subject.id }}.text  = '{{ subject.name }}';
+                if (restoreValue === '{{ subject.id }}') opt_{{ subject.id }}.selected = true;
+                subjectSelect.appendChild(opt_{{ subject.id }});
+                {% endfor %}
+                return;
+            }
+
+            // Fetch subjects for the chosen class via the API
+            fetch('/api/subjects/?class_id=' + classId)
+                .then(res => res.json())
+                .then(data => {
+                    data.subjects.forEach(function(s) {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.text  = s.name;
+                        if (String(s.id) === String(restoreValue)) opt.selected = true;
+                        subjectSelect.appendChild(opt);
+                    });
+                })
+                .catch(function() {
+                    console.error('Could not load subjects');
+                });
+        }
+
+        // When class changes, reload subjects (reset subject selection)
+        classSelect.addEventListener('change', function() {
+            loadSubjects(this.value, '');
+        });
+
+        // On page load, if a class was already selected, reload subjects and restore saved subject
+        const initialClass = classSelect.value;
+        if (initialClass) {
+            loadSubjects(initialClass, savedSubject);
+        }
+    })();
+    </script>
+
+
+    <!-- Assignments Table -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if not any_filter %}
+    <div class="mb-4 flex items-center gap-2 text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg px-4 py-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/></svg>
+        Showing the <strong class="mx-1">5 most recent assignments per subject</strong>. Use the filters above to see all assignments.
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        {% if assignments %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead class="bg-slate-50 border-b border-slate-100">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Assignment</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Class</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Subject</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Session/Term</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Total Marks</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Deadline</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Submissions</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for a in assignments %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4">
+                            <p class="font-semibold text-slate-800 text-sm">{{ a.title }}</p>
+                            {% if a.description %}
+                            <p class="text-xs text-slate-400 mt-0.5 truncate max-w-[200px]">{{ a.description }}</p>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">{{ a.class_group.name }}</td>
+                        <td class="px-6 py-4 text-sm text-slate-600">{{ a.subject.name }}</td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            <div>{{ a.session.name|default:"-" }}</div>
+                            <div class="text-xs text-slate-400">{{ a.term.name|default:"-" }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm font-bold text-purple-700">{{ a.total_marks }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ a.deadline|date:"d M Y, H:i" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold">
+                                {{ a.submissions.count }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'view_submissions' a.id %}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg transition">
+                                    <i data-lucide="eye" class="w-3 h-3"></i> Submissions
+                                </a>
+                                <a href="{% url 'edit_assignment' a.id %}"
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition">
+                                    <i data-lucide="edit" class="w-3 h-3"></i> Edit
+                                </a>
+                                <form method="post" action="{% url 'delete_assignment' a.id %}" onsubmit="return confirm('Delete this assignment?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition">
+                                        <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-20 text-slate-400">
+            <i data-lucide="clipboard-list" class="w-12 h-12 mb-4 text-slate-200"></i>
+            <p class="text-lg font-semibold">No assignments yet</p>
+            <p class="text-sm mt-1">Click "New Assignment" to get started.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

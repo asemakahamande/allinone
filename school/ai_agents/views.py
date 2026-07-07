@@ -81,11 +81,36 @@ def parent_dashboard(request):
     average_score = round(total_score / num_subjects, 2) if num_subjects else 0
     
     # Get attendance
+    import datetime
+    today = datetime.date.today()
     total_attendance = Attendance.objects.filter(student=student).count()
     present_count = Attendance.objects.filter(student=student, status="present").count()
     attendance_percentage = round((present_count / total_attendance * 100), 2) if total_attendance else 0
     
+    today_attendance = Attendance.objects.filter(student=student, date=today).first()
+    today_status = today_attendance.status.capitalize() if today_attendance else "Not marked"
+    
     setting = SchoolSetting.objects.filter(school=student.school).first()
+    
+    # Get assignments for this student's class with submission status
+    from score.models import Assignment, AssignmentSubmission
+    all_assignments = Assignment.objects.filter(
+        class_group=student.class_group
+    ).select_related('subject', 'term').order_by('-deadline')
+    
+    subject_counts = {}
+    assignments = []
+    for a in all_assignments:
+        if subject_counts.get(a.subject_id, 0) < 5:
+            assignments.append(a)
+            subject_counts[a.subject_id] = subject_counts.get(a.subject_id, 0) + 1
+    
+    submission_map = {
+        sub.assignment_id: sub
+        for sub in AssignmentSubmission.objects.filter(student=student)
+    }
+    for a in assignments:
+        a.my_submission = submission_map.get(a.id)
     
     context = {
         'student': student,
@@ -97,10 +122,12 @@ def parent_dashboard(request):
         'attendance_percentage': attendance_percentage,
         'present_count': present_count,
         'total_attendance': total_attendance,
+        'today_status': today_status,
         'current_term': current_term,
         'terms': terms,
         'sessions': sessions,
         'classes': classes,
+        'assignments': assignments,
     }
     
     return render(request, "ai_agents/parent_dashboard.html", context)
