@@ -1,0 +1,68 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Upload Material{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <a href="{% url 'material_list' %}" class="inline-flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 mb-4">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Materials
+        </a>
+        <h2 class="text-2xl font-bold text-slate-800">Upload Study Material</h2>
+        <p class="text-slate-500 text-sm mt-1">Upload a PDF or DOCX file to generate summaries and questions using AI.</p>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 border rounded-xl {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+        <form method="post" enctype="multipart/form-data" class="space-y-5" id="uploadForm">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Material Title *</label>
+                <input type="text" name="title" required placeholder="e.g. Chapter 4: The Solar System"
+                       class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-purple-500 focus:border-purple-500 text-slate-800">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Document File * (PDF or DOCX)</label>
+                <input type="file" name="material_file" required accept=".pdf,.doc,.docx"
+                       class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-purple-500 focus:border-purple-500 text-slate-800">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Page Range (Optional)</label>
+                    <input type="text" name="page_range" placeholder="e.g. 4-20"
+                           class="w-full border border-slate-300 rounded-lg px-4 py-2.5 focus:ring-purple-500 focus:border-purple-500 text-slate-800">
+                    <p class="text-xs text-slate-500 mt-1">Leave blank to process the whole document.</p>
+                </div>
+            <div class="pt-4 flex items-center justify-between border-t border-slate-100 mt-6">
+                <button type="submit" id="submitBtn" class="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow transition">
+                    <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Material
+                </button>
+                <p id="loadingText" class="text-sm font-medium text-purple-600 hidden animate-pulse">
+                    <i data-lucide="loader-2" class="w-4 h-4 inline animate-spin mr-1"></i> Extracting text...
+                </p>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').classList.add('opacity-50', 'cursor-not-allowed');
+    document.getElementById('loadingText').classList.remove('hidden');
+});
+</script>
+{% endblock %}

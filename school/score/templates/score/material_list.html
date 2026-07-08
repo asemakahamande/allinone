@@ -1,0 +1,78 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}AI Materials{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-slate-800">AI Study Materials</h2>
+            <p class="text-slate-500 text-sm mt-1">Manage your uploaded materials and generated questions.</p>
+        </div>
+        <a href="{% url 'material_upload' %}"
+           class="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow transition">
+            <i data-lucide="plus" class="w-4 h-4"></i> Upload Material
+        </a>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 border rounded-xl {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Material Title</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Page Range</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Uploaded By</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for material in materials %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-slate-800">{{ material.title }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ material.page_range|default:"Full Document" }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ material.uploaded_by }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ material.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="{% url 'material_detail' material.id %}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium bg-purple-50 text-purple-700 hover:bg-purple-100 transition">
+                                <i data-lucide="eye" class="w-4 h-4"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center">
+                            <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 mb-4">
+                                <i data-lucide="folder-open" class="w-6 h-6 text-slate-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-slate-900">No materials uploaded yet</h3>
+                            <p class="text-slate-500 mt-1">Upload a PDF or DOCX to get started.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

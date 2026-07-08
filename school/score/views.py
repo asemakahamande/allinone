@@ -6327,6 +6327,20 @@ def cbt_exam_list(request):
         terms = Term.objects.all()
         classes = ClassGroup.objects.filter(id=class_group.id).order_by('name')
         subjects = Subject.objects.filter(class_group=class_group).order_by('name')
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # For subject teachers, they see all exams for their school
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
+        
+        exams = Exam.objects.filter(school=school).select_related(
+            'subject', 'class_group', 'session', 'term'
+        )
+        sessions = AcademicSession.objects.all().order_by('-name')
+        terms = Term.objects.all()
+        classes = ClassGroup.objects.filter(school=school).order_by('name')
+        subjects = Subject.objects.filter(class_group__school=school).distinct()
     else:
         context = {}
         exams = Exam.objects.filter(school=school).select_related(
@@ -6463,70 +6477,7 @@ def cbt_results_list(request):
 
 
 
-@school_required  # ✅ CHANGED FROM @login_required
-def create_cbt_exam(request):
-    """Create new CBT exam - SCHOOL SPECIFIC"""
-    school = request.school  # ✅ Available from decorator
 
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        class_group_id = request.POST.get('class_group')
-        subject_id = request.POST.get('subject')
-        session_id = request.POST.get('session')
-        term_id = request.POST.get('term')
-        duration_minutes = int(request.POST.get('duration_minutes', 60))
-        pass_mark = int(request.POST.get('pass_mark', 50))
-        is_published = request.POST.get('is_published') == 'on'
-
-        # Check for duplicates
-        if Exam.objects.filter(
-            school=school,
-            class_group_id=class_group_id,
-            subject_id=subject_id,
-            session_id=session_id,
-            term_id=term_id,
-            title=title
-        ).exists():
-            messages.error(
-                request,
-                'An exam with this title already exists for this class, subject, term and session.'
-            )
-            return redirect('create_cbt_exam')
-
-        exam = Exam.objects.create(
-            school=school,
-            class_group_id=class_group_id,
-            subject_id=subject_id,
-            session_id=session_id,
-            term_id=term_id,
-            title=title,
-            description=description,
-            duration_minutes=duration_minutes,
-            pass_mark=pass_mark,
-            is_published=is_published,
-            is_active=True
-        )
-
-        messages.success(
-            request,
-            f'Exam "{exam.title}" created successfully! Code: {exam.exam_code}'
-        )
-        return redirect('create_cbt_question', exam_id=exam.id)
-
-    # GET request
-    sessions = AcademicSession.objects.all().order_by('-name')
-    terms = Term.objects.all()
-    classes = ClassGroup.objects.filter(school=school).order_by('name')
-    subjects = Subject.objects.filter(class_group__school=school).order_by('name')
-
-    return render(request, 'score/create_cbt_exam.html', {
-        'school': school,
-        'sessions': sessions,
-        'terms': terms,
-        'classes': classes,
-        'subjects': subjects,
-    })
 
 
 @school_required
@@ -6557,7 +6508,11 @@ def create_cbt_exam(request):
         
         # Verify class access
         if not is_admin:
-            if int(class_group_id) != context['class_group'].id:
+            if context.get('is_subject_teacher'):
+                # Subject teachers can create for any class
+                pass
+            elif int(class_group_id) != context['class_group'].id:
+                # Class teachers can only create exams for their assigned class
                 messages.error(request, "You can only create exams for your assigned class.")
                 return redirect('create_cbt_exam')
         
@@ -6597,6 +6552,9 @@ def create_cbt_exam(request):
     if is_admin:
         classes = ClassGroup.objects.filter(school=school).order_by('name')
         subjects = Subject.objects.filter(class_group__school=school).order_by('name')
+    elif context.get('is_subject_teacher'):
+        classes = ClassGroup.objects.filter(school=school).order_by('name')
+        subjects = Subject.objects.filter(class_group__school=school).order_by('name')
     else:
         class_group = context['class_group']
         classes = ClassGroup.objects.filter(id=class_group.id)
@@ -6609,9 +6567,14 @@ def create_cbt_exam(request):
         'classes': classes,
         'subjects': subjects,
         'is_admin': is_admin,
-        'is_teacher': not is_admin,
+        'is_teacher': not is_admin and not context.get('is_subject_teacher'),
+        'is_subject_teacher': context.get('is_subject_teacher', False),
     }
-    if not is_admin and context.get('class_group'):
+    
+    if context.get('is_subject_teacher'):
+        render_ctx['base_template'] = 'ai_agents/normal_teacher_dashboard.html'
+        return render(request, 'score/create_cbt_exam.html', render_ctx)
+    elif not is_admin and context.get('class_group'):
         teacher_ctx = get_teacher_dashboard_context(context['class_group'])
         teacher_ctx.update(render_ctx)
         teacher_ctx['base_template'] = 'score/teacher_dashboard.html'
@@ -6629,6 +6592,9 @@ def create_cbt_question(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if exam.class_group_id != user_ctx['class_group'].id:
             raise Http404("Exam is not for your class.")
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        if not Subject.objects.filter(id=exam.subject_id, teacher=request.user).exists():
+            raise Http404("Exam is not for your subject.")
     
     if request.method == 'POST':
         question_text = request.POST.get('question_text')
@@ -6666,6 +6632,11 @@ def create_cbt_question(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         context = get_teacher_dashboard_context(user_ctx['class_group'])
         context['base_template'] = 'score/teacher_dashboard.html'
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
     else:
         context = {}
     context['exam'] = exam
@@ -6689,6 +6660,12 @@ def cbt_question_list(request, exam_id):
             raise Http404("Exam is not for your class.")
         context = get_teacher_dashboard_context(user_ctx['class_group'])
         context['base_template'] = 'score/teacher_dashboard.html'
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
     else:
         context = {}
     questions = exam.cbt_questions.all().order_by('order', 'id')
@@ -6726,12 +6703,15 @@ def edit_cbt_exam(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if exam.class_group_id != user_ctx['class_group'].id:
             raise Http404("Exam is not for your class.")
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        pass
     
     if request.method == 'POST':
         exam.title = request.POST.get('title')
         exam.description = request.POST.get('description')
-        if user_ctx and user_ctx.get('is_teacher'):
-            # Teachers cannot change class
+        if user_ctx and (user_ctx.get('is_teacher') or user_ctx.get('is_subject_teacher')):
+            # Teachers and Subject Teachers cannot change class
             pass
         else:
             exam.class_group_id = request.POST.get('class_group')
@@ -6751,6 +6731,9 @@ def edit_cbt_exam(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         classes = ClassGroup.objects.filter(id=user_ctx['class_group'].id).order_by('name')
         subjects = Subject.objects.filter(class_group=user_ctx['class_group']).order_by('name')
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        classes = ClassGroup.objects.filter(school=school).order_by('name')
+        subjects = Subject.objects.filter(class_group__school=school).order_by('name')
     else:
         classes = ClassGroup.objects.filter(school=school).order_by('name')
         subjects = Subject.objects.filter(class_group__school=school).order_by('name')
@@ -6758,6 +6741,11 @@ def edit_cbt_exam(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         context = get_teacher_dashboard_context(user_ctx['class_group'])
         context['base_template'] = 'score/teacher_dashboard.html'
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
     else:
         context = {}
     context.update({
@@ -6782,6 +6770,9 @@ def delete_cbt_exam(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if exam.class_group_id != user_ctx['class_group'].id:
             raise Http404("Exam is not for your class.")
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        pass
     
     if request.method == 'POST':
         exam_title = exam.title
@@ -6793,6 +6784,11 @@ def delete_cbt_exam(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         context = get_teacher_dashboard_context(user_ctx['class_group'])
         context['base_template'] = 'score/teacher_dashboard.html'
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
     else:
         context = {}
     context['exam'] = exam
@@ -6810,6 +6806,9 @@ def toggle_exam_status(request, exam_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if exam.class_group_id != user_ctx['class_group'].id:
             return JsonResponse({'error': 'Exam is not for your class.'}, status=403)
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        pass
     
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -6842,6 +6841,9 @@ def edit_cbt_question(request, question_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if question.exam.class_group_id != user_ctx['class_group'].id:
             raise Http404("Question's exam is not for your class.")
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        pass
     
     if request.method == 'POST':
         question.question_text = request.POST.get('question_text')
@@ -6865,6 +6867,11 @@ def edit_cbt_question(request, question_id):
     if user_ctx and user_ctx.get('is_teacher'):
         context = get_teacher_dashboard_context(user_ctx['class_group'])
         context['base_template'] = 'score/teacher_dashboard.html'
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        context = {
+            'is_subject_teacher': True,
+            'base_template': 'ai_agents/normal_teacher_dashboard.html'
+        }
     else:
         context = {}
     context['question'] = question
@@ -6888,6 +6895,9 @@ def delete_cbt_question(request, question_id):
     if user_ctx and user_ctx.get('is_teacher'):
         if question.exam.class_group_id != user_ctx['class_group'].id:
             raise Http404("Question's exam is not for your class.")
+    elif user_ctx and user_ctx.get('is_subject_teacher'):
+        # Subject teachers have access to all exams in school
+        pass
     
     if request.method == 'POST':
         exam_id = question.exam.id
@@ -8752,4 +8762,202 @@ def submit_assignment(request, assignment_id):
         'student': student,
         'setting': SchoolSetting.objects.filter(school=student.school).first(),
         'current_term': Term.objects.first(),
-    })
+    })
+
+from .models import MaterialUpload
+from ai_agents.services import extract_text_from_file, summarize_material, generate_questions_from_material
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import io
+import markdown
+
+def get_auth_context_for_materials(request):
+    """Helper to verify subject teacher status for materials."""
+    context = get_user_context(request)
+    if not context or not context.get('is_subject_teacher'):
+        return None
+    return context
+
+def material_list(request):
+    context = get_auth_context_for_materials(request)
+    if not context:
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    school = context['school']
+    materials = MaterialUpload.objects.filter(school=school).order_by('-created_at')
+    
+    return render(request, "score/material_list.html", {
+        "materials": materials,
+        "school": school,
+        "setting": SchoolSetting.objects.filter(school=school).first(),
+        "base_template": "ai_agents/normal_teacher_dashboard.html"
+    })
+
+def material_upload(request):
+    context = get_auth_context_for_materials(request)
+    if not context:
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    school = context['school']
+    
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        page_range = request.POST.get('page_range', '')
+        uploaded_file = request.FILES.get('material_file')
+        if uploaded_file and title:
+            material = MaterialUpload.objects.create(
+                school=school,
+                uploaded_by=request.user.username if request.user.is_authenticated else 'Subject Teacher',
+                title=title,
+                file=uploaded_file,
+                page_range=page_range
+            )
+            
+            try:
+                page_from, page_to = None, None
+                if page_range and '-' in page_range:
+                    parts = page_range.split('-')
+                    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+                        page_from = int(parts[0].strip())
+                        page_to = int(parts[1].strip())
+                
+                text = extract_text_from_file(material.file.path, page_from=page_from, page_to=page_to)
+                
+                if text:
+                    material.extracted_text = text
+                    material.save()
+                    messages.success(request, f"Material '{title}' uploaded successfully! You can now generate a summary or questions.")
+                    return redirect('material_detail', pk=material.pk)
+                else:
+                    messages.error(request, "Could not extract text from the provided file or page range.")
+            except Exception as e:
+                messages.error(request, f"Error processing material: {str(e)}")
+        else:
+            messages.error(request, "Please provide a title and a file.")
+            
+    return render(request, "score/material_upload.html", {
+        "school": school,
+        "setting": SchoolSetting.objects.filter(school=school).first(),
+        "base_template": "ai_agents/normal_teacher_dashboard.html"
+    })
+
+def material_detail(request, pk):
+    context = get_auth_context_for_materials(request)
+    if not context:
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    material = get_object_or_404(MaterialUpload, pk=pk, school=context['school'])
+    
+    summary_html = markdown.markdown(material.summary) if material.summary else ""
+    questions_html = markdown.markdown(material.questions) if material.questions else ""
+    
+    return render(request, "score/material_detail.html", {
+        "material": material,
+        "summary_html": summary_html,
+        "questions_html": questions_html,
+        "school": context['school'],
+        "setting": SchoolSetting.objects.filter(school=context['school']).first(),
+        "base_template": "ai_agents/normal_teacher_dashboard.html"
+    })
+
+def material_generate_summary(request, pk):
+    context = get_user_context(request)
+    if not context or not context.get('is_subject_teacher'):
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    material = get_object_or_404(MaterialUpload, pk=pk, school=context['school'])
+    
+    if request.method == 'POST':
+        try:
+            text = material.extracted_text
+            if not text:
+                # Fallback if somehow not extracted
+                page_from, page_to = None, None
+                if material.page_range and '-' in material.page_range:
+                    parts = material.page_range.split('-')
+                    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+                        page_from = int(parts[0].strip())
+                        page_to = int(parts[1].strip())
+                text = extract_text_from_file(material.file.path, page_from=page_from, page_to=page_to)
+                material.extracted_text = text
+                
+            if text:
+                summary = summarize_material(text)
+                material.summary = summary
+                material.save()
+                messages.success(request, "Summary generated successfully!")
+            else:
+                messages.error(request, "Could not extract text from the material to summarize.")
+        except Exception as e:
+            messages.error(request, f"Error generating summary: {str(e)}")
+            
+    return redirect('material_detail', pk=pk)
+
+def material_generate_questions(request, pk):
+    context = get_user_context(request)
+    if not context or not context.get('is_subject_teacher'):
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    material = get_object_or_404(MaterialUpload, pk=pk, school=context['school'])
+    
+    if request.method == 'POST':
+        num_questions = int(request.POST.get('num_questions', 10))
+        question_type = request.POST.get('question_type', 'mixed')
+        
+        try:
+            text = material.extracted_text
+            if not text:
+                page_from, page_to = None, None
+                if material.page_range and '-' in material.page_range:
+                    parts = material.page_range.split('-')
+                    if len(parts) == 2 and parts[0].strip().isdigit() and parts[1].strip().isdigit():
+                        page_from = int(parts[0].strip())
+                        page_to = int(parts[1].strip())
+                text = extract_text_from_file(material.file.path, page_from=page_from, page_to=page_to)
+                material.extracted_text = text
+            
+            if text:
+                questions = generate_questions_from_material(text, num_questions=num_questions, question_type=question_type)
+                material.questions = questions
+                material.save()
+                messages.success(request, f"Generated {num_questions} new questions!")
+            else:
+                messages.error(request, "Could not extract text from the material to generate questions.")
+        except Exception as e:
+            messages.error(request, f"Error generating questions: {str(e)}")
+            
+    return redirect('material_detail', pk=pk)
+
+def material_download_pdf(request, pk):
+    context = get_auth_context_for_materials(request)
+    if not context:
+        messages.error(request, "Access denied.")
+        return redirect("unified_login")
+        
+    material = get_object_or_404(MaterialUpload, pk=pk, school=context['school'])
+    
+    summary_html = markdown.markdown(material.summary) if material.summary else ""
+    questions_html = markdown.markdown(material.questions) if material.questions else ""
+    
+    template = get_template('score/material_pdf_template.html')
+    html = template.render({
+        'material': material, 
+        'school': context['school'],
+        'summary_html': summary_html,
+        'questions_html': questions_html
+    })
+    
+    result = io.BytesIO()
+    pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+    
+    if not pdf.err:
+        response = HttpResponse(result.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="AI_Material_{material.pk}.pdf"'
+        return response
+        
+    return HttpResponse("Error generating PDF", status=400)

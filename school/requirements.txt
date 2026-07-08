@@ -44,3 +44,5 @@ django-anymail[brevo]
 anthropic
 langchain
 langchain-anthropic
+python-docx
+markdown

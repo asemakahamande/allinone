@@ -1008,4 +1008,28 @@ class AssignmentSubmission(models.Model):
         ordering = ['-submitted_at']
 
     def __str__(self):
-        return f"{self.student.full_name} → {self.assignment.title} [{self.status}]"
+        return f"{self.student.full_name} → {self.assignment.title} [{self.status}]"
+
+
+class MaterialUpload(models.Model):
+    """Stores AI-generated summaries and questions from teacher uploads."""
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name='material_uploads')
+    uploaded_by = models.CharField(max_length=255, help_text="e.g., 'Subject Teacher' or specific user")
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='materials/')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Optional filtering parameters
+    page_range = models.CharField(max_length=50, blank=True, help_text="e.g. 4-20")
+    
+    # AI Results
+    extracted_text = models.TextField(blank=True)
+    summary = models.TextField(blank=True)
+    questions = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.school.name})"
+

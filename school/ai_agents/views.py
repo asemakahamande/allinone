@@ -24,9 +24,32 @@ def chat_api(request):
     """
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
-            message = data.get('message', '')
-            role = data.get('role', 'student')
+            if request.content_type.startswith('multipart/form-data'):
+                message = request.POST.get('message', '')
+                role = request.POST.get('role', 'student')
+                uploaded_file = request.FILES.get('file')
+            else:
+                data = json.loads(request.body)
+                message = data.get('message', '')
+                role = data.get('role', 'student')
+                uploaded_file = None
+            
+            # Extract text from file if attached
+            extracted_text = ""
+            if uploaded_file:
+                import tempfile
+                import os
+                from .services import extract_text_from_file
+                # Save temporarily to extract text
+                with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(uploaded_file.name)[1]) as tmp:
+                    for chunk in uploaded_file.chunks():
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
+                
+                try:
+                    extracted_text = extract_text_from_file(tmp_path)
+                finally:
+                    os.unlink(tmp_path)
             
             # Determine specific context based on session
             context_data = {}
@@ -38,10 +61,12 @@ def chat_api(request):
                     context_data['school_name'] = student.school.name
             
             # Simple stateless call for now to integrate quickly
-            response_text = process_chat_message(request.user, role, message, context_data=context_data)
+            response_text = process_chat_message(request.user, role, message, context_data=context_data, extracted_text=extracted_text)
             
             return JsonResponse({'status': 'success', 'response': response_text})
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})

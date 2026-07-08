@@ -210,4 +210,14 @@ urlpatterns = [
 
     # Subjects API (for assignment form dynamic subject dropdown)
     path('api/subjects/', views.get_subjects_for_class, name='get_subjects_for_class'),
+    
+    # ── AI MATERIALS URLS ──────────────────────────────────────
+    path('materials/', views.material_list, name='material_list'),
+    path('materials/upload/', views.material_upload, name='material_upload'),
+    path('materials/<int:pk>/', views.material_detail, name='material_detail'),
+    path('materials/<int:pk>/summary/', views.material_generate_summary, name='material_generate_summary'),
+    path('materials/<int:pk>/questions/', views.material_generate_questions, name='material_generate_questions'),
+    path('materials/<int:pk>/download/', views.material_download_pdf, name='material_download_pdf'),
 ]
+
+

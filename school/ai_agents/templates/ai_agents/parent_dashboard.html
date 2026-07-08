@@ -77,6 +77,7 @@
     </li>
 
     <!-- Parent AI -->
+    {% if student.school.tier_name != 'basic' %}
     <li>
         <a href="#ai-assistant"
            class="show-dashboard menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none text-pink-300">
@@ -84,6 +85,7 @@
             <span class="menu-text font-medium">Chat with Avese</span>
         </a>
     </li>
+    {% endif %}
 {% endblock %}
 
 {# ── Sidebar: logout ── #}
@@ -141,9 +143,11 @@
             <a href="#" onclick="openModal('reportCardModal')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition text-white">
                 <i data-lucide="printer" class="w-4 h-4"></i><span>Report Card</span>
             </a>
+            {% if student.school.tier_name != 'basic' %}
             <a href="#ai-assistant" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/15 hover:bg-white/20 transition text-white">
                 <i data-lucide="bot" class="w-4 h-4"></i><span>Talk to AI</span>
             </a>
+            {% endif %}
         </div>
     </div>
 </section>
@@ -300,6 +304,7 @@
     </div>
 </section>
 
+{% if student.school.tier_name != 'basic' %}
 <!-- AI Assistant Section for Parents -->
 <section id="ai-assistant" class="content-card overflow-hidden shadow-md border border-slate-200 mb-8 rounded-2xl bg-white">
     <div class="p-5 sm:p-6 border-b border-slate-200 bg-slate-50 flex items-center gap-3">
@@ -325,13 +330,21 @@
         <!-- Chat messages will be appended here -->
     </div>
     
-    <div class="p-4 bg-white border-t border-slate-200 relative">
+    <div class="p-4 bg-white border-t border-slate-200 flex flex-col relative">
+        <div id="ai-chat-file-indicator" class="hidden text-xs text-pink-600 px-3 py-1 bg-pink-50 rounded-t-lg truncate">
+            <i data-lucide="paperclip" class="w-3 h-3 inline mr-1"></i><span id="ai-chat-file-name"></span>
+            <button type="button" onclick="clearAiChatFile()" class="ml-2 hover:text-red-500 font-bold">&times;</button>
+        </div>
         <div class="relative flex items-center">
-            <input type="text" id="chat-input" class="w-full pl-5 pr-24 py-3 bg-slate-100 border-transparent focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-full text-sm transition-all shadow-inner" placeholder="Ask about your child's performance..." onkeypress="if(event.key === 'Enter') sendMessage('parent')" oninput="toggleInputButtons()">
+            <input type="file" id="ai-chat-file-input" class="hidden" accept=".pdf,.doc,.docx" onchange="handleAiChatFileSelect(this)">
+            <button type="button" onclick="document.getElementById('ai-chat-file-input').click()" class="absolute left-3 p-1.5 transition-colors rounded-full focus:outline-none flex items-center justify-center z-50" style="color: #3b82f6; z-index: 50;" title="Attach Document">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+            <input type="text" id="chat-input" class="w-full pl-12 pr-24 py-3 bg-slate-100 border-transparent focus:bg-white focus:border-pink-500 focus:ring-2 focus:ring-pink-200 rounded-full text-sm transition-all shadow-inner" placeholder="Ask about your child's performance..." onkeypress="if(event.key === 'Enter') sendMessage('parent')" oninput="toggleInputButtons()">
             
-            <div class="absolute right-2 flex items-center gap-1">
+            <div class="absolute right-2 flex items-center gap-1 z-50" style="z-index: 50;">
                 <!-- Mic Button -->
-                <button id="mic-btn" onclick="startDictation()" class="p-2 text-slate-400 hover:text-pink-600 transition-colors rounded-full hover:bg-pink-50" title="Use Microphone">
+                <button id="mic-btn" onclick="startDictation()" class="p-2 transition-colors rounded-full hover:bg-pink-50" style="color: #3b82f6;" title="Use Microphone">
                     <i data-lucide="mic" class="w-5 h-5"></i>
                 </button>
                 
@@ -343,6 +356,7 @@
         </div>
     </div>
 </section>
+{% endif %}
 
 <script>
     function toggleInputButtons() {
@@ -407,6 +421,23 @@
         }
     }
 
+    function handleAiChatFileSelect(input) {
+        const indicator = document.getElementById('ai-chat-file-indicator');
+        const fileNameSpan = document.getElementById('ai-chat-file-name');
+        if (input.files && input.files[0]) {
+            fileNameSpan.textContent = input.files[0].name;
+            indicator.classList.remove('hidden');
+        } else {
+            indicator.classList.add('hidden');
+        }
+    }
+    
+    function clearAiChatFile() {
+        const fileInput = document.getElementById('ai-chat-file-input');
+        fileInput.value = '';
+        document.getElementById('ai-chat-file-indicator').classList.add('hidden');
+    }
+
     function sendMessage(role) {
         const input = document.getElementById('chat-input');
         const container = document.getElementById('chat-container');
@@ -429,13 +460,30 @@
         toggleInputButtons();
         container.scrollTop = container.scrollHeight;
 
+        
+        const fileInput = document.getElementById('ai-chat-file-input');
+        const file = fileInput.files[0];
+        
+        const formData = new FormData();
+        formData.append('message', message);
+        formData.append('role', role);
+        if (file) {
+            formData.append('file', file);
+            // Append file visual to user message
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'text-xs text-pink-200 mt-1 italic block w-full';
+            fileDiv.innerHTML = `<i data-lucide="paperclip" class="w-3 h-3 inline"></i> Attached: ${file.name}`;
+            userDiv.querySelector('.bg-pink-600').appendChild(fileDiv);
+            lucide.createIcons();
+        }
+        
+        // Clear file input immediately
+        clearAiChatFile();
+
         // Send to API
         fetch('/ai/api/chat/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: message, role: role })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {

@@ -69,6 +69,24 @@
             <span class="menu-text font-medium">Assignments</span>
         </a>
     </li>
+    <!-- AI Materials -->
+    {% if school.tier_name != 'basic' %}
+    <li>
+        <a href="{% url 'material_list' %}"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="brain-circuit" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">AI Materials</span>
+        </a>
+    </li>
+    <!-- CBT Exams -->
+    <li>
+        <a href="{% url 'cbt_exam_list' %}"
+           class="menu-item flex items-center gap-3 p-3 rounded-lg rounded-l-none">
+            <i data-lucide="monitor-play" class="w-5 h-5 flex-shrink-0"></i>
+            <span class="menu-text font-medium">CBT Exams</span>
+        </a>
+    </li>
+    {% endif %}
 {% endblock %}
 
 {# ── Sidebar: logout ── #}
@@ -155,6 +173,7 @@
                 </div>
             </div>
 
+            {% if school.tier_name != 'basic' %}
             <!-- AI Teaching Assistant -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col h-[500px] overflow-hidden">
                 <div class="p-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-white flex justify-between items-center">
@@ -189,12 +208,20 @@
                     <button onclick="document.getElementById('chat-input').value = 'Suggest report card comments for a student who...'; toggleInputButtons(); document.getElementById('chat-input').focus();" class="whitespace-nowrap px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-medium rounded-full transition-colors border border-emerald-100">🗣️ Draft Comments</button>
                 </div>
                 
-                <div class="p-4 bg-white border-t border-gray-100">
+                <div class="p-4 bg-white border-t border-gray-100 flex flex-col relative">
+                    <div id="ai-chat-file-indicator" class="hidden text-xs text-purple-600 px-3 py-1 bg-purple-50 rounded-t-lg truncate">
+                        <i data-lucide="paperclip" class="w-3 h-3 inline mr-1"></i><span id="ai-chat-file-name"></span>
+                        <button type="button" onclick="clearAiChatFile()" class="ml-2 hover:text-red-500 font-bold">&times;</button>
+                    </div>
                     <div class="relative flex items-center">
-                        <input type="text" id="chat-input" class="w-full bg-gray-100 border-transparent focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-full py-3 pl-4 pr-24 text-sm transition-all" placeholder="Ask Avese something..." onkeypress="if(event.key === 'Enter') sendMessage('teacher')" oninput="toggleInputButtons()">
+                        <input type="file" id="ai-chat-file-input" class="hidden" accept=".pdf,.doc,.docx" onchange="handleAiChatFileSelect(this)">
+                        <button type="button" onclick="document.getElementById('ai-chat-file-input').click()" class="absolute left-2 p-1.5 transition-colors rounded-full focus:outline-none flex items-center justify-center z-50" style="color: #3b82f6; z-index: 50;" title="Attach Document">
+                            <i data-lucide="plus" class="w-5 h-5"></i>
+                        </button>
+                        <input type="text" id="chat-input" class="w-full bg-gray-100 border-transparent focus:bg-white focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-full py-3 pl-10 pr-24 text-sm transition-all" placeholder="Ask Avese something..." onkeypress="if(event.key === 'Enter') sendMessage('teacher')" oninput="toggleInputButtons()">
                         
-                        <div class="absolute right-2 flex items-center gap-1">
-                            <button id="mic-btn" onclick="startDictation()" class="p-2 text-gray-400 hover:text-purple-600 transition-colors rounded-full hover:bg-purple-50" title="Use Microphone">
+                        <div class="absolute right-2 flex items-center gap-1 z-50" style="z-index: 50;">
+                            <button id="mic-btn" onclick="startDictation()" class="p-2 transition-colors rounded-full hover:bg-purple-50" style="color: #3b82f6;" title="Use Microphone">
                                 <i data-lucide="mic" class="w-5 h-5"></i>
                             </button>
                             <button id="send-btn" onclick="sendMessage('teacher')" class="p-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full shadow-md hover:shadow-lg transform transition-all duration-200 opacity-0 scale-0 pointer-events-none" title="Send Message">
@@ -204,6 +231,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
             
         </div>
 
@@ -404,6 +432,24 @@
         } else {
             alert("Your browser does not support speech recognition. Please try Chrome or Safari.");
         }
+        }
+    }
+
+    function handleAiChatFileSelect(input) {
+        const indicator = document.getElementById('ai-chat-file-indicator');
+        const fileNameSpan = document.getElementById('ai-chat-file-name');
+        if (input.files && input.files[0]) {
+            fileNameSpan.textContent = input.files[0].name;
+            indicator.classList.remove('hidden');
+        } else {
+            indicator.classList.add('hidden');
+        }
+    }
+    
+    function clearAiChatFile() {
+        const fileInput = document.getElementById('ai-chat-file-input');
+        fileInput.value = '';
+        document.getElementById('ai-chat-file-indicator').classList.add('hidden');
     }
 
     function sendMessage(role) {
@@ -425,13 +471,30 @@
         toggleInputButtons();
         container.scrollTop = container.scrollHeight;
 
+        
+        const fileInput = document.getElementById('ai-chat-file-input');
+        const file = fileInput.files[0];
+        
+        const formData = new FormData();
+        formData.append('message', message);
+        formData.append('role', role);
+        if (file) {
+            formData.append('file', file);
+            // Append file visual to user message
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'text-xs text-purple-200 mt-1 italic block w-full';
+            fileDiv.innerHTML = `<i data-lucide="paperclip" class="w-3 h-3 inline"></i> Attached: ${file.name}`;
+            userDiv.querySelector('.bg-purple-600').appendChild(fileDiv);
+            lucide.createIcons();
+        }
+        
+        // Clear file input immediately
+        clearAiChatFile();
+
         // Send to API
         fetch('/ai/api/chat/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: message, role: role })
+            body: formData
         })
         .then(response => response.json())
         .then(data => {

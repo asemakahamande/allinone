@@ -1,0 +1,96 @@
+{% extends base_template %}
+{% load static %}
+
+{% block title %}Material: {{ material.title }}{% endblock %}
+
+{% block content %}
+<div class="w-full">
+    <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <a href="{% url 'material_list' %}" class="inline-flex items-center gap-2 text-sm font-medium text-purple-600 hover:text-purple-700 mb-2">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Materials
+            </a>
+            <h2 class="text-2xl font-bold text-slate-800">{{ material.title }}</h2>
+            <div class="flex flex-wrap items-center gap-3 text-sm text-slate-500 mt-1">
+                <span class="inline-flex items-center gap-1.5"><i data-lucide="calendar" class="w-4 h-4"></i> {{ material.created_at|date:"M d, Y" }}</span>
+                <span class="inline-flex items-center gap-1.5"><i data-lucide="user" class="w-4 h-4"></i> {{ material.uploaded_by }}</span>
+                {% if material.page_range %}
+                    <span class="inline-flex items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4"></i> Pages: {{ material.page_range }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            <a href="{{ material.file.url }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg shadow-sm transition">
+                <i data-lucide="download" class="w-4 h-4"></i> Original File
+            </a>
+            <a href="{% url 'material_download_pdf' material.id %}" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow transition">
+                <i data-lucide="printer" class="w-4 h-4"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="p-4 border rounded-xl {% if message.tags == 'success' %}border-emerald-200 bg-emerald-50 text-emerald-800{% else %}border-rose-200 bg-rose-50 text-rose-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Summary Panel -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-5 h-5 text-purple-600"></i>
+                    <h3 class="text-lg font-bold text-slate-800">AI Summary</h3>
+                </div>
+                <form method="post" action="{% url 'material_generate_summary' material.id %}" class="flex items-center" onsubmit="this.querySelector('button').innerHTML='Generating...';">
+                    {% csrf_token %}
+                    <button type="submit" class="text-sm font-medium text-purple-600 hover:text-purple-800 underline">
+                        {% if summary_html %}Regenerate{% else %}Generate Summary{% endif %}
+                    </button>
+                </form>
+            </div>
+            <div class="p-6 prose prose-slate max-w-none flex-1 overflow-y-auto max-h-[600px]">
+                {% if summary_html %}
+                    {{ summary_html|safe }}
+                {% else %}
+                    <p class="text-slate-500 italic">No summary generated.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Questions Panel -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col">
+            <div class="bg-slate-50 px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i>
+                    <h3 class="text-lg font-bold text-slate-800">Generated Questions</h3>
+                </div>
+                <form method="post" action="{% url 'material_generate_questions' material.id %}" class="flex items-center gap-2" onsubmit="this.querySelector('button').innerHTML='Generating...';">
+                    {% csrf_token %}
+                    <select name="question_type" class="text-sm border-slate-300 rounded-md py-1 pl-2 pr-6">
+                        <option value="mixed" selected>Mixed</option>
+                        <option value="mcq">Multiple Choice</option>
+                        <option value="essay">Essay / Short Answer</option>
+                    </select>
+                    <input type="number" name="num_questions" value="10" min="1" max="50" class="text-sm border-slate-300 rounded-md py-1 px-2 w-16" title="Number of Questions">
+                    <button type="submit" class="text-sm font-medium text-blue-600 hover:text-blue-800 underline">
+                        {% if questions_html %}Regenerate{% else %}Generate{% endif %}
+                    </button>
+                </form>
+            </div>
+            <div class="p-6 prose prose-slate max-w-none flex-1 overflow-y-auto max-h-[600px]">
+                {% if questions_html %}
+                    {{ questions_html|safe }}
+                {% else %}
+                    <p class="text-slate-500 italic">No questions generated.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
