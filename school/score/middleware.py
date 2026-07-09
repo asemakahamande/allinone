@@ -62,11 +62,20 @@ class SessionCookiePathMiddleware:
         response = self.get_response(request)
         if self.session_cookie_name not in response.cookies:
             return response
+            
+        morsel = response.cookies[self.session_cookie_name]
+        
+        # If this is a logout (cookie is being deleted), delete all role cookies
+        if not morsel.value:
+            response.delete_cookie(f'{self.session_cookie_name}_teacher')
+            response.delete_cookie(f'{self.session_cookie_name}_student')
+            return response
+
         user_type = request.session.get('user_type')
         role_cookie_name = _session_cookie_name_for_user_type(user_type)
         if role_cookie_name == self.session_cookie_name:
             return response
-        morsel = response.cookies[self.session_cookie_name]
+            
         response.cookies[role_cookie_name] = morsel
         del response.cookies[self.session_cookie_name]
         return response
