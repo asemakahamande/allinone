@@ -53,12 +53,18 @@ def chat_api(request):
             
             # Determine specific context based on session
             context_data = {}
+            school_id = request.session.get('school_id')
+            
             if role == 'parent':
                 student_id = request.session.get('parent_student_id')
                 if student_id:
                     student = Student.objects.get(id=student_id)
                     context_data['student_name'] = student.full_name
                     context_data['school_name'] = student.school.name
+                    school_id = student.school.id # Parents might use parent_student_id instead of direct school_id
+                    
+            if school_id:
+                context_data['school_id'] = school_id
             
             # Simple stateless call for now to integrate quickly
             response_text = process_chat_message(request.user, role, message, context_data=context_data, extracted_text=extracted_text)

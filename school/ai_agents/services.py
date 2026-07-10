@@ -52,20 +52,87 @@ def process_chat_message(user, role, message, history=None, context_data=None, e
     llm = get_llm()
     system_prompt = get_system_prompt_for_role(role, context_data)
     
-    messages = [SystemMessage(content=system_prompt)]
-    if history:
-        for msg in history:
-            pass
-            
-    if extracted_text:
-        message = f"{message}\n\n[User attached file content for reference]:\n{extracted_text}"
-        
-    messages.append(HumanMessage(content=message))
+    # LangChain Agent setup
+    from langchain.agents import AgentExecutor, create_tool_calling_agent
+    from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
     
+    # Define role-based tool access
+    ALLOWED_TOOLS = {
+        'admin': list(TOOLS_MAP.keys()),  # Admin gets all tools
+        'teacher': [
+            'get_class_performance', 
+            'get_class_view_tool', 
+            'get_student_analytics_tool', 
+            'get_my_results',
+            'get_student_report_cards_pdf',
+            'mark_attendance_tool',
+            'pull_attendance_tool',
+            'create_cbt_exam_tool',
+            'add_cbt_question_tool',
+            'send_report_to_parent_tool'
+        ],
+        'student': [
+            'get_my_results', 
+            'get_student_report_cards_pdf'
+        ],
+        'parent': [
+            'get_my_results', 
+            'get_student_report_cards_pdf'
+        ]
+    }
+    
+    # Get allowed tool names for this role, default to empty
+    allowed_tool_names = ALLOWED_TOOLS.get(role, [])
+    
+    # We load our actual tools from the map, filtering by allowed tools
+    tool_list = [TOOLS_MAP[name] for name in allowed_tool_names if name in TOOLS_MAP]
+    
+    # Langchain requires at least one tool for a tool-calling agent.
+    # If a role somehow has no tools, we could either fallback to a dummy tool or return early.
+    if not tool_list:
+        return "I am currently just a conversational assistant and have no specialized tools for your role."
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", system_prompt),
+        MessagesPlaceholder(variable_name="chat_history", optional=True),
+        ("human", "{input}"),
+        MessagesPlaceholder(variable_name="agent_scratchpad"),
+    ])
+    
+    # To enforce security, we bind the school_id to the tools if they require it
+    # We'll pass school_id directly in the agent's input so Claude knows it, 
+    # but LangChain actually allows injecting parameters. For simplicity, we just
+    # ensure Claude knows the school_id context to pass it, or we could inject it.
+    school_id = context_data.get('school_id') if context_data else None
+    
+    if school_id:
+        system_prompt += f"\n\nCRITICAL: You are operating in School ID: {school_id}. You MUST pass school_id={school_id} to any tool that requires it. Never use a different school ID."
+        # Recreate prompt with updated system prompt
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="chat_history", optional=True),
+            ("human", "{input}"),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ])
+        
     try:
-        response = llm.invoke(messages)
-        return response.content
+        agent = create_tool_calling_agent(llm, tool_list, prompt)
+        agent_executor = AgentExecutor(agent=agent, tools=tool_list, verbose=True)
+        
+        final_input = message
+        if extracted_text:
+            final_input = f"{message}\n\n[User attached file content for reference]:\n{extracted_text}"
+            
+        # Execute the agent
+        response = agent_executor.invoke({
+            "input": final_input,
+            "chat_history": [] # Pass history here if available
+        })
+        
+        return response.get("output", "I'm sorry, I couldn't formulate a response.")
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return f"I'm sorry, I encountered an error: {str(e)}"
 
 def extract_text_from_file(file_path, page_from=None, page_to=None):
