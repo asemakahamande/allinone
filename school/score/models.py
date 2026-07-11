@@ -25,6 +25,14 @@ class School(models.Model):
     registration_number = models.CharField(max_length=50, unique=True, blank=True, null=True)
     logo = models.ImageField(upload_to="school_logos/", blank=True, null=True)
 
+    # Subscription Tier
+    TIER_CHOICES = [
+        ('basic', 'Basic'),
+        ('pro', 'Pro'),
+        ('premium', 'Premium'),
+    ]
+    tier_name = models.CharField(max_length=20, choices=TIER_CHOICES, default='basic')
+
     # Admin Info
     admin_name = models.CharField(max_length=255)
     admin_phone = models.CharField(max_length=20)

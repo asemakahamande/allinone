@@ -34,7 +34,7 @@ RENDER_HOST = os.getenv('RENDER_EXTERNAL_HOSTNAME', '')
 ALLOWED_HOSTS = [
     host.strip() for host in os.getenv(
         'ALLOWED_HOSTS',
-        'basic.duediligence.com,www.basic.duediligence.com,pro.duediligence.com,www.pro.duediligence.com,premium.duediligence.com,www.premium.duediligence.com,127.0.0.1,localhost,0.0.0.0'
+        'edubase.duediligence.com,www.edubase.duediligence.com,edusphere.duediligence.com,www.edusphere.duediligence.com,eduhub.duediligence.com,www.eduhub.duediligence.com,127.0.0.1,localhost,0.0.0.0'
     ).split(',')
     if host.strip()
 ]
@@ -61,9 +61,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files
-    'score.middleware.TierDetectionMiddleware',
     'score.middleware.SessionCookieInjectMiddleware',  # Before SessionMiddleware: pick role-specific session cookie
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'score.middleware.TierDetectionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -361,15 +361,15 @@ SESSION_TIMEOUT_WARNING = 300  # 5 minutes before expiry
 # TIER CONFIGURATION
 # ==================================================
 TIER_CONFIG = {
-    'basic.duediligence.com': {
+    'edubase.duediligence.com': {
         'TIER_NAME': 'basic',
         'PIN_PRICE_PER_STUDENT': 200,
     },
-    'pro.duediligence.com': {
+    'edusphere.duediligence.com': {
         'TIER_NAME': 'pro',
         'PIN_PRICE_PER_STUDENT': 500,
     },
-    'premium.duediligence.com': {
+    'eduhub.duediligence.com': {
         'TIER_NAME': 'premium',
         'PIN_PRICE_PER_STUDENT': 1000,
     },

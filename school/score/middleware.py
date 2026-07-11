@@ -185,4 +185,22 @@ class TierDetectionMiddleware:
         request.tier_name = config['TIER_NAME']
         request.pin_price = config['PIN_PRICE_PER_STUDENT']
 
+        # Enforce database tier if user is logged in
+        # (This prevents users on the Basic plan from accessing the Premium domain to get free features)
+        school_id = None
+        if hasattr(request, 'session'):
+            school_id = request.session.get('school_id')
+        
+        if school_id:
+            try:
+                school = School.objects.get(id=school_id)
+                request.tier_name = school.tier_name
+                # Find the price for this database tier from the config
+                for h, c in tier_config.items():
+                    if c.get('TIER_NAME') == school.tier_name:
+                        request.pin_price = c.get('PIN_PRICE_PER_STUDENT', default_price)
+                        break
+            except School.DoesNotExist:
+                pass
+
         return self.get_response(request)

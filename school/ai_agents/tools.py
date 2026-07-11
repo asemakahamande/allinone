@@ -1,16 +1,28 @@
 import json
+
+import threading
+_agent_context = threading.local()
+
+def set_agent_context(school_id):
+    _agent_context.school_id = school_id
+
+def get_secure_school_id(provided_id):
+    actual = getattr(_agent_context, 'school_id', None)
+    return actual if actual else provided_id
+
 from django.urls import reverse
-from score.models import Student, ClassGroup, Score, Timetable, Attendance, Payment, Pin, Term, AcademicSession, Subject, StudentPromotion, GraduationRecord, School, Exam, Question, PublishedResult
+from score.models import Student, ClassGroup, Score, Timetable, Attendance, Payment, Pin, Term, AcademicSession, Subject, StudentPromotion, GraduationRecord, School, Exam, Question, PublishedResult, Assignment, AssignmentSubmission
 from django.db.models import Avg, Sum
 from django.db import transaction
 from django.utils import timezone
-from django.core.mail import EmailMultiAlternatives
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from weasyprint import HTML
 from io import BytesIO
 from score.views import reportcard_view_context, weasyprint_url_fetcher
+from datetime import timedelta
 
 try:
     from langchain_core.tools import tool
@@ -28,6 +40,7 @@ def get_student_report_cards_pdf(admission_number: str, school_id: int) -> str:
     Always requires the school_id to enforce security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         student = Student.objects.get(exam_no=admission_number, school_id=school_id)
         return json.dumps({
             "status": "success",
@@ -45,6 +58,7 @@ def get_my_results(student_id: int, school_id: int) -> str:
     Requires school_id for security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         student = Student.objects.get(id=student_id, school_id=school_id)
         scores = Score.objects.filter(student=student).values('subject__name', 'term__name', 'session__name', 'total')
         return json.dumps({"status": "success", "scores": list(scores)})
@@ -58,6 +72,7 @@ def get_class_performance(class_id: int, school_id: int) -> str:
     Requires school_id for security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         class_group = ClassGroup.objects.get(id=class_id, school_id=school_id)
         scores = Score.objects.filter(student__class_group=class_group).values('subject__name').annotate(average_score=Avg('total'))
         return json.dumps({"status": "success", "class_name": class_group.name, "averages": list(scores)})
@@ -72,6 +87,7 @@ def fetch_billing_receipts(school_id: int, session_name: str = None, term_name: 
     Always strictly isolated to the admin's school_id.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         query = Payment.objects.filter(school_id=school_id, status='paid')
         
         if payment_reference:
@@ -120,6 +136,7 @@ def add_class_tool(name: str, school_id: int) -> str:
     Requires school_id for security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         if ClassGroup.objects.filter(name__iexact=name, school_id=school_id).exists():
             return json.dumps({"status": "error", "message": f"A class named '{name}' already exists in your school."})
         
@@ -139,6 +156,7 @@ def add_subject_tool(name: str, class_group_name: str, school_id: int) -> str:
     Requires school_id for security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         class_group = ClassGroup.objects.filter(name__iexact=class_group_name, school_id=school_id).first()
         if not class_group:
             return json.dumps({"status": "error", "message": f"Could not find a class named '{class_group_name}' in your school."})
@@ -161,6 +179,7 @@ def add_student_tool(surname: str, first_name: str, class_group_name: str, sessi
     Requires school_id for security.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         class_group = ClassGroup.objects.filter(name__iexact=class_group_name, school_id=school_id).first()
         if not class_group:
             return json.dumps({"status": "error", "message": f"Could not find a class named '{class_group_name}' in your school."})
@@ -204,6 +223,7 @@ def get_graduated_students_tool(school_id: int) -> str:
     Retrieves all graduated students for the specified school.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         graduated = Student.objects.filter(school_id=school_id, is_graduated=True).order_by('surname', 'first_name')
         if not graduated.exists():
             return json.dumps({"status": "success", "message": "There are no graduated students in the school yet."})
@@ -225,6 +245,7 @@ def promote_students_tool(from_class_name: str, to_class_name: str, session_name
     WARNING: This is a bulk operation. It automatically advances the whole class.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         from_class = ClassGroup.objects.filter(name__iexact=from_class_name, school_id=school_id).first()
         if not from_class:
             return json.dumps({"status": "error", "message": f"Could not find the 'from' class '{from_class_name}'."})
@@ -267,6 +288,7 @@ def get_class_view_tool(class_name: str, school_id: int) -> str:
     Retrieves the list of active students and the class teacher for a specific class.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
         if not class_group:
             return json.dumps({"status": "error", "message": f"Could not find class '{class_name}'."})
@@ -291,6 +313,7 @@ def get_student_analytics_tool(student_name: str, school_id: int) -> str:
     Retrieves performance analytics (total scores across subjects) for a specific student by name.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         student = Student.objects.filter(surname__icontains=student_name, school_id=school_id).first()
         if not student:
             student = Student.objects.filter(first_name__icontains=student_name, school_id=school_id).first()
@@ -323,6 +346,7 @@ def get_login_credentials_tool(role: str, name: str, school_id: int) -> str:
     name: The name of the student (for student) or the name of the class (for teacher).
     """
     try:
+        school_id = get_secure_school_id(school_id)
         if role.lower() == 'student':
             student = Student.objects.filter(surname__icontains=name, school_id=school_id).first()
             if not student:
@@ -366,6 +390,7 @@ def mark_attendance_tool(student_name: str, date_str: str, status: str, school_i
     """
     from datetime import datetime
     try:
+        school_id = get_secure_school_id(school_id)
         # Validate status
         status = status.lower()
         if status not in ['present', 'absent']:
@@ -408,6 +433,7 @@ def pull_attendance_tool(class_name: str, date_str: str, school_id: int) -> str:
     """
     from datetime import datetime
     try:
+        school_id = get_secure_school_id(school_id)
         # Parse date
         try:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -477,6 +503,7 @@ def create_cbt_exam_tool(title: str, class_name: str, subject_name: str, session
     is_published controls whether students can see it immediately.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
         if not class_group:
             return json.dumps({"status": "error", "message": f"Could not find class '{class_name}'."})
@@ -528,6 +555,7 @@ def add_cbt_question_tool(exam_title: str, question_text: str, option_a: str, op
     correct_answer MUST be exactly one of: 'A', 'B', 'C', 'D'.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         correct_answer = correct_answer.strip().upper()
         if correct_answer not in ['A', 'B', 'C', 'D']:
             return json.dumps({"status": "error", "message": "correct_answer must be A, B, C, or D."})
@@ -562,6 +590,7 @@ def publish_result_tool(term_name: str, session_name: str, publish_scope: str, s
     If 'class', provide class_name. If 'student', provide student_name.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         school = School.objects.get(id=school_id)
         term = Term.objects.filter(name__iexact=term_name).first()
         session = AcademicSession.objects.filter(name__iexact=session_name).first()
@@ -664,6 +693,7 @@ def send_report_to_parent_tool(class_name: str, session_name: str, term_name: st
     Emails PDF report cards to parents for a given class.
     """
     try:
+        school_id = get_secure_school_id(school_id)
         school = School.objects.get(id=school_id)
         term = Term.objects.filter(name__iexact=term_name).first()
         session = AcademicSession.objects.filter(name__iexact=session_name).first()
@@ -721,6 +751,184 @@ def send_report_to_parent_tool(class_name: str, session_name: str, term_name: st
     except Exception as e:
         return json.dumps({"status": "error", "message": str(e)})
 
+@tool
+def check_assignment_submissions_tool(assignment_title: str, class_name: str, school_id: int) -> str:
+    """
+    Checks the assignment records for a particular class to see which students have submitted and which have not.
+    """
+    try:
+        school_id = get_secure_school_id(school_id)
+        class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
+        if not class_group:
+            return json.dumps({"status": "error", "message": f"Class '{class_name}' not found."})
+            
+        assignment = Assignment.objects.filter(title__icontains=assignment_title, class_group=class_group, school_id=school_id).first()
+        if not assignment:
+            return json.dumps({"status": "error", "message": f"Assignment '{assignment_title}' not found for class '{class_name}'."})
+            
+        students = Student.objects.filter(class_group=class_group, is_graduated=False, school_id=school_id)
+        submissions = AssignmentSubmission.objects.filter(assignment=assignment).values_list('student_id', flat=True)
+        
+        submitted_students = []
+        unsubmitted_students = []
+        
+        for student in students:
+            if student.id in submissions:
+                submitted_students.append(student.full_name)
+            else:
+                unsubmitted_students.append(student.full_name)
+                
+        return json.dumps({
+            "status": "success",
+            "assignment_title": assignment.title,
+            "deadline": assignment.deadline.strftime("%Y-%m-%d %H:%M:%S"),
+            "submitted_count": len(submitted_students),
+            "unsubmitted_count": len(unsubmitted_students),
+            "submitted_students": submitted_students,
+            "unsubmitted_students": unsubmitted_students
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)})
+
+@tool
+def check_and_send_assignment_deadline_reminders_tool(class_name: str, school_id: int) -> str:
+    """
+    Checks for assignments in a class that are due within the next 24 hours and sends an email reminder to parents of students who haven't submitted.
+    """
+    try:
+        school_id = get_secure_school_id(school_id)
+        class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
+        if not class_group:
+            return json.dumps({"status": "error", "message": f"Class '{class_name}' not found."})
+            
+        now = timezone.now()
+        upcoming_deadline = now + timedelta(hours=24)
+        
+        assignments = Assignment.objects.filter(
+            class_group=class_group, 
+            school_id=school_id, 
+            deadline__gt=now, 
+            deadline__lte=upcoming_deadline
+        )
+        
+        if not assignments.exists():
+            return json.dumps({"status": "success", "message": "No assignments due within the next 24 hours for this class."})
+            
+        students = Student.objects.filter(class_group=class_group, is_graduated=False, school_id=school_id)
+        
+        emails_sent = 0
+        failed_emails = 0
+        reminded_students = []
+        
+        for assignment in assignments:
+            submissions = AssignmentSubmission.objects.filter(assignment=assignment).values_list('student_id', flat=True)
+            
+            for student in students:
+                if student.id not in submissions and student.parent_email:
+                    subject = f"URGENT: Assignment Due Soon for {student.full_name}"
+                    message = f"Dear Parent,\n\nThis is a reminder that {student.full_name} has an assignment '{assignment.title}' for the subject {assignment.subject.name} due on {assignment.deadline.strftime('%Y-%m-%d %H:%M:%S')}.\n\nPlease ensure it is completed and submitted on time.\n\nThank you."
+                    
+                    try:
+                        send_mail(
+                            subject,
+                            message,
+                            settings.DEFAULT_FROM_EMAIL,
+                            [student.parent_email],
+                            fail_silently=False,
+                        )
+                        emails_sent += 1
+                        reminded_students.append(student.full_name)
+                    except Exception as e:
+                        failed_emails += 1
+                        
+        return json.dumps({
+            "status": "success",
+            "message": f"Sent {emails_sent} reminders for upcoming assignments. {failed_emails} failed.",
+            "assignments_found": [a.title for a in assignments],
+            "reminded_students": list(set(reminded_students))
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)})
+
+@tool
+def get_assignment_submission_answers_tool(assignment_title: str, student_name: str, class_name: str, school_id: int) -> str:
+    """
+    Retrieves the answers submitted by a student for a specific assignment, so they can be marked.
+    """
+    try:
+        school_id = get_secure_school_id(school_id)
+        class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
+        if not class_group:
+            return json.dumps({"status": "error", "message": f"Class '{class_name}' not found."})
+            
+        assignment = Assignment.objects.filter(title__icontains=assignment_title, class_group=class_group, school_id=school_id).first()
+        if not assignment:
+            return json.dumps({"status": "error", "message": f"Assignment '{assignment_title}' not found for class '{class_name}'."})
+            
+        student = Student.objects.filter(surname__icontains=student_name, class_group=class_group, school_id=school_id).first()
+        if not student:
+            student = Student.objects.filter(first_name__icontains=student_name, class_group=class_group, school_id=school_id).first()
+            
+        if not student:
+            return json.dumps({"status": "error", "message": f"Student '{student_name}' not found in class '{class_name}'."})
+            
+        submission = AssignmentSubmission.objects.filter(assignment=assignment, student=student).first()
+        if not submission:
+            return json.dumps({"status": "error", "message": f"No submission found for student '{student.full_name}' on assignment '{assignment.title}'."})
+            
+        return json.dumps({
+            "status": "success",
+            "assignment_title": assignment.title,
+            "questions": assignment.questions,
+            "total_marks": assignment.total_marks,
+            "student": student.full_name,
+            "answers": submission.answers,
+            "current_score": submission.score,
+            "current_status": submission.status
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)})
+
+@tool
+def grade_assignment_submission_tool(assignment_title: str, student_name: str, score: float, class_name: str, school_id: int) -> str:
+    """
+    Grades an assignment submission for a specific student.
+    Sets the score, updates the status to 'graded', and records the grading time.
+    """
+    try:
+        school_id = get_secure_school_id(school_id)
+        class_group = ClassGroup.objects.filter(name__iexact=class_name, school_id=school_id).first()
+        if not class_group:
+            return json.dumps({"status": "error", "message": f"Class '{class_name}' not found."})
+            
+        assignment = Assignment.objects.filter(title__icontains=assignment_title, class_group=class_group, school_id=school_id).first()
+        if not assignment:
+            return json.dumps({"status": "error", "message": f"Assignment '{assignment_title}' not found for class '{class_name}'."})
+            
+        student = Student.objects.filter(surname__icontains=student_name, class_group=class_group, school_id=school_id).first()
+        if not student:
+            student = Student.objects.filter(first_name__icontains=student_name, class_group=class_group, school_id=school_id).first()
+            
+        if not student:
+            return json.dumps({"status": "error", "message": f"Student '{student_name}' not found in class '{class_name}'."})
+            
+        submission = AssignmentSubmission.objects.filter(assignment=assignment, student=student).first()
+        if not submission:
+            return json.dumps({"status": "error", "message": f"No submission found for student '{student.full_name}' on assignment '{assignment.title}'."})
+            
+        submission.score = score
+        submission.status = 'graded'
+        from django.utils import timezone
+        submission.graded_at = timezone.now()
+        submission.save()
+        
+        return json.dumps({
+            "status": "success",
+            "message": f"Successfully graded assignment '{assignment.title}' for '{student.full_name}'. Score: {score}/{assignment.total_marks}"
+        })
+    except Exception as e:
+        return json.dumps({"status": "error", "message": str(e)})
+
 # Mapping tool names to functions for the LangChain agent
 TOOLS_MAP = {
     "get_student_report_cards_pdf": get_student_report_cards_pdf,
@@ -741,4 +949,8 @@ TOOLS_MAP = {
     "add_cbt_question_tool": add_cbt_question_tool,
     "publish_result_tool": publish_result_tool,
     "send_report_to_parent_tool": send_report_to_parent_tool,
+    "check_assignment_submissions_tool": check_assignment_submissions_tool,
+    "check_and_send_assignment_deadline_reminders_tool": check_and_send_assignment_deadline_reminders_tool,
+    "get_assignment_submission_answers_tool": get_assignment_submission_answers_tool,
+    "grade_assignment_submission_tool": grade_assignment_submission_tool,
 }

@@ -31,7 +31,7 @@ def get_system_prompt_for_role(role, context_data=None):
     base_identity = "Your name is Avese, a female AI assistant. "
     
     if role == 'student':
-        return base_identity + "You are a friendly, encouraging academic tutor for a student. You explain concepts clearly without giving direct answers to exam questions. You have access to database tools to check their grades and attendance."
+        return base_identity + "You are a friendly, encouraging academic tutor for a student. You explain concepts clearly without giving direct answers to exam questions. Your main goal is to help them in their learning processes."
     elif role == 'teacher':
         return base_identity + "You are a helpful teaching assistant. You assist class and subject teachers with grading, brainstorming lesson plans, and writing report card comments. You have tools to check class performance."
     elif role == 'admin':
@@ -69,16 +69,14 @@ def process_chat_message(user, role, message, history=None, context_data=None, e
             'pull_attendance_tool',
             'create_cbt_exam_tool',
             'add_cbt_question_tool',
-            'send_report_to_parent_tool'
+            'send_report_to_parent_tool',
+            'check_assignment_submissions_tool',
+            'check_and_send_assignment_deadline_reminders_tool',
+            'get_assignment_submission_answers_tool',
+            'grade_assignment_submission_tool'
         ],
-        'student': [
-            'get_my_results', 
-            'get_student_report_cards_pdf'
-        ],
-        'parent': [
-            'get_my_results', 
-            'get_student_report_cards_pdf'
-        ]
+        'student': [], # Purely conversational for learning processes
+        'parent': [] # Purely conversational for parent guidance
     }
     
     # Get allowed tool names for this role, default to empty
@@ -87,10 +85,23 @@ def process_chat_message(user, role, message, history=None, context_data=None, e
     # We load our actual tools from the map, filtering by allowed tools
     tool_list = [TOOLS_MAP[name] for name in allowed_tool_names if name in TOOLS_MAP]
     
-    # Langchain requires at least one tool for a tool-calling agent.
-    # If a role somehow has no tools, we could either fallback to a dummy tool or return early.
+    final_input = message
+    if extracted_text:
+        final_input = f"{message}\n\n[User attached file content for reference]:\n{extracted_text}"
+        
+    # If a role has no tools, we just use the LLM directly
     if not tool_list:
-        return "I am currently just a conversational assistant and have no specialized tools for your role."
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=final_input)
+        ]
+        try:
+            response = llm.invoke(messages)
+            return response.content
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return f"I'm sorry, I encountered an error: {str(e)}"
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
@@ -99,13 +110,14 @@ def process_chat_message(user, role, message, history=None, context_data=None, e
         MessagesPlaceholder(variable_name="agent_scratchpad"),
     ])
     
-    # To enforce security, we bind the school_id to the tools if they require it
-    # We'll pass school_id directly in the agent's input so Claude knows it, 
-    # but LangChain actually allows injecting parameters. For simplicity, we just
-    # ensure Claude knows the school_id context to pass it, or we could inject it.
     school_id = context_data.get('school_id') if context_data else None
     
+    if not school_id and tool_list:
+        return "Security Error: Missing school context. Cannot execute tools."
+        
+    from .tools import set_agent_context
     if school_id:
+        set_agent_context(school_id)
         system_prompt += f"\n\nCRITICAL: You are operating in School ID: {school_id}. You MUST pass school_id={school_id} to any tool that requires it. Never use a different school ID."
         # Recreate prompt with updated system prompt
         prompt = ChatPromptTemplate.from_messages([
